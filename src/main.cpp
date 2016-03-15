@@ -24,6 +24,10 @@
 #include <utility>
 #include <cstdlib>
 
+#ifdef __unix__
+#include <unistd.h>
+#endif
+
 #include <clang/Frontend/FrontendActions.h>
 #include <clang/Tooling/Refactoring.h>
 #include <clang/Tooling/CompilationDatabase.h>
@@ -41,19 +45,21 @@ using namespace clang;
 using namespace clang::tooling;
 using namespace llvm;
 
-static cl::OptionCategory refactoring_options("rf options");
+// static cl::OptionCategory refactoring_options("rf options");
 // static cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
 
 static cl::list<std::string> record_vec (
     "record", 
-    cl::desc("Refactor a struct or a class"),
-    cl::value_desc("victim=repl")
+    cl::desc("Refactor a struct or a class name"),
+    cl::value_desc("victim=repl"),
+    cl::CommaSeparated
 );
 
 static cl::list<std::string> function_vec (
     "function",
-    cl::desc("Refactor a function or class method"),
-    cl::value_desc("victim=repl")
+    cl::desc("Refactor a function or class method name"),
+    cl::value_desc("victim=repl"),
+    cl::CommaSeparated
 );
 
 static cl::opt<std::string> comp_db_path(
@@ -101,6 +107,13 @@ void add_refactorers(const std::vector<std::string> &args,
 
 int main(int argc, const char **argv) 
 {
+#ifdef __unix__
+    if (getuid() == 0) {
+        std::cerr << "** ERROR: running on root privileges - aborting...\n";
+        std::exit(EXIT_FAILURE);
+    }
+#endif
+    
     cl::ParseCommandLineOptions(argc, argv, "");
     
     auto rf_vec = std::vector<std::unique_ptr<refactorer>>();
