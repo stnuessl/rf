@@ -48,6 +48,8 @@ void refactorer::set_victim(const std::string &str)
      * "namespace::name". However, not the full qualified name needs
      * a replacement but the last part of the qualifier (here: "name").
      * Thus we need to know the size of that part.
+     * '_repl_size' can be thought of as something like
+     *      sizeof("namespace::name") - sizeof("namespace::")
      */
     _victim = str;
     _repl_size = _victim.size();
@@ -65,9 +67,9 @@ void refactorer::set_repl_str(const std::string &str)
      */
     auto i = str.rfind("::");
     if (i != std::string::npos)
-        _repl_str = str;
-    else
         _repl_str = str.substr(i + sizeof("::") - 1);
+    else
+        _repl_str = str;
 }
 
 void refactorer::set_replacements(clang::tooling::Replacements *repls)
@@ -85,6 +87,7 @@ void refactorer::add_replacement(const match_result &result,
 {
     add_replacement(*result.SourceManager, loc);
 }
+
 
 void refactorer::add_replacement(const clang::SourceManager &sm, 
                                  const clang::SourceLocation &loc)

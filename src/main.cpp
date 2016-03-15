@@ -48,24 +48,30 @@ using namespace llvm;
 // static cl::OptionCategory refactoring_options("rf options");
 // static cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
 
-static cl::list<std::string> record_vec (
+static cl::list<std::string> record_vec(
     "record", 
-    cl::desc("Refactor a struct or a class name"),
+    cl::desc("Refactor a struct or a class name."),
     cl::value_desc("victim=repl"),
     cl::CommaSeparated
 );
 
-static cl::list<std::string> function_vec (
+static cl::list<std::string> function_vec(
     "function",
-    cl::desc("Refactor a function or class method name"),
+    cl::desc("Refactor a function or class method name."),
     cl::value_desc("victim=repl"),
     cl::CommaSeparated
 );
 
 static cl::opt<std::string> comp_db_path(
     "comp-db",
-    cl::desc("Specify the <path> to the compilation database"),
+    cl::desc("Specify the <path> to the compilation database."),
     cl::value_desc("path")
+);
+
+static cl::opt<bool> dry_run(
+    "dry-run",
+    cl::desc("do not make any changes at all. Useful for debugging."),
+    cl::init(false)
 );
 
 
@@ -96,7 +102,7 @@ void add_refactorers(const std::vector<std::string> &args,
         
         auto victim = x.substr(0, pos);
         auto repl_str = x.substr(pos + sizeof(char));
-        
+
         auto rf = std::make_unique<T>();
         rf->set_victim(std::move(victim));
         rf->set_repl_str(std::move(repl_str));
@@ -131,12 +137,17 @@ int main(int argc, const char **argv)
     auto tool = RefactoringTool(*comp_db, comp_db->getAllFiles());
 
     for (auto &x : rf_vec) {
+        int err;
+        
         x->set_replacements(&tool.getReplacements());
         
         auto action = newFrontendActionFactory(x->match_finder());
         
-        int err = tool.run(action.get());
-//         int err = tool.runAndSave(action.get());
+        if (dry_run)
+            err = tool.run(action.get());
+        else
+            err = tool.runAndSave(action.get());
+        
         if (err != 0) {
             std::cerr << "** CRITICAL: a refactoring run failed - source files "
                       << "may be corrupted" << std::endl;
@@ -144,10 +155,11 @@ int main(int argc, const char **argv)
         }
     }
 
-    llvm::outs() << "Replacements collected by the tool:\n";
-    for (auto &r : tool.getReplacements()) {
-        llvm::outs() << r.toString() << "\n";
-    }
+        
+//     llvm::outs() << "Replacements collected by the tool:\n";
+//     for (auto &r : tool.getReplacements()) {
+//         llvm::outs() << r.toString() << "\n";
+//     }
     
     return 0;
 }

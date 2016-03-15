@@ -27,15 +27,15 @@ record_refactorer::record_refactorer()
 {
     using namespace clang::ast_matchers;
     
-    auto rdecl = recordDecl().bind("rdecl");
-    auto vdecl = varDecl().bind("vdecl");
-    auto fdecl = functionDecl().bind("fdecl");
-    auto tdecl = temporaryObjectExpr().bind("texpr");
+    auto record_decl = recordDecl().bind("rdecl");
+    auto var_decl = varDecl().bind("vdecl");
+    auto func_decl = functionDecl().bind("fdecl");
+    auto temp_obj_expr = temporaryObjectExpr().bind("texpr");
     
-    _finder.addMatcher(rdecl, this);
-    _finder.addMatcher(vdecl, this);
-    _finder.addMatcher(fdecl, this);
-    _finder.addMatcher(tdecl, this);
+    _finder.addMatcher(record_decl, this);
+    _finder.addMatcher(var_decl, this);
+    _finder.addMatcher(func_decl, this);
+    _finder.addMatcher(temp_obj_expr, this);
 }
 
 void record_refactorer::run(const match_result &result)
@@ -85,7 +85,15 @@ void record_refactorer::run_var_decl(const match_result &result)
      */
     
     auto decl = result.Nodes.getNodeAs<clang::VarDecl>("vdecl");
-    if (!decl || !is_victim(decl))
+    if (!decl)
+        return;
+    
+    auto var_template_decl = decl->getDescribedVarTemplate();
+    
+    if (var_template_decl)
+        var_template_decl->dump();
+    
+    if (!is_victim(decl))
         return;
     
     auto info = decl->getTypeSourceInfo();
@@ -107,6 +115,7 @@ void record_refactorer::run_function_decl(const match_result &result)
     
     add_replacement(result, range.getEnd());
 }
+
 
 void record_refactorer::run_cxx_temp_object_expr(const match_result &result)
 {
