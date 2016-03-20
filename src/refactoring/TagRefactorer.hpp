@@ -18,17 +18,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _FUNCTION_REFACTORER_HPP_
-#define _FUNCTION_REFACTORER_HPP_
+#ifndef _TAGREFACTORER_HPP_
+#define _TAGREFACTORER_HPP_
 
-#include <refactoring/refactorer.hpp>
+#include <refactoring/Refactorer.hpp>
 
-class function_refactorer : public refactorer {
+class TagRefactorer : public Refactorer {
 public:
-    function_refactorer();
+    TagRefactorer();
     
-    virtual void run(const match_result &result) override;
+    virtual void run(const MatchResult &Result) override;
 private:
+    void runTagDecl(const MatchResult &Result);
+    void runTypeLoc(const MatchResult &Result);
+    
+    bool isVictim(const clang::TagDecl *TagDecl);
+    
+    const clang::TagDecl *_VictimDecl;
 };
 
-#endif /* _FUNCTION_REFACTORER_HPP_ */
+
+#endif /* _TAGREFACTORER_HPP_ */

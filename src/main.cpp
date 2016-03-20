@@ -36,8 +36,7 @@
 #include <llvm/Support/CommandLine.h>
 
 
-#include <refactoring/record_refactorer.hpp>
-#include <refactoring/function_refactorer.hpp>
+#include <refactoring/TagRefactorer.hpp>
 #include <util/memory.hpp>
 
 
@@ -48,66 +47,77 @@ using namespace llvm;
 // static cl::OptionCategory refactoring_options("rf options");
 // static cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
 
-static cl::list<std::string> record_vec(
-    "record", 
-    cl::desc("Refactor a struct or a class name."),
+static cl::list<std::string> TagVec(
+    "tag", 
+    cl::desc("Refactor a enumeration, structure, or class name."),
     cl::value_desc("victim=repl"),
     cl::CommaSeparated
 );
 
-static cl::list<std::string> function_vec(
+static cl::list<std::string> FunctionVec(
     "function",
     cl::desc("Refactor a function or class method name."),
     cl::value_desc("victim=repl"),
     cl::CommaSeparated
 );
 
-static cl::opt<std::string> comp_db_path(
+static cl::opt<std::string> CompDBPath (
     "comp-db",
     cl::desc("Specify the <path> to the compilation database."),
     cl::value_desc("path")
 );
 
-static cl::opt<bool> dry_run(
+static cl::opt<bool> DryRun(
     "dry-run",
-    cl::desc("do not make any changes at all. Useful for debugging."),
+    cl::desc("Do not make any changes at all. Useful for debugging."),
     cl::init(false)
 );
 
+static cl::opt<bool> Verbose(
+    "verbose",
+    cl::desc("Increase verbosity."),
+    cl::init(false)
+);
+
+static cl::opt<bool> SyntaxOnly(
+    "syntax-only",
+    cl::desc("Do not make any changes and perform just syntax check."),
+    cl::init(false)
+);
 
 static std::unique_ptr<CompilationDatabase> 
-compilation_database(const std::string &path, std::string &err_msg)
+makeCompilationDatabase(const std::string &Path, std::string &ErrMsg)
 {
-    if (!path.empty())
-        return JSONCompilationDatabase::loadFromFile(path, err_msg);
+    if (!Path.empty())
+        return JSONCompilationDatabase::loadFromFile(Path, ErrMsg);
     
-    const char *cwd = std::getenv("PWD");
-    if (!cwd)
-        cwd = "./";
+    const char *WorkDir = std::getenv("PWD");
+    if (!WorkDir)
+        WorkDir = "./";
     
-    return CompilationDatabase::autoDetectFromDirectory(cwd, err_msg);
+    return CompilationDatabase::autoDetectFromDirectory(WorkDir, ErrMsg);
 }
 
 template<typename T>
-void add_refactorers(const std::vector<std::string> &args, 
-                     std::vector<std::unique_ptr<refactorer>> &rf_vec)
+void addRefactorers(const std::vector<std::string> &ArgVec, 
+                    std::vector<std::unique_ptr<Refactorer>> &RefactorerVec)
 {
-    for (const auto &x : args) {
-        auto pos = x.find('=');
-        if (pos == std::string::npos) {
-            std::cerr << "** ERROR: invalid argument '" << x << "' - have a "
+    for (const auto &Str : ArgVec) {
+        auto Pos = Str.find('=');
+        if (Pos == std::string::npos) {
+            std::cerr << "** ERROR: invalid argument '" << Str << "' - have a "
                       << "look at the help message" << std::endl;
             std::exit(EXIT_FAILURE);
         }
         
-        auto victim = x.substr(0, pos);
-        auto repl_str = x.substr(pos + sizeof(char));
+        auto VictimName = Str.substr(0, Pos);
+        auto ReplName = Str.substr(Pos + sizeof(char));
 
-        auto rf = std::make_unique<T>();
-        rf->set_victim(std::move(victim));
-        rf->set_repl_str(std::move(repl_str));
+        auto Refactorer = std::make_unique<T>();
+        Refactorer->setVictimName(std::move(VictimName));
+        Refactorer->setReplacementName(std::move(ReplName));
         
-        rf_vec.push_back(std::move(rf));
+        RefactorerVec.push_back(std::move(Refactorer));
     }
 }
 
@@ -122,31 +132,41 @@ int main(int argc, const char **argv)
     
     cl::ParseCommandLineOptions(argc, argv, "");
     
-    auto rf_vec = std::vector<std::unique_ptr<refactorer>>();
+    auto RefactorerVec = std::vector<std::unique_ptr<Refactorer>>();
     
-    add_refactorers<record_refactorer>(record_vec, rf_vec);
-    add_refactorers<function_refactorer>(function_vec, rf_vec);
+    addRefactorers<TagRefactorer>(TagVec, RefactorerVec);
     
-    auto err_msg = std::string();
-    auto comp_db = compilation_database(comp_db_path, err_msg);
-    if (!comp_db) {
-        std::cerr << "** ERROR: " << err_msg << std::endl;
+    auto ErrMsg = std::string();
+    auto CompilationDB = makeCompilationDatabase(CompDBPath, ErrMsg);
+    if (!CompilationDB) {
+        std::cerr << "** ERROR: " << ErrMsg << std::endl;
         std::exit(EXIT_FAILURE);
     }
     
-    auto tool = RefactoringTool(*comp_db, comp_db->getAllFiles());
+    auto SourceFiles = CompilationDB->getAllFiles();
+    
+    if (SyntaxOnly) {
+        auto Action = newFrontendActionFactory<clang::SyntaxOnlyAction>();
+        
+        ClangTool(*CompilationDB, SourceFiles).run(Action.get());
+        
+        std::exit(EXIT_SUCCESS);
+    }
+    
+    auto Tool = RefactoringTool(*CompilationDB, SourceFiles);
 
-    for (auto &x : rf_vec) {
+    for (auto &Refactorer : RefactorerVec) {
         int err;
         
-        x->set_replacements(&tool.getReplacements());
+        Refactorer->setReplacementSet(&Tool.getReplacements());
+        Refactorer->setVerbose(Verbose);
         
-        auto action = newFrontendActionFactory(x->match_finder());
+        auto Action = newFrontendActionFactory(Refactorer->matchFinder());
         
-        if (dry_run)
-            err = tool.run(action.get());
+        if (DryRun)
+            err = Tool.run(Action.get());
         else
-            err = tool.runAndSave(action.get());
+            err = Tool.runAndSave(Action.get());
         
         if (err != 0) {
             std::cerr << "** CRITICAL: a refactoring run failed - source files "
@@ -154,12 +174,6 @@ int main(int argc, const char **argv)
             std::exit(EXIT_FAILURE);
         }
     }
-
-        
-//     llvm::outs() << "Replacements collected by the tool:\n";
-//     for (auto &r : tool.getReplacements()) {
-//         llvm::outs() << r.toString() << "\n";
-//     }
     
     return 0;
 }
