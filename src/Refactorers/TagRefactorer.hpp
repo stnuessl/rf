@@ -29,7 +29,8 @@ public:
     
     virtual void run(const MatchResult &Result) override;
 private:
-    void runTagDecl(const MatchResult &Result);
+    void runRecordDecl(const MatchResult &Result);
+    void runEnumDecl(const MatchResult &Result);
     void runTypeLoc(const MatchResult &Result);
     void runCXXMethodDecl(const MatchResult &Result);
     

@@ -150,9 +150,9 @@ int main(int argc, const char **argv)
     if (SyntaxOnly) {
         auto Action = newFrontendActionFactory<clang::SyntaxOnlyAction>();
         
-        ClangTool(*CompilationDB, SourceFiles).run(Action.get());
+        int err = ClangTool(*CompilationDB, SourceFiles).run(Action.get());
         
-        std::exit(EXIT_SUCCESS);
+        std::exit((err == 0) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
     
     auto Tool = RefactoringTool(*CompilationDB, SourceFiles);

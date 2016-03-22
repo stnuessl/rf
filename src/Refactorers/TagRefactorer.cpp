@@ -25,45 +25,46 @@ TagRefactorer::TagRefactorer()
 {
     using namespace clang::ast_matchers;
     
-    auto TagDeclMatcher = recordDecl().bind("RecordDecl");
+    /* 
+     * Could not find a 'TagDeclMatcher' 
+     *      -> handle Records and Enums explicitly
+     */
+    
+    auto RecordDeclMatcher = recordDecl().bind("RecordDecl");
+    auto EnumDeclMatcher = enumDecl().bind("EnumDecl");
     auto TypeLocMatcher = typeLoc().bind("TypeLoc");
     auto CXXMethodDecl = methodDecl().bind("CXXMethodDecl");
     
-    _Finder.addMatcher(TagDeclMatcher, this);
+    _Finder.addMatcher(RecordDeclMatcher, this);
+    _Finder.addMatcher(EnumDeclMatcher, this);
     _Finder.addMatcher(TypeLocMatcher, this);
     _Finder.addMatcher(CXXMethodDecl, this);
 }
 
 void TagRefactorer::run(const MatchResult &Result)
 {
-    runTagDecl(Result);
+    runRecordDecl(Result);
+    runEnumDecl(Result);
     runTypeLoc(Result);
     runCXXMethodDecl(Result);
 }
 
-void TagRefactorer::runTagDecl(const MatchResult &Result)
+void TagRefactorer::runRecordDecl(const MatchResult &Result)
 {
     auto RecordDecl = Result.Nodes.getNodeAs<clang::RecordDecl>("RecordDecl");
     if (!RecordDecl || !isVictim(RecordDecl))
         return;
     
     addReplacement(Result, RecordDecl->getLocation());
+}
+
+void TagRefactorer::runEnumDecl(const MatchResult &Result)
+{
+    auto EnumDecl = Result.Nodes.getNodeAs<clang::EnumDecl>("EnumDecl");
+    if (!EnumDecl || !isVictim(EnumDecl))
+        return;
     
-//     auto CXXRecordDecl = clang::dyn_cast<clang::CXXRecordDecl>(RecordDecl);
-//     if (!CXXRecordDecl)
-//         return;
-//     
-//     for (const auto &X : CXXRecordDecl->ctors())
-//         addReplacement(Result, X->getLocation());
-//     
-//     if (!CXXRecordDecl->hasUserDeclaredDestructor())
-//         return;
-//     
-//     /* Keep the '~' for the destructor and just change the name */
-//     auto DestDecl = CXXRecordDecl->getDestructor();
-//     auto Loc = DestDecl->getLocation().getLocWithOffset(1);
-//     
-//     addReplacement(Result, Loc);
+    addReplacement(Result, EnumDecl->getLocation());
 }
 
 void TagRefactorer::runTypeLoc(const MatchResult &Result)
