@@ -18,49 +18,52 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <refactoring/TagRefactorer.hpp>
+#include <Refactorers/TagRefactorer.hpp>
 
 TagRefactorer::TagRefactorer()
     : _VictimDecl(nullptr)
 {
     using namespace clang::ast_matchers;
     
-    auto TagDeclMatcher = recordDecl().bind("TagDecl");
+    auto TagDeclMatcher = recordDecl().bind("RecordDecl");
     auto TypeLocMatcher = typeLoc().bind("TypeLoc");
+    auto CXXMethodDecl = methodDecl().bind("CXXMethodDecl");
     
     _Finder.addMatcher(TagDeclMatcher, this);
     _Finder.addMatcher(TypeLocMatcher, this);
+    _Finder.addMatcher(CXXMethodDecl, this);
 }
 
 void TagRefactorer::run(const MatchResult &Result)
 {
     runTagDecl(Result);
     runTypeLoc(Result);
+    runCXXMethodDecl(Result);
 }
 
 void TagRefactorer::runTagDecl(const MatchResult &Result)
 {
-    auto TagDecl = Result.Nodes.getNodeAs<clang::RecordDecl>("TagDecl");
-    if (!TagDecl || !isVictim(TagDecl))
+    auto RecordDecl = Result.Nodes.getNodeAs<clang::RecordDecl>("RecordDecl");
+    if (!RecordDecl || !isVictim(RecordDecl))
         return;
     
-    addReplacement(Result, TagDecl->getLocation());
+    addReplacement(Result, RecordDecl->getLocation());
     
-    auto CXXRecordDecl = clang::dyn_cast<clang::CXXRecordDecl>(TagDecl);
-    if (!CXXRecordDecl)
-        return;
-    
-    for (const auto &X : CXXRecordDecl->ctors())
-        addReplacement(Result, X->getLocation());
-    
-    if (!CXXRecordDecl->hasUserDeclaredDestructor())
-        return;
-    
-    /* Keep the '~' for the destructor and just change the name */
-    auto DestDecl = CXXRecordDecl->getDestructor();
-    auto Loc = DestDecl->getLocation().getLocWithOffset(1);
-    
-    addReplacement(Result, Loc);
+//     auto CXXRecordDecl = clang::dyn_cast<clang::CXXRecordDecl>(RecordDecl);
+//     if (!CXXRecordDecl)
+//         return;
+//     
+//     for (const auto &X : CXXRecordDecl->ctors())
+//         addReplacement(Result, X->getLocation());
+//     
+//     if (!CXXRecordDecl->hasUserDeclaredDestructor())
+//         return;
+//     
+//     /* Keep the '~' for the destructor and just change the name */
+//     auto DestDecl = CXXRecordDecl->getDestructor();
+//     auto Loc = DestDecl->getLocation().getLocWithOffset(1);
+//     
+//     addReplacement(Result, Loc);
 }
 
 void TagRefactorer::runTypeLoc(const MatchResult &Result)
@@ -91,7 +94,7 @@ void TagRefactorer::runTypeLoc(const MatchResult &Result)
     
     auto LocStart = TypeLoc->getUnqualifiedLoc().getLocStart();
     auto LocEnd = LocStart.getLocWithOffset(_ReplSize);
-    
+
     auto &SM = *Result.SourceManager;
     
     if (SM.isInSystemHeader(LocStart) || !SM.isLocalSourceLocation(LocStart))
@@ -113,8 +116,23 @@ void TagRefactorer::runTypeLoc(const MatchResult &Result)
     /* Skip qualifiers in the victim name */
     if (!std::equal(Begin, End, _Victim.end() - _ReplSize))
         return;
-    
+
     addReplacement(Result, LocStart);
+}
+
+void TagRefactorer::runCXXMethodDecl(const MatchResult &Result)
+{
+    auto Decl = Result.Nodes.getNodeAs<clang::CXXMethodDecl>("CXXMethodDecl");
+    if (!Decl || !isVictim(Decl->getParent()))
+        return;
+    
+    auto CXXConstructorDecl = clang::dyn_cast<clang::CXXConstructorDecl>(Decl);
+    if (CXXConstructorDecl)
+        addReplacement(Result, CXXConstructorDecl->getNameInfo().getLoc());
+    
+    auto CXXDestructorDecl = clang::dyn_cast<clang::CXXDestructorDecl>(Decl);
+    if (CXXDestructorDecl)
+        addReplacement(Result, CXXDestructorDecl->getNameInfo().getLoc());
 }
 
 bool TagRefactorer::isVictim(const clang::TagDecl *TagDecl)
@@ -130,7 +148,4 @@ bool TagRefactorer::isVictim(const clang::TagDecl *TagDecl)
         _VictimDecl = TagDecl;
     
     return Match;
-#if 0
-    return  _Victim == qualifiedName(TagDecl);
-#endif
 }

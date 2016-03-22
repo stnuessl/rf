@@ -21,7 +21,7 @@
 #ifndef _TAGREFACTORER_HPP_
 #define _TAGREFACTORER_HPP_
 
-#include <refactoring/Refactorer.hpp>
+#include <Refactorers/Refactorer.hpp>
 
 class TagRefactorer : public Refactorer {
 public:
@@ -31,6 +31,7 @@ public:
 private:
     void runTagDecl(const MatchResult &Result);
     void runTypeLoc(const MatchResult &Result);
+    void runCXXMethodDecl(const MatchResult &Result);
     
     bool isVictim(const clang::TagDecl *TagDecl);
     

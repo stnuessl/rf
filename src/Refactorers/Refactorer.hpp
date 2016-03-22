@@ -18,13 +18,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _REFACTORER_HPP_
+#define _REFACTORER_HPP_
+
 #include <string>
 
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/Tooling/Refactoring.h>
-
-#ifndef _REFACTORER_HPP_
-#define _REFACTORER_HPP_
 
 class Refactorer : public clang::ast_matchers::MatchFinder::MatchCallback {
 public:

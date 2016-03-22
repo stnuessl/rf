@@ -20,8 +20,9 @@
 
 #include <algorithm>
 #include <utility>
+#include <cctype>
 
-#include <refactoring/Refactorer.hpp>
+#include <Refactorers/Refactorer.hpp>
 
 static void rCopy(std::string &Str, const clang::StringRef &Ref)
 {
@@ -29,6 +30,29 @@ static void rCopy(std::string &Str, const clang::StringRef &Ref)
     
     while (n--)
         Str += Ref[n];
+}
+
+static void exitIfInvalidName(const std::string &Str)
+{
+    auto it = Str.begin();
+    auto end = Str.end();
+    
+    if (it == end)
+        goto fail;
+    
+    if (!std::isalpha(*it) && *it != '_')
+        goto fail;
+    
+    while (++it != end) {
+        if (!std::isalnum(*it) && *it != '_')
+            goto fail;
+    }
+    
+    return;
+    
+fail:
+    llvm::errs() << "** ERROR: invalid name \"" << Str << "\" - aborting...\n"; 
+    std::exit(EXIT_FAILURE);
 }
 
 Refactorer::Refactorer()
@@ -93,6 +117,8 @@ void Refactorer::setReplacementName(std::string &&Str)
     auto Pos = _ReplName.rfind("::");
     if (Pos != std::string::npos)
         _ReplName.erase(0, Pos + sizeof("::") - 1);
+    
+    exitIfInvalidName(_ReplName);
 }
 
 const std::string &Refactorer::replacementName() const
@@ -141,8 +167,7 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
     
     if (_Verbose) {
         Loc.dump(SM);
-        llvm::errs() << " :: \"" << _Victim << "\" --> \"" << _ReplName
-                     << "\"\n";
+        llvm::errs() << " --> \"" << _ReplName << "\"\n";
     }
     
     _Repls->insert(Replacement(SM, Loc, _ReplSize, _ReplName));

@@ -36,7 +36,8 @@
 #include <llvm/Support/CommandLine.h>
 
 
-#include <refactoring/TagRefactorer.hpp>
+#include <Refactorers/TagRefactorer.hpp>
+#include <Refactorers/FunctionRefactorer.hpp>
 #include <util/memory.hpp>
 
 
@@ -135,6 +136,7 @@ int main(int argc, const char **argv)
     auto RefactorerVec = std::vector<std::unique_ptr<Refactorer>>();
     
     addRefactorers<TagRefactorer>(TagVec, RefactorerVec);
+    addRefactorers<FunctionRefactorer>(FunctionVec, RefactorerVec);
     
     auto ErrMsg = std::string();
     auto CompilationDB = makeCompilationDatabase(CompDBPath, ErrMsg);
