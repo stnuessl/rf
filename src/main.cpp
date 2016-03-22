@@ -28,7 +28,10 @@
 #include <unistd.h>
 #endif
 
+#include <clang/Basic/DiagnosticOptions.h>
+#include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Frontend/FrontendActions.h>
+#include <clang/Rewrite/Core/Rewriter.h>
 #include <clang/Tooling/Refactoring.h>
 #include <clang/Tooling/CompilationDatabase.h>
 #include <clang/Tooling/JSONCompilationDatabase.h>
@@ -158,21 +161,47 @@ int main(int argc, const char **argv)
     auto Tool = RefactoringTool(*CompilationDB, SourceFiles);
 
     for (auto &Refactorer : RefactorerVec) {
-        int err;
-        
         Refactorer->setReplacementSet(&Tool.getReplacements());
         Refactorer->setVerbose(Verbose);
-        
+
         auto Action = newFrontendActionFactory(Refactorer->matchFinder());
         
-        if (DryRun)
-            err = Tool.run(Action.get());
-        else
-            err = Tool.runAndSave(Action.get());
-        
+        /* 
+         * Do _NOT_ use runAndSave() here: We want to support multiple
+         * (non-conflicting) refactoring runs. This means we have to
+         * collect all replacements first or different runs can interact
+         * in unpredicted ways because the underlying files have been changed.
+         */
+        int err = Tool.run(Action.get());
         if (err != 0) {
-            std::cerr << "** CRITICAL: a refactoring run failed - source files "
-                      << "may be corrupted" << std::endl;
+            std::cerr << "** ERROR: a refactoring run failed\n";
+            std::exit(EXIT_FAILURE);
+        }
+    }
+    
+    if (Tool.getReplacements().empty())
+        std::cerr << "** Info: no code replacements to make - done\n";
+    
+    if (!DryRun) {
+        IntrusiveRefCntPtr<DiagnosticOptions> Opts = new DiagnosticOptions();
+        IntrusiveRefCntPtr<DiagnosticIDs> Id = new DiagnosticIDs();
+        
+        TextDiagnosticPrinter Printer(llvm::errs(), &*Opts);
+        DiagnosticsEngine Diagnostics(Id, &*Opts, &Printer, false);
+        SourceManager SM(Diagnostics, Tool.getFiles());
+        
+        Rewriter Rewriter(SM, LangOptions());
+        
+        bool ok = Tool.applyAllReplacements(Rewriter);
+        if (!ok) {
+            std::cerr << "** CRITICAL: failed to apply all code replacements - "
+                      << "source files could be corrupted\n";
+            std::exit(EXIT_FAILURE);
+        }
+        
+        bool err = Rewriter.overwriteChangedFiles();
+        if (err) {
+            std::cerr << "**ERROR: failed to save changes to disk\n";
             std::exit(EXIT_FAILURE);
         }
     }
