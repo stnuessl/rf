@@ -127,12 +127,23 @@ void TagRefactorer::runCXXMethodDecl(const MatchResult &Result)
         return;
     
     auto CXXConstructorDecl = clang::dyn_cast<clang::CXXConstructorDecl>(Decl);
-    if (CXXConstructorDecl)
-        addReplacement(Result, CXXConstructorDecl->getNameInfo().getLoc());
+    if (!CXXConstructorDecl)
+        return;
     
+    addReplacement(Result, CXXConstructorDecl->getNameInfo().getLoc());
+    
+    /* 
+     * Legacy code to handle CXXDestructorDecls, but in contrast
+     * to CXXConstructorDecls they are handled for some reason by TypeLocs
+     */ 
+#if 0
     auto CXXDestructorDecl = clang::dyn_cast<clang::CXXDestructorDecl>(Decl);
-    if (CXXDestructorDecl)
-        addReplacement(Result, CXXDestructorDecl->getNameInfo().getLoc());
+    if (CXXDestructorDecl) {
+        /* Keep the '~' in the destructor name */
+        auto Loc = CXXDestructorDecl->getNameInfo().getLoc();
+        addReplacement(Result, Loc.getLocWithOffset(1));
+    }
+#endif
 }
 
 bool TagRefactorer::isVictim(const clang::TagDecl *TagDecl)
