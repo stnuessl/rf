@@ -28,7 +28,6 @@
 #include <unistd.h>
 #endif
 
-#include <clang/Basic/DiagnosticOptions.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Frontend/FrontendActions.h>
 #include <clang/Rewrite/Core/Rewriter.h>
@@ -41,6 +40,7 @@
 
 #include <Refactorers/TagRefactorer.hpp>
 #include <Refactorers/FunctionRefactorer.hpp>
+#include <Refactorers/NamespaceRefactorer.hpp>
 #include <util/memory.hpp>
 
 
@@ -53,14 +53,21 @@ using namespace llvm;
 
 static cl::list<std::string> TagVec(
     "tag", 
-    cl::desc("Refactor a enumeration, structure, or class name."),
+    cl::desc("Refactor an enumeration, structure, or class."),
     cl::value_desc("victim=repl"),
     cl::CommaSeparated
 );
 
 static cl::list<std::string> FunctionVec(
     "function",
-    cl::desc("Refactor a function or class method name."),
+    cl::desc("Refactor a function or class method."),
+    cl::value_desc("victim=repl"),
+    cl::CommaSeparated
+);
+
+static cl::list<std::string> NamespaceVec(
+    "namespace",
+    cl::desc("Refactor a namespace."),
     cl::value_desc("victim=repl"),
     cl::CommaSeparated
 );
@@ -102,7 +109,7 @@ makeCompilationDatabase(const std::string &Path, std::string &ErrMsg)
     return CompilationDatabase::autoDetectFromDirectory(WorkDir, ErrMsg);
 }
 
-template<typename T>
+template<typename T> static 
 void addRefactorers(const std::vector<std::string> &ArgVec, 
                     std::vector<std::unique_ptr<Refactorer>> &RefactorerVec)
 {
@@ -140,6 +147,7 @@ int main(int argc, const char **argv)
     
     addRefactorers<TagRefactorer>(TagVec, RefactorerVec);
     addRefactorers<FunctionRefactorer>(FunctionVec, RefactorerVec);
+    addRefactorers<NamespaceRefactorer>(NamespaceVec, RefactorerVec);
     
     auto ErrMsg = std::string();
     auto CompilationDB = makeCompilationDatabase(CompDBPath, ErrMsg);

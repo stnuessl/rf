@@ -57,7 +57,7 @@ protected:
     void addReplacement(const clang::SourceManager &SM, 
                         const clang::SourceLocation &Loc);
     
-    std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
+    bool isVictim(const clang::NamedDecl *NamedDecl);
     
     clang::ast_matchers::MatchFinder _Finder;
     clang::tooling::Replacements *_Repls;
@@ -68,6 +68,9 @@ protected:
     std::size_t _ReplSize;
     
 private:
+    std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
+    
+    const clang::Decl *_VictimDecl;
     std::string _Buffer;
     bool _Verbose;
 };

@@ -18,26 +18,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TAGREFACTORER_HPP_
-#define _TAGREFACTORER_HPP_
+#ifndef _NAMESPACEREFACTORER_HPP_
+#define _NAMESPACEREFACTORER_HPP_
 
 #include <Refactorers/Refactorer.hpp>
 
-class TagRefactorer : public Refactorer {
+class NamespaceRefactorer : public Refactorer {
 public:
-    TagRefactorer();
+    NamespaceRefactorer();
     
     virtual void run(const MatchResult &Result) override;
 private:
-    void runRecordDecl(const MatchResult &Result);
-    void runEnumDecl(const MatchResult &Result);
-    void runTypeLoc(const MatchResult &Result);
-    void runCXXMethodDecl(const MatchResult &Result);
+    void runNamespaceDecl(const MatchResult &Result);
+    void runNestedNameSpecifierLoc(const MatchResult &Result);
     
-//     bool isVictim(const clang::TagDecl *TagDecl);
-    
-//     const clang::TagDecl *_VictimDecl;
+//     bool isVictim(const clang::NamespaceDecl *NamespaceDecl);
+    /* TODO: VictimDecl */
 };
 
-
-#endif /* _TAGREFACTORER_HPP_ */
+#endif /* _NAMESPACEREFACTORER_HPP_ */

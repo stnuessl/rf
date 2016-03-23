@@ -9,9 +9,28 @@ rf is a command-line tool that is able to refactor names C and C++ source files.
 The project is in development and not much more than a simple prototype.
 I don't expect it the produce a correct program after refactoring.
 
+### What's supported right now?
+
+* Renaming Tags, e.g. structs, classes and enums
+* Renaming Functions including class methods
+
+However, in all cases the corresponding entity should __NOT__ lie in
+anonymous namespaces.
+
+### What might be supported in the future?
+
+* Renaming variables names
+* Renaming template parameters
+* Supporting anonymous namespaces
+
 ## Installation
 
+* g++/clang++ supporting at least C++11
+* make
+
 ### Dependencies
+
+* (llvm)[http://llvm.org/] and (clang)[http://clang.llvm.org/] 3.7.1
 
 ### Compiling
 

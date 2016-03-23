@@ -21,7 +21,7 @@
 #include <Refactorers/TagRefactorer.hpp>
 
 TagRefactorer::TagRefactorer()
-    : _VictimDecl(nullptr)
+    : Refactorer()
 {
     using namespace clang::ast_matchers;
     
@@ -89,7 +89,9 @@ void TagRefactorer::runTypeLoc(const MatchResult &Result)
     if (!TypeLoc)
         return;
     
-    auto TagDecl = TypeLoc->getType()->getAsTagDecl();
+    auto UnqualifiedTypeLoc = TypeLoc->getUnqualifiedLoc();
+    
+    auto TagDecl = UnqualifiedTypeLoc.getType()->getAsTagDecl();
     if (!TagDecl || !isVictim(TagDecl))
         return;
     
@@ -117,6 +119,10 @@ void TagRefactorer::runTypeLoc(const MatchResult &Result)
     /* Skip qualifiers in the victim name */
     if (!std::equal(Begin, End, _Victim.end() - _ReplSize))
         return;
+    
+    auto NextTypeLoc = TypeLoc->getNextTypeLoc();
+    if (!NextTypeLoc.isNull())
+        LocStart = NextTypeLoc.getBeginLoc();
 
     addReplacement(Result, LocStart);
 }
@@ -146,7 +152,7 @@ void TagRefactorer::runCXXMethodDecl(const MatchResult &Result)
     }
 #endif
 }
-
+/*
 bool TagRefactorer::isVictim(const clang::TagDecl *TagDecl)
 {
     TagDecl = TagDecl->getCanonicalDecl();
@@ -160,4 +166,4 @@ bool TagRefactorer::isVictim(const clang::TagDecl *TagDecl)
         _VictimDecl = TagDecl;
     
     return Match;
-}
+}*/

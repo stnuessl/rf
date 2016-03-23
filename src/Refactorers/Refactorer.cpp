@@ -61,6 +61,7 @@ Refactorer::Refactorer()
       _Victim(),
       _ReplName(),
       _ReplSize(),
+      _VictimDecl(nullptr),
       _Buffer(),
       _Verbose(false)
 {
@@ -171,6 +172,21 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
     }
     
     _Repls->insert(Replacement(SM, Loc, _ReplSize, _ReplName));
+}
+
+bool Refactorer::isVictim(const clang::NamedDecl *NamedDecl)
+{
+    auto Decl = NamedDecl->getCanonicalDecl();
+    
+    if (_VictimDecl == Decl)
+        return true;
+    
+    bool Match = _Victim == qualifiedName(NamedDecl);
+    
+    if (Match && !_VictimDecl)
+        _VictimDecl = Decl;
+    
+    return Match;
 }
 
 std::string &Refactorer::qualifiedName(const clang::NamedDecl *NamedDecl)
