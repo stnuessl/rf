@@ -69,6 +69,14 @@ void TagRefactorer::runEnumDecl(const MatchResult &Result)
 
 void TagRefactorer::runTypeLoc(const MatchResult &Result)
 {
+    auto TypeLoc = Result.Nodes.getNodeAs<clang::TypeLoc>("TypeLoc");
+    if (!TypeLoc)
+        return;
+
+    auto TagDecl = TypeLoc->getType()->getAsTagDecl();
+    if (!TagDecl || !isVictim(TagDecl))
+        return;
+    
     /*
      * Problem: Given
      *      template<typename T> func(void) { T() }
@@ -77,52 +85,38 @@ void TagRefactorer::runTypeLoc(const MatchResult &Result)
      *      func<VictimType>();
      *           ^(2)
      * two TypeLocs will be visited but only (2) can be refactored without
-     * breaking the code. Also for some reason TypeLoc::getLocStart() equals
-     * TypeLoc::getLocEnd() but using clang::Lexer a different 
-     * End' SourceLocation can be generated.
-     * Sigh...
-     * The approach here reads bytes from the source location and
-     * checks if the bytes matches the victim's name.
+     * breaking the code.
+     * Filter out type (1) locations.
+     */
+    auto STTPTypeLoc = TypeLoc->getAs<clang::SubstTemplateTypeParmTypeLoc>();
+    if (!STTPTypeLoc.isNull())
+        return;
+
+    /* 
+     * Given something like
+     *      namespace::class
+     *      ^(1)       ^(2)
+     * 
+     * there will be a qualified type location beginning at (1) and a
+     * unqualified type location at (2). Filter out type (1) locations.
      */
     
-    auto TypeLoc = Result.Nodes.getNodeAs<clang::TypeLoc>("TypeLoc");
-    if (!TypeLoc)
+    auto UnqualTypeLoc = TypeLoc->getAs<clang::UnqualTypeLoc>();
+    if (UnqualTypeLoc.isNull())
         return;
     
-    auto UnqualifiedTypeLoc = TypeLoc->getUnqualifiedLoc();
+    auto LocStart = UnqualTypeLoc.getLocStart();
     
-    auto TagDecl = UnqualifiedTypeLoc.getType()->getAsTagDecl();
-    if (!TagDecl || !isVictim(TagDecl))
-        return;
-    
-    auto LocStart = TypeLoc->getUnqualifiedLoc().getLocStart();
-    auto LocEnd = LocStart.getLocWithOffset(_ReplSize);
-
-    auto &SM = *Result.SourceManager;
-    
-    if (SM.isInSystemHeader(LocStart) || !SM.isLocalSourceLocation(LocStart))
-        return;
-    
-    bool Invalid;
-    
-    auto Begin = SM.getCharacterData(LocStart, &Invalid);
-    if (Invalid)
-        return;
-    
-    auto End = SM.getCharacterData(LocEnd, &Invalid);
-    if (Invalid)
-        return;
-    
-    if (End - Begin != static_cast<std::ptrdiff_t>(_ReplSize))
-        return;
-
-    /* Skip qualifiers in the victim name */
-    if (!std::equal(Begin, End, _Victim.end() - _ReplSize))
-        return;
-    
-    auto NextTypeLoc = TypeLoc->getNextTypeLoc();
+    /*
+     * Statements like
+     *      class MyClass function();
+     *      ^(1)  ^(2)
+     * generate the two shown type locations.
+     * Calling "getNextTypeLoc()" on (1) will return location (2)
+     */
+    auto NextTypeLoc = UnqualTypeLoc.getNextTypeLoc();
     if (!NextTypeLoc.isNull())
-        LocStart = NextTypeLoc.getBeginLoc();
+        LocStart = NextTypeLoc.getLocStart();
 
     addReplacement(Result, LocStart);
 }

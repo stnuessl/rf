@@ -44,61 +44,59 @@
 #include <util/memory.hpp>
 
 
-using namespace clang;
-using namespace clang::tooling;
-using namespace llvm;
-
 // static cl::OptionCategory refactoring_options("rf options");
 // static cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
 
-static cl::list<std::string> TagVec(
+static llvm::cl::list<std::string> TagVec(
     "tag", 
-    cl::desc("Refactor an enumeration, structure, or class."),
-    cl::value_desc("victim=repl"),
-    cl::CommaSeparated
+    llvm::cl::desc("Refactor an enumeration, structure, or class."),
+    llvm::cl::value_desc("victim=repl"),
+    llvm::cl::CommaSeparated
 );
 
-static cl::list<std::string> FunctionVec(
+static llvm::cl::list<std::string> FunctionVec(
     "function",
-    cl::desc("Refactor a function or class method."),
-    cl::value_desc("victim=repl"),
-    cl::CommaSeparated
+    llvm::cl::desc("Refactor a function or class method."),
+    llvm::cl::value_desc("victim=repl"),
+    llvm::cl::CommaSeparated
 );
 
-static cl::list<std::string> NamespaceVec(
+static llvm::cl::list<std::string> NamespaceVec(
     "namespace",
-    cl::desc("Refactor a namespace."),
-    cl::value_desc("victim=repl"),
-    cl::CommaSeparated
+    llvm::cl::desc("Refactor a namespace."),
+    llvm::cl::value_desc("victim=repl"),
+    llvm::cl::CommaSeparated
 );
 
-static cl::opt<std::string> CompDBPath (
+static llvm::cl::opt<std::string> CompDBPath (
     "comp-db",
-    cl::desc("Specify the <path> to the compilation database."),
-    cl::value_desc("path")
+    llvm::cl::desc("Specify the <path> to the compilation database."),
+    llvm::cl::value_desc("path")
 );
 
-static cl::opt<bool> DryRun(
+static llvm::cl::opt<bool> DryRun(
     "dry-run",
-    cl::desc("Do not make any changes at all. Useful for debugging."),
-    cl::init(false)
+    llvm::cl::desc("Do not make any changes at all. Useful for debugging."),
+    llvm::cl::init(false)
 );
 
-static cl::opt<bool> Verbose(
+static llvm::cl::opt<bool> Verbose(
     "verbose",
-    cl::desc("Increase verbosity."),
-    cl::init(false)
+    llvm::cl::desc("Increase verbosity."),
+    llvm::cl::init(false)
 );
 
-static cl::opt<bool> SyntaxOnly(
+static llvm::cl::opt<bool> SyntaxOnly(
     "syntax-only",
-    cl::desc("Do not make any changes and perform just syntax check."),
-    cl::init(false)
+    llvm::cl::desc("Do not make any changes and perform just syntax check."),
+    llvm::cl::init(false)
 );
 
-static std::unique_ptr<CompilationDatabase> 
+static std::unique_ptr<clang::tooling::CompilationDatabase> 
 makeCompilationDatabase(const std::string &Path, std::string &ErrMsg)
 {
+    using namespace clang::tooling;
+    
     if (!Path.empty())
         return JSONCompilationDatabase::loadFromFile(Path, ErrMsg);
     
@@ -134,6 +132,9 @@ void addRefactorers(const std::vector<std::string> &ArgVec,
 
 int main(int argc, const char **argv) 
 {
+    using namespace clang;
+    using namespace clang::tooling;
+    
 #ifdef __unix__
     if (getuid() == 0) {
         std::cerr << "** ERROR: running on root privileges - aborting...\n";
@@ -141,7 +142,7 @@ int main(int argc, const char **argv)
     }
 #endif
     
-    cl::ParseCommandLineOptions(argc, argv, "");
+    llvm::cl::ParseCommandLineOptions(argc, argv, "");
     
     auto RefactorerVec = std::vector<std::unique_ptr<Refactorer>>();
     

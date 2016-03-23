@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <algorithm>
+
 #include <utility>
 #include <cctype>
 
@@ -166,12 +166,13 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
     if (SM.isInSystemHeader(Loc) || !SM.isLocalSourceLocation(Loc))
         return;
     
-    if (_Verbose) {
+    auto Repl = Replacement(SM, Loc, _ReplSize, _ReplName);
+    
+    auto Ok = _Repls->insert(std::move(Repl)).second;
+    if (_Verbose && Ok) {
         Loc.dump(SM);
         llvm::errs() << " --> \"" << _ReplName << "\"\n";
     }
-    
-    _Repls->insert(Replacement(SM, Loc, _ReplSize, _ReplName));
 }
 
 bool Refactorer::isVictim(const clang::NamedDecl *NamedDecl)

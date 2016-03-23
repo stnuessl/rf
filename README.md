@@ -30,19 +30,25 @@ anonymous namespaces.
 
 ### Dependencies
 
-* (llvm)[http://llvm.org/] and (clang)[http://clang.llvm.org/] 3.7.1
+* [llvm](http://llvm.org/) and [clang](http://clang.llvm.org/) 3.7.1
 
 ### Compiling
+
+```
+    $ git clone https://github.com/stnuessl/rf
+    $ cd rf/
+    $ make
+    $ su -c 'make install'
+```
 
 ## Usage
 
 ## Code Breakage
 
-This section covers examples of source code which should __ _NOT_ __ be 
+This section covers examples of source code which should __not__ be 
 refactored with certain __rf__ invocations. Most if not all of those examples
 should be very rare in real world programs.
 
-### Example 1: Overshadowing Constructor Calls
 
 The following example illustrates a program which will crash after a refactoring
 run with __rf__.
@@ -85,28 +91,3 @@ crash but the behaviour may be very well different than before.
 The function "b()" now overshadows the constructor call from "class b".
 So before refactoring the main function calls the constructor of class b.
 After refactoring the main function will call the function "b()".
-
-### Example 2: Unexpected Type Locations
-
-The next example covers not exactly code breakage but it still can be annoying.
-The problem occurs when a namespace and a class inside that namespace share the
-same name and one uses the qualified class name while inside that mentioned 
-namespace. The following code will make this easy to understand.
-```cpp
-namespace a {
-class a {};
-class a::a a() { class a::a a; return a; }
-//    ^  ^ Both locations are understood as type 'class a'
-}
-```
-__rf__ will interpret both marked locations as type locations that refer 
-to the type class a. This means that running __rf --tag a::a=b__ will produce:
-
-```cpp
-namespace a {
-class b {};
-class b::b a() { class b::b a; return a; }
-}
-```
-This is not what I would have expected.
-However, this should still compile and produce a correct program.
