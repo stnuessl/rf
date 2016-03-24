@@ -1,6 +1,6 @@
 # rf - refactoring for C and C++
 
-rf is a command-line tool that is able to refactor names C and C++ source files.
+rf is a command-line tool capable of refactoring C and C++ source code.
 
 ## Motivation
 
