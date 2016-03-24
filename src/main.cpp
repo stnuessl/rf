@@ -76,7 +76,10 @@ static llvm::cl::opt<std::string> CompDBPath (
 
 static llvm::cl::opt<bool> DryRun(
     "dry-run",
-    llvm::cl::desc("Do not make any changes at all. Useful for debugging."),
+    llvm::cl::desc(
+        "Do not make any changes at all. Useful for debugging, especially "
+        "when used with --verbose."
+    ),
     llvm::cl::init(false)
 );
 
@@ -91,6 +94,17 @@ static llvm::cl::opt<bool> SyntaxOnly(
     llvm::cl::desc("Do not make any changes and perform just syntax check."),
     llvm::cl::init(false)
 );
+
+#ifdef __unix__
+static llvm::cl::opt<bool> AllowRoot(
+    "allow-root",
+    llvm::cl::desc(
+        "Allow this application to run with root privileges."
+        "May god have mercy on you."
+    ),
+    llvm::cl::init(false)
+);
+#endif
 
 static std::unique_ptr<clang::tooling::CompilationDatabase> 
 makeCompilationDatabase(const std::string &Path, std::string &ErrMsg)
@@ -135,14 +149,15 @@ int main(int argc, const char **argv)
     using namespace clang;
     using namespace clang::tooling;
     
+    llvm::cl::ParseCommandLineOptions(argc, argv, "");
+    
 #ifdef __unix__
-    if (getuid() == 0) {
+    if (!AllowRoot && getuid() == 0) {
         std::cerr << "** ERROR: running on root privileges - aborting...\n";
         std::exit(EXIT_FAILURE);
     }
 #endif
     
-    llvm::cl::ParseCommandLineOptions(argc, argv, "");
     
     auto RefactorerVec = std::vector<std::unique_ptr<Refactorer>>();
     

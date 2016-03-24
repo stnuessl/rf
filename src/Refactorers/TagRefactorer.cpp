@@ -146,18 +146,3 @@ void TagRefactorer::runCXXMethodDecl(const MatchResult &Result)
     }
 #endif
 }
-/*
-bool TagRefactorer::isVictim(const clang::TagDecl *TagDecl)
-{
-    TagDecl = TagDecl->getCanonicalDecl();
-    
-    if (_VictimDecl == TagDecl)
-        return true;
-    
-    auto Match = _Victim == qualifiedName(TagDecl);
-    
-    if (Match && !_VictimDecl)
-        _VictimDecl = TagDecl;
-    
-    return Match;
-}*/

@@ -27,15 +27,18 @@ NamespaceRefactorer::NamespaceRefactorer()
     
     auto NamespaceDeclMatcher = namespaceDecl().bind("NSDecl");
     auto NNSLocMatcher = nestedNameSpecifierLoc().bind("NNSLoc");
+    auto UsingDDeclMatcher = usingDirectiveDecl().bind("UDDecl");
     
     _Finder.addMatcher(NamespaceDeclMatcher, this);
     _Finder.addMatcher(NNSLocMatcher, this);
+    _Finder.addMatcher(UsingDDeclMatcher, this);
 }
 
 void NamespaceRefactorer::run(const MatchResult &Result)
 {
     runNamespaceDecl(Result);
     runNestedNameSpecifierLoc(Result);
+    runUsingDecl(Result);
 }
 
 void NamespaceRefactorer::runNamespaceDecl(const MatchResult &Result)
@@ -70,9 +73,18 @@ void NamespaceRefactorer::runNestedNameSpecifierLoc(const MatchResult &Result)
     }
 }
 
-// bool NamespaceRefactorer::isVictim(const clang::NamespaceDecl *NamespaceDecl)
-// {
-//     NamespaceDecl = NamespaceDecl->getCanonicalDecl();
-//     
-//     return _Victim == qualifiedName(NamespaceDecl);
-// }
+void NamespaceRefactorer::runUsingDecl(const MatchResult &Result)
+{
+    /*
+     * This function handles statements like
+     *      using namespace;
+     * Statements like
+     *      using namespace::namespace::...;
+     * are handled by 'runNestedNameSpecifierLoc()'
+     */
+    auto UDDecl = Result.Nodes.getNodeAs<clang::UsingDirectiveDecl>("UDDecl");
+    if (!UDDecl || !isVictim(UDDecl->getNominatedNamespaceAsWritten()))
+        return;
+
+    addReplacement(Result, UDDecl->getIdentLocation());
+}

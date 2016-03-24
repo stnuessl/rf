@@ -94,8 +94,3 @@ void FunctionRefactorer::runDeclRefExpr(const MatchResult &Result)
     
     addReplacement(Result, Loc);
 }
-
-// bool FunctionRefactorer::isVictim(const clang::FunctionDecl *FunctionDecl)
-// {
-//     return _Victim == qualifiedName(FunctionDecl);
-// }

@@ -33,10 +33,6 @@ private:
     void runEnumDecl(const MatchResult &Result);
     void runTypeLoc(const MatchResult &Result);
     void runCXXMethodDecl(const MatchResult &Result);
-    
-//     bool isVictim(const clang::TagDecl *TagDecl);
-    
-//     const clang::TagDecl *_VictimDecl;
 };
 
 

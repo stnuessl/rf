@@ -31,9 +31,7 @@ public:
 private:
     void runNamespaceDecl(const MatchResult &Result);
     void runNestedNameSpecifierLoc(const MatchResult &Result);
-    
-//     bool isVictim(const clang::NamespaceDecl *NamespaceDecl);
-    /* TODO: VictimDecl */
+    void runUsingDecl(const MatchResult &Result);
 };
 
 #endif /* _NAMESPACEREFACTORER_HPP_ */

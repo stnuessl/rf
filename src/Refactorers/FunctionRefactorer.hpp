@@ -32,10 +32,6 @@ private:
     void runFunctionDecl(const MatchResult &Result);
     void runCallExpr(const MatchResult &Result);
     void runDeclRefExpr(const MatchResult &Result);
-    
-//     bool isVictim(const clang::FunctionDecl *FunctionDecl);
-    
-    /* TODO: VictimDecl */
 };
 
 #endif /* _FUNCTIONREFACTORER_HPP_ */
