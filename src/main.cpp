@@ -85,13 +85,19 @@ static llvm::cl::opt<bool> DryRun(
 
 static llvm::cl::opt<bool> Verbose(
     "verbose",
-    llvm::cl::desc("Increase verbosity."),
+    llvm::cl::desc(
+        "Increase verbosity: "
+        "Prints a line for each replacment made"
+    ),
     llvm::cl::init(false)
 );
 
 static llvm::cl::opt<bool> SyntaxOnly(
     "syntax-only",
-    llvm::cl::desc("Do not make any changes and perform just syntax check."),
+    llvm::cl::desc(
+        "Perform a syntax check and exit. "
+        "No changes are made even if replacements were specified."
+    ),
     llvm::cl::init(false)
 );
 
@@ -99,7 +105,7 @@ static llvm::cl::opt<bool> SyntaxOnly(
 static llvm::cl::opt<bool> AllowRoot(
     "allow-root",
     llvm::cl::desc(
-        "Allow this application to run with root privileges."
+        "Allow this application to run with root privileges. "
         "May god have mercy on you."
     ),
     llvm::cl::init(false)
