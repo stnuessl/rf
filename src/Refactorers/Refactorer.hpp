@@ -32,10 +32,13 @@ public:
     
     Refactorer();
     
-    void setVictimName(const std::string &Str);
-    void setVictimName(std::string &&Str);
+    /* TODO: change to setVictimQualifier() */
+    virtual void setVictimName(const std::string &Str);
+    virtual void setVictimName(std::string &&Str);
+    
     const std::string &victimName() const;
     
+    /* TODO: ReplacementQualifier? */
     void setReplacementName(const std::string &Str);
     void setReplacementName(std::string &&Str);
     const std::string &replacementName() const;
@@ -67,8 +70,8 @@ protected:
     
     std::size_t _ReplSize;
     
-private:
     std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
+private:
     
     const clang::Decl *_VictimDecl;
     std::string _Buffer;

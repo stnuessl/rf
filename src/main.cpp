@@ -41,6 +41,7 @@
 #include <Refactorers/TagRefactorer.hpp>
 #include <Refactorers/FunctionRefactorer.hpp>
 #include <Refactorers/NamespaceRefactorer.hpp>
+#include <Refactorers/VariableRefactorer.hpp>
 #include <util/memory.hpp>
 
 
@@ -64,6 +65,13 @@ static llvm::cl::list<std::string> FunctionVec(
 static llvm::cl::list<std::string> NamespaceVec(
     "namespace",
     llvm::cl::desc("Refactor a namespace."),
+    llvm::cl::value_desc("victim=repl"),
+    llvm::cl::CommaSeparated
+);
+
+static llvm::cl::list<std::string> VarVec(
+    "variable",
+    llvm::cl::desc("Change the name of a variable."),
     llvm::cl::value_desc("victim=repl"),
     llvm::cl::CommaSeparated
 );
@@ -170,6 +178,7 @@ int main(int argc, const char **argv)
     addRefactorers<TagRefactorer>(TagVec, RefactorerVec);
     addRefactorers<FunctionRefactorer>(FunctionVec, RefactorerVec);
     addRefactorers<NamespaceRefactorer>(NamespaceVec, RefactorerVec);
+    addRefactorers<VariableRefactorer>(VarVec, RefactorerVec);
     
     auto ErrMsg = std::string();
     auto CompilationDB = makeCompilationDatabase(CompDBPath, ErrMsg);

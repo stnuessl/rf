@@ -186,7 +186,7 @@ bool Refactorer::isVictim(const clang::NamedDecl *NamedDecl)
     
     if (Match && !_VictimDecl)
         _VictimDecl = Decl;
-    
+        
     return Match;
 }
 
