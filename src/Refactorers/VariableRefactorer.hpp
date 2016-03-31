@@ -33,8 +33,10 @@ public:
     virtual void run(const MatchResult &Result) override;
 private:
     void runVarDecl(const MatchResult &Result);
-    void runFieldDecl(const MatchResult &Result);
     void runDeclRefExpr(const MatchResult &Result);
+    void runFieldDecl(const MatchResult &Result);
+    void runMemberExpr(const MatchResult &Result);
+    void runCXXConstructorDecl(const MatchResult &Result);
     
     bool isVictimLine(const clang::SourceLocation &Loc,
                       const clang::SourceManager &SM);

@@ -233,14 +233,13 @@ int main(int argc, const char **argv)
         
         bool ok = Tool.applyAllReplacements(Rewriter);
         if (!ok) {
-            std::cerr << "** CRITICAL: failed to apply all code replacements - "
-                      << "source files could be corrupted\n";
+            std::cerr << "** ERROR: failed to apply all code replacements\n";
             std::exit(EXIT_FAILURE);
         }
         
         bool err = Rewriter.overwriteChangedFiles();
         if (err) {
-            std::cerr << "**ERROR: failed to save changes to disk\n";
+            std::cerr << "** ERROR: failed to save changes to disk\n";
             std::exit(EXIT_FAILURE);
         }
     }

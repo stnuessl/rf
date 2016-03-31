@@ -33,12 +33,16 @@ VariableRefactorer::VariableRefactorer()
     using namespace clang::ast_matchers;
     
     auto VarDeclMatcher = varDecl().bind("VarDecl");
-    auto FieldDeclMatcher = fieldDecl().bind("FieldDecl");
     auto DeclRefExprMatcher = declRefExpr().bind("DRefExpr");
+    auto FieldDeclMatcher = fieldDecl().bind("FieldDecl");
+    auto MemberExprMatcher = memberExpr().bind("MemberExpr");
+    auto CtorDeclMatcher = constructorDecl().bind("CtorDecl");
     
     _Finder.addMatcher(VarDeclMatcher, this);
-    _Finder.addMatcher(FieldDeclMatcher, this);
     _Finder.addMatcher(DeclRefExprMatcher, this);
+    _Finder.addMatcher(FieldDeclMatcher, this);
+    _Finder.addMatcher(MemberExprMatcher, this);
+    _Finder.addMatcher(CtorDeclMatcher, this);
 }
 
 void VariableRefactorer::setVictimName(const std::string &Str)
@@ -86,8 +90,10 @@ void VariableRefactorer::setVictimName(std::string &&Str)
 void VariableRefactorer::run(const MatchResult &Result)
 {
     runVarDecl(Result);
-    runFieldDecl(Result);
     runDeclRefExpr(Result);
+    runFieldDecl(Result);
+    runMemberExpr(Result);
+    runCXXConstructorDecl(Result);
 }
 
 void VariableRefactorer::runVarDecl(const MatchResult &Result)
@@ -104,37 +110,73 @@ void VariableRefactorer::runVarDecl(const MatchResult &Result)
     addReplacement(Result, Loc);
 }
 
-void VariableRefactorer::runFieldDecl(const Refactorer::MatchResult &Result)
-{
-    auto FieldDecl = Result.Nodes.getNodeAs<clang::FieldDecl>("FieldDecl");
-    if (!FieldDecl || !isVictim(FieldDecl))
-        return;
-    
-    addReplacement(Result, FieldDecl->getLocation());
-}
-
-
 void VariableRefactorer::runDeclRefExpr(const MatchResult &Result)
 {
     auto DeclRefExpr = Result.Nodes.getNodeAs<clang::DeclRefExpr>("DRefExpr");
     if (!DeclRefExpr)
         return;
     
-    auto Decl = DeclRefExpr->getFoundDecl();
-    
-    if (!clang::dyn_cast<clang::FieldDecl>(Decl))
-        return;
-    
-    llvm::errs() << "DeclRefExpr: " << qualifiedName(Decl) << "\n";
-
-    if (!isVictim(Decl))
+    auto Decl = DeclRefExpr->getDecl();
+    if (!clang::dyn_cast<clang::FieldDecl>(Decl) || !isVictim(Decl))
         return;
     
     if (!isVictimLine(Decl->getLocation(), *Result.SourceManager))
         return;
     
+    /* Use the 'DeclarationNameInfo' here to skip past any qualifiers */
     auto Loc = DeclRefExpr->getNameInfo().getLoc();
     addReplacement(Result, Loc);
+}
+
+
+void VariableRefactorer::runFieldDecl(const MatchResult &Result)
+{
+    auto FieldDecl = Result.Nodes.getNodeAs<clang::FieldDecl>("FieldDecl");
+    if (!FieldDecl || !isVictim(FieldDecl))
+        return;
+    
+    if (!isVictimLine(FieldDecl->getLocation(), *Result.SourceManager))
+        return;
+    
+    addReplacement(Result, FieldDecl->getLocation());
+}
+
+
+void VariableRefactorer::runMemberExpr(const MatchResult &Result)
+{
+    auto MemberExpr = Result.Nodes.getNodeAs<clang::MemberExpr>("MemberExpr");
+    if (!MemberExpr)
+        return;
+    
+    auto Decl = MemberExpr->getMemberDecl();
+    if (!clang::dyn_cast<clang::FieldDecl>(Decl) || !isVictim(Decl))
+        return;
+    
+    if (!isVictimLine(Decl->getLocation(), *Result.SourceManager))
+        return;
+    
+    addReplacement(Result, MemberExpr->getMemberLoc());
+}
+
+void VariableRefactorer::runCXXConstructorDecl(const MatchResult &Result)
+{
+    auto Ctor = Result.Nodes.getNodeAs<clang::CXXConstructorDecl>("CtorDecl");
+    if (!Ctor || !Ctor->hasBody())
+        return;
+    
+    for (const auto &Init : Ctor->inits()) {
+        if (!Init->isMemberInitializer() || !Init->isWritten())
+            continue;
+        
+        auto FieldDecl = Init->getMember();
+        if (!isVictim(FieldDecl))
+            continue;
+        
+        if (!isVictimLine(FieldDecl->getLocation(), *Result.SourceManager))
+            continue;
+        
+        addReplacement(Result, Init->getSourceLocation());
+    }
 }
 
 bool VariableRefactorer::isVictimLine(const clang::SourceLocation &Loc, 
