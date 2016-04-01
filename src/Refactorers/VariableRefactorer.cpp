@@ -117,7 +117,7 @@ void VariableRefactorer::runDeclRefExpr(const MatchResult &Result)
         return;
     
     auto Decl = DeclRefExpr->getDecl();
-    if (!clang::dyn_cast<clang::FieldDecl>(Decl) || !isVictim(Decl))
+    if (!isVictim(Decl))
         return;
     
     if (!isVictimLine(Decl->getLocation(), *Result.SourceManager))

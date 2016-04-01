@@ -76,7 +76,7 @@ static llvm::cl::list<std::string> VarVec(
     llvm::cl::CommaSeparated
 );
 
-static llvm::cl::opt<std::string> CompDBPath (
+static llvm::cl::opt<std::string> CompDBPath(
     "comp-db",
     llvm::cl::desc("Specify the <path> to the compilation database."),
     llvm::cl::value_desc("path")
