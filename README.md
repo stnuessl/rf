@@ -43,6 +43,12 @@ anonymous namespaces.
 
 ## Usage
 
+### Creating a Compilation Database using CMake
+    
+```
+    $ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ../
+```
+
 ## Code Breakage
 
 This section covers examples of source code which should __not__ be 

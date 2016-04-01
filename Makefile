@@ -270,7 +270,7 @@ $(DIRS):
 	mkdir -p $(DIRS)
 
 compile_commands.json: $(SRC)
-	@python compdb.py 						\
+	@python utils/compdb.py 					\
 	  -s $(SRC) 							\
 	  -c "$(CXX) -c $(filter-out $@ -M%,$(CPPFLAGS)) $(CXXFLAGS)"	\
 	  -d $$(pwd) 							\
