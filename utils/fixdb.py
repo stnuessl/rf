@@ -30,22 +30,32 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--file', required=True, 
                         help='Specifies the path to the compilation database')
-    parser.add_argument('flag', nargs='+', 
+    parser.add_argument('flags', nargs='+', 
                         help='Flags to add to the compile commands')
     parser.add_argument('--stdout', action='store_true',
                         help='Write the new compilation database to stdout')
     parser.add_argument('-p', '--pretty', action='store_true',
                         help='Pretty print the compilation database')
+    parser.add_argument('-r', '--remove', action='store_true',
+                        help='Remove specified flags, if applicable')
 
     args = parser.parse_args()
 
     db_file = open(args.file, 'r+')
-    
     db = json.load(db_file)
     
-    for entry in db:
-        entry['command'] = '{} {}'.format(entry['command'], ' '.join(args.flag))
-    
+    if args.remove:
+        flag_set = set(args.flags)
+        
+        for entry in db:
+            flags = entry['command'].split(' ')
+            entry['command'] = ' '.join([x for x in flags if x not in flag_set])
+    else:
+        flags_str = ' '.join(args.flags)
+        
+        for entry in db:
+            entry['command'] = '{} {}'.format(entry['command'], flags_str)
+            
     if args.pretty:
         args.pretty = 4
     else:
