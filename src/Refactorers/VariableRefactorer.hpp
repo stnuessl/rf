@@ -38,9 +38,10 @@ private:
     void runMemberExpr(const MatchResult &Result);
     void runCXXConstructorDecl(const MatchResult &Result);
     
-    bool isVictimLine(const clang::SourceLocation &Loc,
-                      const clang::SourceManager &SM);
-    
+    bool isVictim(const clang::NamedDecl *NamedDecl, const MatchResult &Result);
+    bool isVictim(const clang::NamedDecl *NamedDecl, 
+                  const clang::SourceManager &SM);
+
     clang::SourceLocation _VictimLoc;
     unsigned int _LineNum;
 };

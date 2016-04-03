@@ -99,15 +99,10 @@ void VariableRefactorer::run(const MatchResult &Result)
 void VariableRefactorer::runVarDecl(const MatchResult &Result)
 {
     auto VarDecl = Result.Nodes.getNodeAs<clang::VarDecl>("VarDecl");
-    if (!VarDecl || !isVictim(VarDecl))
-        return;
-    
-    auto Loc = VarDecl->getLocation();
-    
-    if (!isVictimLine(Loc, *Result.SourceManager))
+    if (!VarDecl || !isVictim(VarDecl, Result))
         return;
 
-    addReplacement(Result, Loc);
+    addReplacement(Result, VarDecl->getLocation());
 }
 
 void VariableRefactorer::runDeclRefExpr(const MatchResult &Result)
@@ -117,10 +112,7 @@ void VariableRefactorer::runDeclRefExpr(const MatchResult &Result)
         return;
     
     auto Decl = DeclRefExpr->getDecl();
-    if (!isVictim(Decl))
-        return;
-    
-    if (!isVictimLine(Decl->getLocation(), *Result.SourceManager))
+    if (!isVictim(Decl, Result))
         return;
     
     /* Use the 'DeclarationNameInfo' here to skip past any qualifiers */
@@ -132,12 +124,9 @@ void VariableRefactorer::runDeclRefExpr(const MatchResult &Result)
 void VariableRefactorer::runFieldDecl(const MatchResult &Result)
 {
     auto FieldDecl = Result.Nodes.getNodeAs<clang::FieldDecl>("FieldDecl");
-    if (!FieldDecl || !isVictim(FieldDecl))
+    if (!FieldDecl || !isVictim(FieldDecl, Result))
         return;
-    
-    if (!isVictimLine(FieldDecl->getLocation(), *Result.SourceManager))
-        return;
-    
+
     addReplacement(Result, FieldDecl->getLocation());
 }
 
@@ -149,12 +138,9 @@ void VariableRefactorer::runMemberExpr(const MatchResult &Result)
         return;
     
     auto Decl = MemberExpr->getMemberDecl();
-    if (!clang::dyn_cast<clang::FieldDecl>(Decl) || !isVictim(Decl))
+    if (!clang::dyn_cast<clang::FieldDecl>(Decl) || !isVictim(Decl, Result))
         return;
-    
-    if (!isVictimLine(Decl->getLocation(), *Result.SourceManager))
-        return;
-    
+
     addReplacement(Result, MemberExpr->getMemberLoc());
 }
 
@@ -169,22 +155,30 @@ void VariableRefactorer::runCXXConstructorDecl(const MatchResult &Result)
             continue;
         
         auto FieldDecl = Init->getMember();
-        if (!isVictim(FieldDecl))
+        if (!isVictim(FieldDecl, Result))
             continue;
-        
-        if (!isVictimLine(FieldDecl->getLocation(), *Result.SourceManager))
-            continue;
-        
+
         addReplacement(Result, Init->getSourceLocation());
     }
 }
 
-bool VariableRefactorer::isVictimLine(const clang::SourceLocation &Loc, 
-                                      const clang::SourceManager &SM)
+bool VariableRefactorer::isVictim(const clang::NamedDecl *NamedDecl, 
+                                  const Refactorer::MatchResult &Result)
 {
+    return isVictim(NamedDecl, *Result.SourceManager);
+}
+
+bool VariableRefactorer::isVictim(const clang::NamedDecl *NamedDecl, 
+                                  const clang::SourceManager &SM)
+{
+    if (!Refactorer::isVictim(NamedDecl))
+        return false;
+    
     if (!_LineNum)
         return true;
-        
+    
+    auto Loc = NamedDecl->getLocation();
+    
     if (_VictimLoc.isValid())
         return _VictimLoc == Loc;
     
@@ -204,3 +198,4 @@ bool VariableRefactorer::isVictimLine(const clang::SourceLocation &Loc,
     
     return Equal;
 }
+

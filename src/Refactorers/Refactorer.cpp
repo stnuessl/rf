@@ -179,7 +179,7 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
 
 bool Refactorer::isVictim(const clang::NamedDecl *NamedDecl)
 {
-    return _Victim == qualifiedName(NamedDecl->getCanonicalDecl());
+    return _Victim == qualifiedName(NamedDecl);
 }
 
 std::string &Refactorer::qualifiedName(const clang::NamedDecl *NamedDecl)

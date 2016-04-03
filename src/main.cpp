@@ -172,7 +172,6 @@ int main(int argc, const char **argv)
     }
 #endif
     
-    
     auto RefactorerVec = std::vector<std::unique_ptr<Refactorer>>();
     
     addRefactorers<TagRefactorer>(TagVec, RefactorerVec);
@@ -218,10 +217,9 @@ int main(int argc, const char **argv)
         }
     }
     
-    if (Tool.getReplacements().empty())
+    if (Tool.getReplacements().empty()) {
         std::cerr << "** Info: no code replacements to make - done\n";
-    
-    if (!DryRun) {
+    } else if (!DryRun) {
         IntrusiveRefCntPtr<DiagnosticOptions> Opts = new DiagnosticOptions();
         IntrusiveRefCntPtr<DiagnosticIDs> Id = new DiagnosticIDs();
         
