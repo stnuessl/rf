@@ -70,10 +70,9 @@ protected:
     
     std::size_t _ReplSize;
     
-    std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
 private:
-    
-    const clang::Decl *_VictimDecl;
+    std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
+
     std::string _Buffer;
     bool _Verbose;
 };

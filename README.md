@@ -82,16 +82,19 @@ files. This can probably be done more efficient but this will do the job.
     $ make -j4
 ```
 
-Note that some included .inc-files may still be missing. However, the output 
-is not as bad as before.
+Note that for some reason the Opts.inc is still missing in an include.
+Good thing it was created, meaning a quick fix for this problem is to run
+```
+    $ cp ./unittests/Option/Opts.inc ../unittests/Option/
+```
+
 The __compile_commands.json__ needs (at least on my machine) to be adjusted.
 The clang frontend has its own 
 [builtin includes](http://clang.llvm.org/docs/FAQ.html#i-get-errors-about-some-headers-being-missing-stddef-h-stdarg-h) 
-which are not located
-in _/usr/include/_ but instead in 
-_/usr/lib/clang/$(llvm-config --version)/include_.
-To help with this task there is a script located in _rf/utils_.
-The following command will fix the __compile_commands.json__ file.
+which are not located in _/usr/include/_ but instead in 
+_/usr/lib/clang/$(llvm-config --version)/include_. To help with this task 
+there is a script located in _rf/utils_. The following command will fix the 
+__compile_commands.json__ file.
 
 ```
     python fixdb.py --pretty -f /path/to/llvm/compile_commands.json -- -I/usr/lib/clang/$(llvm-config --version)/include

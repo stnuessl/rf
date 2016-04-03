@@ -61,7 +61,6 @@ Refactorer::Refactorer()
       _Victim(),
       _ReplName(),
       _ReplSize(),
-      _VictimDecl(nullptr),
       _Buffer(),
       _Verbose(false)
 {
@@ -166,6 +165,9 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
     if (SM.isInSystemHeader(Loc) || !SM.isLocalSourceLocation(Loc))
         return;
     
+//     if (SM.isMacroBodyExpansion(Loc) || SM.isMacroArgumentExpansion(Loc))
+//         return;
+    
     auto Repl = Replacement(SM, Loc, _ReplSize, _ReplName);
     
     auto Ok = _Repls->insert(std::move(Repl)).second;
@@ -177,17 +179,7 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
 
 bool Refactorer::isVictim(const clang::NamedDecl *NamedDecl)
 {
-    auto Decl = NamedDecl->getCanonicalDecl();
-    
-    if (_VictimDecl == Decl)
-        return true;
-    
-    bool Match = _Victim == qualifiedName(NamedDecl);
-    
-    if (Match && !_VictimDecl)
-        _VictimDecl = Decl;
-        
-    return Match;
+    return _Victim == qualifiedName(NamedDecl->getCanonicalDecl());
 }
 
 std::string &Refactorer::qualifiedName(const clang::NamedDecl *NamedDecl)
