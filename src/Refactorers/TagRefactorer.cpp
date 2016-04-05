@@ -20,6 +20,27 @@
 
 #include <Refactorers/TagRefactorer.hpp>
 
+static clang::SourceLocation getLastTypeLocation(const clang::TypeLoc &TypeLoc)
+{
+    /*
+     * Statements like
+     *      class MyClass function();
+     *      ^(1)  ^(2)
+     * generate the two shown type locations.
+     * Calling "getNextTypeLoc()" on (1) will return location (2)
+     */
+    
+    auto Loc = TypeLoc.getBeginLoc();
+    auto NextTypeLoc = TypeLoc.getNextTypeLoc();
+    
+    while (NextTypeLoc) {
+        Loc = NextTypeLoc.getBeginLoc();
+        NextTypeLoc = NextTypeLoc.getNextTypeLoc();
+    }
+    
+    return Loc;
+}
+
 TagRefactorer::TagRefactorer()
     : Refactorer()
 {
@@ -54,7 +75,7 @@ void TagRefactorer::runRecordDecl(const MatchResult &Result)
     auto RecordDecl = Result.Nodes.getNodeAs<clang::RecordDecl>("RecordDecl");
     if (!RecordDecl || !isVictim(RecordDecl))
         return;
-    
+        
     addReplacement(Result, RecordDecl->getLocation());
 }
 
@@ -72,10 +93,6 @@ void TagRefactorer::runTypeLoc(const MatchResult &Result)
     auto TypeLoc = Result.Nodes.getNodeAs<clang::TypeLoc>("TypeLoc");
     if (!TypeLoc)
         return;
-
-    auto TagDecl = TypeLoc->getType()->getAsTagDecl();
-    if (!TagDecl || !isVictim(TagDecl))
-        return;
     
     /*
      * Problem: Given
@@ -88,10 +105,83 @@ void TagRefactorer::runTypeLoc(const MatchResult &Result)
      * breaking the code.
      * Filter out type (1) locations.
      */
+#if 1
     auto STTPTypeLoc = TypeLoc->getAs<clang::SubstTemplateTypeParmTypeLoc>();
-    if (!STTPTypeLoc.isNull())
+    if (STTPTypeLoc)
         return;
+#endif
+    /*
+     * Handles declarations like:
+     *      template <typename T> a {};
+     *      template <typename T> void f(a<T> a) { }
+     *                                   ^(1)
+     * even if it is never instantiated in the program.
+     * If it is there will also be a corresponding 'TypeLoc' which is
+     * handled later.
+     */
+    auto TSpecTypeLoc = TypeLoc->getAs<clang::TemplateSpecializationTypeLoc>();
+    if (TSpecTypeLoc) {
+        auto TemplateName = TSpecTypeLoc.getTypePtr()->getTemplateName();
+        auto TemplateDecl = TemplateName.getAsTemplateDecl();
+        
+        /* 'getLocStart()' seems to handle all the cases correctly */
+        if (isVictim(TemplateDecl))
+            addReplacement(Result, TSpecTypeLoc.getLocStart());
+        
+        return;
+    }
+    
+    /*
+     * This handles variable declarations like
+     *      namespace::class a;
+     *                 ^(1)
+     *      class namespace::class a;
+     *                       ^(2)
+     * Such declarations would be handled later on anyway but the
+     * access to the correct source location is much easier with 
+     * an ElaboratedTypeLoc.
+     */
+    
+    auto ElaboratedTypeLoc = TypeLoc->getAs<clang::ElaboratedTypeLoc>();
+    if (ElaboratedTypeLoc) {
+        auto TagDecl = ElaboratedTypeLoc.getInnerType()->getAsTagDecl();
+        if (TagDecl && isVictim(TagDecl)) {
+            auto NamedTypeLoc = ElaboratedTypeLoc.getNamedTypeLoc();
+            addReplacement(Result, NamedTypeLoc.getBeginLoc());
+        }
+        
+        return;
+    }
 
+    /*
+     * This handles templated functions like:
+     * 
+     *      template <typename T> class a { };
+     *      template <typename T, typename U>
+     *      bool equals(a<T> &lhs, a<U> &rhs) { return true; }
+     * 
+     * Don't now why the approach later on won't handle this case,
+     * so it is done explicitly here.
+     */
+    auto LValueRefTypeLoc = TypeLoc->getAs<clang::LValueReferenceTypeLoc>();
+    if (LValueRefTypeLoc) {
+        auto QualType = LValueRefTypeLoc.getTypePtr()->getPointeeType();
+        auto TSpecType = QualType->getAs<clang::TemplateSpecializationType>();
+        
+        if (TSpecType) {
+            auto TemplateName = TSpecType->getTemplateName();
+            auto TemplateDecl = TemplateName.getAsTemplateDecl();
+            
+            if (isVictim(TemplateDecl)) {
+                auto Loc = getLastTypeLocation(LValueRefTypeLoc);
+                addReplacement(Result, Loc);
+            }
+        }
+        
+        return;
+    }
+        
+#if 1
     /* 
      * Given something like
      *      namespace::class
@@ -102,23 +192,22 @@ void TagRefactorer::runTypeLoc(const MatchResult &Result)
      */
     
     auto UnqualTypeLoc = TypeLoc->getAs<clang::UnqualTypeLoc>();
-    if (UnqualTypeLoc.isNull())
+    if (!UnqualTypeLoc)
         return;
     
-    auto LocStart = UnqualTypeLoc.getLocStart();
-    
-    /*
-     * Statements like
-     *      class MyClass function();
-     *      ^(1)  ^(2)
-     * generate the two shown type locations.
-     * Calling "getNextTypeLoc()" on (1) will return location (2)
-     */
-    auto NextTypeLoc = UnqualTypeLoc.getNextTypeLoc();
-    if (!NextTypeLoc.isNull())
-        LocStart = NextTypeLoc.getLocStart();
+    auto TagDecl = UnqualTypeLoc.getType()->getAsTagDecl();
+    if (!TagDecl || !isVictim(TagDecl)) {
+//         llvm::errs() << "No Replacement at: ";
+//         UnqualTypeLoc.getLocStart().dump(*Result.SourceManager);
+//         llvm::errs() << "\n";
+//         UnqualTypeLoc.getTypePtr()->dump();
+//         llvm::errs() << "\n";
+        return;
+    }
 
-    addReplacement(Result, LocStart);
+    auto Loc = getLastTypeLocation(UnqualTypeLoc);
+    addReplacement(Result, Loc);
+#endif
 }
 
 void TagRefactorer::runCXXMethodDecl(const MatchResult &Result)

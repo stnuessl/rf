@@ -23,6 +23,8 @@ anonymous namespaces.
 * Renaming template parameters
 * Renaming goto labels
 * Supporting anonymous namespaces
+* One tool run for multiple refactoring procedures, at the moment this is done
+with multiple passes. This would be a huge performance improvement.
 
 ### What is __not__ supported?
 
@@ -39,6 +41,29 @@ number of the declaration you want to be refactored:
 
 ```
     $ rf --variable MyFunction::MyVar::42=MyNewVar
+```
+
+
+
+__$ rf --tag a=b__ will produce an incorrect program for something like
+the following copy constructor:
+
+```cpp
+    template <typename T> class a {
+    public:
+        a(const class a &other);
+                ^(1)  ^(2)
+    };
+```
+
+For some reason I cannot retrieve the correct source location at (2) but
+only the one at (1). However, the more common case should work:
+
+```cpp
+    template <typename T> class a {
+    public:
+        a(const a &other);
+    };
 ```
 
 ## Installation
