@@ -100,7 +100,7 @@ only the one at (1). However, the more common case should work:
 ### Setting up rf for a project
 
 This section shows how to set up __rf__ for use from within a project. 
-[llvm](https://github.com/llvm-mirror/llvm) will be used as an real world 
+[llvm](https://github.com/llvm-mirror/llvm) will be used as a real world 
 example.
 
 ```
@@ -195,7 +195,6 @@ Running __$ rf --tag a=b__ will produce:
 ```cpp
 class b {};
 class b b() { class b a; return a; }
-}
 int main() { class b var = b(); }
 ```
 
