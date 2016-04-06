@@ -4,6 +4,17 @@ rf is a command-line tool capable of refactoring C and C++ source code.
 
 ## Motivation
 
+## Advantages
+
+* no graphical user interface needed
+* capable of running multiple refactorings with one invocation
+* fully parses the source code and makes sure it is correct before refactoring
+
+## Disadvantages 
+
+* getting a working compilation database can be tricky
+* slow, especially for big C++ projects
+
 ## Project Status
 
 The project is in development and not much more than a simple prototype.
@@ -136,7 +147,7 @@ __rf__ should be usable now for refactoring the
 [llvm](https://github.com/llvm-mirror/llvm) project.
 
 ```
-    $ rf --syntax-only
+    $ rf --tag llvm::IntrusiveRefCntPtr=intrusive_ref_cnt_ptr
 ```
 
 ### Creating a Compilation Database using CMake

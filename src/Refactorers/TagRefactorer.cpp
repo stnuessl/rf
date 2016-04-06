@@ -105,28 +105,31 @@ void TagRefactorer::runTypeLoc(const MatchResult &Result)
      * breaking the code.
      * Filter out type (1) locations.
      */
-#if 1
     auto STTPTypeLoc = TypeLoc->getAs<clang::SubstTemplateTypeParmTypeLoc>();
     if (STTPTypeLoc)
         return;
-#endif
-    /*
-     * Handles declarations like:
-     *      template <typename T> a {};
+    
+    /* 
+     * This handles declarations like:
+     * 
+     *      template <typename T> class a;
+     *      template <typename T> class b<const a<T>> {};
      *      template <typename T> void f(a<T> a) { }
-     *                                   ^(1)
-     * even if it is never instantiated in the program.
-     * If it is there will also be a corresponding 'TypeLoc' which is
-     * handled later.
+     * 
+     * Casting the Typeloc to a TemplateSpecializationTypeLoc did not
+     * always work. Casting the Type to the TemplateSpecializationType
+     * seems to be doing fine.
      */
-    auto TSpecTypeLoc = TypeLoc->getAs<clang::TemplateSpecializationTypeLoc>();
-    if (TSpecTypeLoc) {
-        auto TemplateName = TSpecTypeLoc.getTypePtr()->getTemplateName();
+    auto Type = TypeLoc->getType();
+    auto TSpecType = Type->getAs<clang::TemplateSpecializationType>();
+    if (TSpecType) {
+        auto TemplateName = TSpecType->getTemplateName();
         auto TemplateDecl = TemplateName.getAsTemplateDecl();
         
-        /* 'getLocStart()' seems to handle all the cases correctly */
-        if (isVictim(TemplateDecl))
-            addReplacement(Result, TSpecTypeLoc.getLocStart());
+        if (isVictim(TemplateDecl)) {
+            auto Loc = getLastTypeLocation(*TypeLoc);
+            addReplacement(Result, Loc);
+        }
         
         return;
     }
@@ -180,34 +183,14 @@ void TagRefactorer::runTypeLoc(const MatchResult &Result)
         
         return;
     }
-        
-#if 1
-    /* 
-     * Given something like
-     *      namespace::class
-     *      ^(1)       ^(2)
-     * 
-     * there will be a qualified type location beginning at (1) and a
-     * unqualified type location at (2). Filter out type (1) locations.
-     */
     
-    auto UnqualTypeLoc = TypeLoc->getAs<clang::UnqualTypeLoc>();
-    if (!UnqualTypeLoc)
-        return;
-    
-    auto TagDecl = UnqualTypeLoc.getType()->getAsTagDecl();
-    if (!TagDecl || !isVictim(TagDecl)) {
-//         llvm::errs() << "No Replacement at: ";
-//         UnqualTypeLoc.getLocStart().dump(*Result.SourceManager);
-//         llvm::errs() << "\n";
-//         UnqualTypeLoc.getTypePtr()->dump();
-//         llvm::errs() << "\n";
-        return;
-    }
 
-    auto Loc = getLastTypeLocation(UnqualTypeLoc);
+    auto TagDecl = TypeLoc->getType()->getAsTagDecl();
+    if (!TagDecl || !isVictim(TagDecl))
+        return;
+    
+    auto Loc = getLastTypeLocation(*TypeLoc);
     addReplacement(Result, Loc);
-#endif
 }
 
 void TagRefactorer::runCXXMethodDecl(const MatchResult &Result)

@@ -74,6 +74,7 @@ private:
     std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
 
     std::string _Buffer;
+    unsigned int _DupCount;
     bool _Verbose;
 };
 

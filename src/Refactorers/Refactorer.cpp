@@ -62,6 +62,7 @@ Refactorer::Refactorer()
       _ReplName(),
       _ReplSize(),
       _Buffer(),
+      _DupCount(0),
       _Verbose(false)
 {
     _Buffer.reserve(1024);
@@ -175,6 +176,8 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
         Loc.dump(SM);
         llvm::errs() << " --> \"" << _ReplName << "\"\n";
     }
+    
+    _DupCount += !Ok;
 }
 
 bool Refactorer::isVictim(const clang::NamedDecl *NamedDecl)
