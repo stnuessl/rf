@@ -142,7 +142,7 @@ int main() {
 ```
 Further assume you want to refactor _derived::run_.
 Again, as above, you will have to run __tq --function base::run=work__ since
-_derived::run_ is an overridding function and you can't refactor _derived::run_
+_derived::run_ is an overriding function and you can't refactor _derived::run_
 without refactoring _base::run_, if you want to achieve the same program 
 behaviour as before.
 
