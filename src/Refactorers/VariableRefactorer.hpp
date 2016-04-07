@@ -27,8 +27,8 @@ class VariableRefactorer : public Refactorer {
 public:
     VariableRefactorer();
     
-    virtual void setVictimName(const std::string &Str) override;
-    virtual void setVictimName(std::string &&Str) override;
+    virtual void setVictimQualifier(const std::string &Str) override;
+    virtual void setVictimQualifier(std::string &&Str) override;
     
     virtual void run(const MatchResult &Result) override;
 private:

@@ -69,14 +69,14 @@ Refactorer::Refactorer()
     _Buffer.reserve(1024);
 }
 
-void Refactorer::setVictimName(const std::string &Str)
+void Refactorer::setVictimQualifier(const std::string &Str)
 {
     auto Copy = Str;
     
-    setVictimName(std::move(Copy));
+    setVictimQualifier(std::move(Copy));
 }
 
-void Refactorer::setVictimName(std::string &&Str)
+void Refactorer::setVictimQualifier(std::string &&Str)
 {
     /*
      * When refactoring a name it must be specified like
@@ -95,19 +95,19 @@ void Refactorer::setVictimName(std::string &&Str)
         _ReplSize -= Pos + sizeof("::") - 1;
 }
 
-const std::string &Refactorer::victimName() const
+const std::string &Refactorer::victimQualifier() const
 {
     return _Victim;
 }
 
-void Refactorer::setReplacementName(const std::string &Str)
+void Refactorer::setReplacementQualifier(const std::string &Str)
 {
     auto Copy = Str;
     
-    setReplacementName(std::move(Copy));
+    setReplacementQualifier(std::move(Copy));
 }
 
-void Refactorer::setReplacementName(std::string &&Str)
+void Refactorer::setReplacementQualifier(std::string &&Str)
 {
     /*
      * Convert "::namespace::class" to just "class" as the namespace is implicit
@@ -123,7 +123,7 @@ void Refactorer::setReplacementName(std::string &&Str)
     exitIfInvalidName(_ReplName);
 }
 
-const std::string &Refactorer::replacementName() const
+const std::string &Refactorer::replacementQualifier() const
 {
     return _ReplName;
 }

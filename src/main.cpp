@@ -159,8 +159,8 @@ void addRefactorers(const std::vector<std::string> &ArgVec,
         auto ReplName = Str.substr(Pos + sizeof(char));
 
         auto Refactorer = std::make_unique<T>();
-        Refactorer->setVictimName(std::move(VictimName));
-        Refactorer->setReplacementName(std::move(ReplName));
+        Refactorer->setVictimQualifier(std::move(VictimName));
+        Refactorer->setReplacementQualifier(std::move(ReplName));
         
         RefactorerVec.push_back(std::move(Refactorer));
     }

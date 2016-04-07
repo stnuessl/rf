@@ -45,14 +45,14 @@ VariableRefactorer::VariableRefactorer()
     _Finder.addMatcher(CtorDeclMatcher, this);
 }
 
-void VariableRefactorer::setVictimName(const std::string &Str)
+void VariableRefactorer::setVictimQualifier(const std::string &Str)
 {
     auto Copy = Str;
     
-    setVictimName(std::move(Copy));
+    setVictimQualifier(std::move(Copy));
 }
 
-void VariableRefactorer::setVictimName(std::string &&Str)
+void VariableRefactorer::setVictimQualifier(std::string &&Str)
 {
     /* Check if 'Str' is a fully qualified name */
     auto Pos = Str.rfind("::");
@@ -64,7 +64,7 @@ void VariableRefactorer::setVictimName(std::string &&Str)
         
         /* Does the last qualifier specify a line number ? */
         if (std::all_of(It, End, Pred)) {
-            Refactorer::setVictimName(Str.substr(0, Pos));
+            Refactorer::setVictimQualifier(Str.substr(0, Pos));
             
             /* 
              * std::stoi() is just dumb, it really should work on 
@@ -84,7 +84,7 @@ void VariableRefactorer::setVictimName(std::string &&Str)
         }
     }
 
-    Refactorer::setVictimName(std::move(Str));
+    Refactorer::setVictimQualifier(std::move(Str));
 }
 
 void VariableRefactorer::run(const MatchResult &Result)

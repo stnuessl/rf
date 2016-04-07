@@ -33,15 +33,15 @@ public:
     Refactorer();
     
     /* TODO: change to setVictimQualifier() */
-    virtual void setVictimName(const std::string &Str);
-    virtual void setVictimName(std::string &&Str);
+    virtual void setVictimQualifier(const std::string &Str);
+    virtual void setVictimQualifier(std::string &&Str);
     
-    const std::string &victimName() const;
+    const std::string &victimQualifier() const;
     
     /* TODO: ReplacementQualifier? */
-    void setReplacementName(const std::string &Str);
-    void setReplacementName(std::string &&Str);
-    const std::string &replacementName() const;
+    void setReplacementQualifier(const std::string &Str);
+    void setReplacementQualifier(std::string &&Str);
+    const std::string &replacementQualifier() const;
     
     void setReplacementSet(clang::tooling::Replacements *Repls);
     const clang::tooling::Replacements *replacementSet() const;
