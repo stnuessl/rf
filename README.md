@@ -90,7 +90,7 @@ This section describes the installation process for rf.
 ### Arch Linux
 
 ```
-    # pacman -Syu llvm clang gcc make
+    # pacman -Syu llvm clang gcc make git
 ```
 
 ### Compiling

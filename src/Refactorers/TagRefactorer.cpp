@@ -135,28 +135,6 @@ void TagRefactorer::runTypeLoc(const MatchResult &Result)
     }
     
     /*
-     * This handles variable declarations like
-     *      namespace::class a;
-     *                 ^(1)
-     *      class namespace::class a;
-     *                       ^(2)
-     * Such declarations would be handled later on anyway but the
-     * access to the correct source location is much easier with 
-     * an ElaboratedTypeLoc.
-     */
-    
-    auto ElaboratedTypeLoc = TypeLoc->getAs<clang::ElaboratedTypeLoc>();
-    if (ElaboratedTypeLoc) {
-        auto TagDecl = ElaboratedTypeLoc.getInnerType()->getAsTagDecl();
-        if (TagDecl && isVictim(TagDecl)) {
-            auto NamedTypeLoc = ElaboratedTypeLoc.getNamedTypeLoc();
-            addReplacement(Result, NamedTypeLoc.getBeginLoc());
-        }
-        
-        return;
-    }
-
-    /*
      * This handles templated functions like:
      * 
      *      template <typename T> class a { };
