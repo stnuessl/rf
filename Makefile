@@ -279,11 +279,12 @@ compile_commands.json: $(SRC)
 clean:
 	rm -rf $(TARGET) $(DIRS) compile_commands.json
 
-install: $(TARGET)
+install: $(TARGET) ./bash-completion/rf
 	cp $(TARGET) $(INSTALL_DIR)
+	cp ./bash-completion/rf /usr/share/bash-completion/completions/
 
 uninstall:
-	rm -f $(INSTALL_DIR)$(BIN)
+	rm -f $(INSTALL_DIR)$(BIN) /usr/share/bash-completion/completions/rf
 
 .PHONY: all clean install uninstall
 .SILENT: clean $(DIRS)
