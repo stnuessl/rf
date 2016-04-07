@@ -32,7 +32,6 @@ anonymous namespaces.
 ### What might be supported in the future?
 
 * Renaming template parameters
-* Renaming goto labels
 * Supporting anonymous namespaces
 * One tool run for multiple refactoring procedures, at the moment this is done
 with multiple passes. This would be a huge performance improvement.
@@ -79,12 +78,20 @@ only the one at (1). However, the more common case should work:
 
 ## Installation
 
-* g++/clang++ supporting at least C++11
-* make
+This section describes the installation process for rf. 
 
 ### Dependencies
 
+* g++/clang++ supporting at least C++11
+* make
+* git
 * [llvm](http://llvm.org/) and [clang](http://clang.llvm.org/) 3.7.1
+
+### Arch Linux
+
+```
+    # pacman -Syu llvm clang gcc make
+```
 
 ### Compiling
 
@@ -96,6 +103,51 @@ only the one at (1). However, the more common case should work:
 ```
 
 ## Usage
+
+```
+    $ rf --help
+```
+
+### Refactoring examples
+
+This subsection shows various examples on how to refactor certain code parts
+to achieve the desired results. 
+
+#### Inherited functions
+
+Consider the following piece of code.
+```cpp
+struct base { void work() { }; };
+struct derived : public base { };
+int main() { derived().work(); }
+```
+Further assume you want to refactor the function "work" so the _main_ reads
+```cpp
+int main() { derived().run(); }
+```
+Running __rf --function derived::work=run__ won't find anything to refactor
+because the function is inherited from _base_. The correct way of refactoring 
+this is by running __rf --function base::work=run__.
+
+#### Overridden functions
+
+Consider the following piece of code.
+```cpp
+struct base { virtual void run() { }; };
+struct derived : public base { virtual void run() override { ; }; };
+int main() {
+    base *x = new derived();
+    x->run();
+}
+```
+Further assume you want to refactor _derived::run_.
+Again, as above, you will have to run __tq --function base::run=work__ since
+_derived::run_ is an overridding function and you can't refactor _derived::run_
+without refactoring _base::run_, if you want to achieve the same program 
+behaviour as before.
+
+More to follow.
+
 
 ### Setting up rf for a project
 

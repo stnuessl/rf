@@ -85,8 +85,8 @@ static llvm::cl::opt<std::string> CompDBPath(
 static llvm::cl::opt<bool> DryRun(
     "dry-run",
     llvm::cl::desc(
-        "Do not make any changes at all. Useful for debugging, especially "
-        "when used with --verbose."
+        "Do not make any changes at all.\n"
+        "Useful for debugging, especially when used with \"--verbose\"."
     ),
     llvm::cl::init(false)
 );
@@ -94,8 +94,17 @@ static llvm::cl::opt<bool> DryRun(
 static llvm::cl::opt<bool> Verbose(
     "verbose",
     llvm::cl::desc(
-        "Increase verbosity: "
-        "Prints a line for each replacment made"
+        "Increase verbosity: Prints a line for each replacment made."
+    ),
+    llvm::cl::init(false)
+);
+
+static llvm::cl::opt<bool> Force(
+    "force",
+    llvm::cl::desc(
+        "Disable safety checks and apply replacements even if they may\n"
+        "break the code. No replacements are done if \"--dry-run\"\n"
+        "is passed along this option."
     ),
     llvm::cl::init(false)
 );
@@ -103,7 +112,7 @@ static llvm::cl::opt<bool> Verbose(
 static llvm::cl::opt<bool> SyntaxOnly(
     "syntax-only",
     llvm::cl::desc(
-        "Perform a syntax check and exit. "
+        "Perform a syntax check and exit.\n"
         "No changes are made even if replacements were specified."
     ),
     llvm::cl::init(false)
@@ -113,8 +122,7 @@ static llvm::cl::opt<bool> SyntaxOnly(
 static llvm::cl::opt<bool> AllowRoot(
     "allow-root",
     llvm::cl::desc(
-        "Allow this application to run with root privileges. "
-        "May god have mercy on you."
+        "Allow this application to run with root privileges.\n"
     ),
     llvm::cl::init(false)
 );
@@ -197,10 +205,11 @@ int main(int argc, const char **argv)
     }
     
     auto Tool = RefactoringTool(*CompilationDB, SourceFiles);
-
+    
     for (auto &Refactorer : RefactorerVec) {
         Refactorer->setReplacementSet(&Tool.getReplacements());
         Refactorer->setVerbose(Verbose);
+        Refactorer->setForce(Force);
 
         auto Action = newFrontendActionFactory(Refactorer->matchFinder());
         

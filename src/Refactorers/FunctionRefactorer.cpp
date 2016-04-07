@@ -46,11 +46,17 @@ void FunctionRefactorer::run(const MatchResult &Result)
 void FunctionRefactorer::runFunctionDecl(const MatchResult &Result)
 {
     auto FunctionDecl = Result.Nodes.getNodeAs<clang::FunctionDecl>("FuncDecl");
-    if (!FunctionDecl || !isVictim(FunctionDecl))
+    if (!FunctionDecl)
         return;
     
+    if (isVictim(FunctionDecl))
+        addReplacement(Result, FunctionDecl->getLocation());
+
+    auto CXXMethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(FunctionDecl);
+    if (!CXXMethodDecl || !overridesVictim(CXXMethodDecl))
+        return;
     
-    addReplacement(Result, FunctionDecl->getNameInfo().getLoc());
+    addReplacement(Result, CXXMethodDecl->getLocation());
 }
 
 void FunctionRefactorer::runCallExpr(const MatchResult &Result)
@@ -60,10 +66,19 @@ void FunctionRefactorer::runCallExpr(const MatchResult &Result)
         return;
     
     auto FunctionDecl = CallExpr->getDirectCallee();
-    if (!FunctionDecl || !isVictim(FunctionDecl))
+    if (!FunctionDecl)
         return;
     
-    if (!clang::dyn_cast<clang::CXXMethodDecl>(FunctionDecl))
+    /*
+     * Only calls to class methods have to be handled here.
+     * Normal function calls are handled with 'runDeclRefExpr()'
+     */
+    
+    auto CXXMethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(FunctionDecl);
+    if (!CXXMethodDecl)
+        return;
+    
+    if (!isVictim(FunctionDecl) && !overridesVictim(CXXMethodDecl))
         return;
     
     auto Loc = CallExpr->getCallee()->getExprLoc();
@@ -73,10 +88,12 @@ void FunctionRefactorer::runCallExpr(const MatchResult &Result)
 void FunctionRefactorer::runDeclRefExpr(const MatchResult &Result)
 {
     /*
-     * Handle:
-     *      void (*callback)() = &victim;
-     * and
+     * Handle replacements for expressions like:
+     * 
+     *      function_name();
      *      namespace_name::function_name();
+     *      void (*callback)() = &victim;
+     *      void (class_name::*callback)() = &class_name::function_name();
      */
     auto DeclRefExpr = Result.Nodes.getNodeAs<clang::DeclRefExpr>("DRefExpr");
     if (!DeclRefExpr)
@@ -85,12 +102,64 @@ void FunctionRefactorer::runDeclRefExpr(const MatchResult &Result)
     auto ValueDecl = DeclRefExpr->getDecl();
     if (!ValueDecl)
         return;
-    
+
     auto FunctionDecl = clang::dyn_cast<clang::FunctionDecl>(ValueDecl);
-    if (!FunctionDecl || !isVictim(FunctionDecl))
+    if (!FunctionDecl)
         return;
     
-    auto Loc = DeclRefExpr->getNameInfo().getLoc();
+    if (!isVictim(FunctionDecl)) {
+        auto MethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(FunctionDecl);
+        if (!MethodDecl || !overridesVictim(MethodDecl))
+            return;
+    }
     
+    auto Loc = DeclRefExpr->getNameInfo().getLoc();
     addReplacement(Result, Loc);
 }
+
+bool FunctionRefactorer::isVictim(const clang::FunctionDecl *FunctionDecl)
+{
+    if (!Refactorer::isVictim(FunctionDecl))
+        return false;
+    
+    if (overrides(FunctionDecl) && !force()) {
+        auto MethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(FunctionDecl);
+        
+        auto Begin = MethodDecl->begin_overridden_methods();
+        auto QualifiedName = (*Begin)->getQualifiedNameAsString();
+        
+        llvm::errs() << "** ERROR: refactoring overriding class method \""
+                     << _Victim << "\" - aborting\n"
+                     << "** INFO: consider refactoring \"" << QualifiedName
+                     << "\" instead or use the \"--force\" option\n";
+     
+        std::exit(EXIT_FAILURE);
+    }
+
+    return true;
+}
+
+bool FunctionRefactorer::overridesVictim(const clang::CXXMethodDecl *CXXMDecl) 
+{
+    auto Begin = CXXMDecl->begin_overridden_methods();
+    auto End = CXXMDecl->end_overridden_methods();
+    
+    for (auto It = Begin; It != End; ++It) {
+        if (isVictim(*It))
+            return true;
+    }
+    
+    return false;
+}
+
+bool FunctionRefactorer::overrides(const clang::FunctionDecl *FunctionDecl)
+{
+    auto CXXMethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(FunctionDecl);
+    return (CXXMethodDecl) ? overrides(CXXMethodDecl) : false;
+}
+
+bool FunctionRefactorer::overrides(const clang::CXXMethodDecl* CXXMethodDecl)
+{
+    return !!CXXMethodDecl->size_overridden_methods();
+}
+

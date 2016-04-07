@@ -49,6 +49,9 @@ public:
     void setVerbose(bool Verbose);
     bool verbose() const;
     
+    void setForce(bool Force);
+    bool force() const;
+    
     virtual void run(const MatchResult &Result) = 0;
     
     clang::ast_matchers::MatchFinder *matchFinder();
@@ -74,8 +77,11 @@ private:
     std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
 
     std::string _Buffer;
+    
     unsigned int _DupCount;
+    
     bool _Verbose;
+    bool _Force;
 };
 
 #endif /* _REFACTORER_HPP_ */

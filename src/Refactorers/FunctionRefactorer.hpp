@@ -32,6 +32,13 @@ private:
     void runFunctionDecl(const MatchResult &Result);
     void runCallExpr(const MatchResult &Result);
     void runDeclRefExpr(const MatchResult &Result);
+    
+    bool isVictim(const clang::FunctionDecl *FunctionDecl);
+    
+    bool overridesVictim(const clang::CXXMethodDecl *CXXMethodDecl);
+    
+    static bool overrides(const clang::FunctionDecl *FunctionDecl);
+    static bool overrides(const clang::CXXMethodDecl *CXXMethodDecl);
 };
 
 #endif /* _FUNCTIONREFACTORER_HPP_ */

@@ -63,7 +63,8 @@ Refactorer::Refactorer()
       _ReplSize(),
       _Buffer(),
       _DupCount(0),
-      _Verbose(false)
+      _Verbose(false),
+      _Force(false)
 {
     _Buffer.reserve(1024);
 }
@@ -145,6 +146,16 @@ void Refactorer::setVerbose(bool Verbose)
 bool Refactorer::verbose() const
 {
     return _Verbose;
+}
+
+void Refactorer::setForce(bool Force)
+{
+    _Force = Force;
+}
+
+bool Refactorer::force() const
+{
+    return _Force;
 }
 
 clang::ast_matchers::MatchFinder *Refactorer::matchFinder()
