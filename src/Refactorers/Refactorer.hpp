@@ -32,13 +32,11 @@ public:
     
     Refactorer();
     
-    /* TODO: change to setVictimQualifier() */
     virtual void setVictimQualifier(const std::string &Str);
     virtual void setVictimQualifier(std::string &&Str);
     
     const std::string &victimQualifier() const;
     
-    /* TODO: ReplacementQualifier? */
     void setReplacementQualifier(const std::string &Str);
     void setReplacementQualifier(std::string &&Str);
     const std::string &replacementQualifier() const;
