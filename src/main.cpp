@@ -45,35 +45,55 @@
 #include <util/memory.hpp>
 
 
-// static cl::OptionCategory refactoring_options("rf options");
-// static cl::extrahelp CommonHelp(CommonOptionsParser::HelpMessage);
+static llvm::cl::OptionCategory RefactoringOptions("Code refactoring options");
+static llvm::cl::OptionCategory FlagOptions("Flags");
 
 static llvm::cl::list<std::string> TagVec(
     "tag", 
-    llvm::cl::desc("Refactor an enumeration, structure, or class."),
+    llvm::cl::desc(
+        "Refactor an enumeration, structure, or class."
+    ),
     llvm::cl::value_desc("victim=repl"),
-    llvm::cl::CommaSeparated
+    llvm::cl::CommaSeparated,
+    llvm::cl::cat(RefactoringOptions)
 );
 
 static llvm::cl::list<std::string> FunctionVec(
     "function",
-    llvm::cl::desc("Refactor a function or class method."),
+    llvm::cl::desc(
+        "Refactor a function or class method.\n"
+        "Refactoring a function that is overloaded will also\n"
+        "refactor all the overloaded declarations\n"
+    ),
     llvm::cl::value_desc("victim=repl"),
-    llvm::cl::CommaSeparated
+    llvm::cl::CommaSeparated,
+    llvm::cl::cat(RefactoringOptions)
 );
 
 static llvm::cl::list<std::string> NamespaceVec(
     "namespace",
-    llvm::cl::desc("Refactor a namespace."),
+    llvm::cl::desc(
+        "Refactor a namespace.\n"
+        "Only produces a correct result if the whole implementation\n"
+        "of the specified namespace is within the project, e.g. this\n"
+        "will not work if you extended the \"std\" namespace and you\n"
+        "want the refactor that extension."
+    ),
     llvm::cl::value_desc("victim=repl"),
-    llvm::cl::CommaSeparated
+    llvm::cl::CommaSeparated,
+    llvm::cl::cat(RefactoringOptions)
 );
 
 static llvm::cl::list<std::string> VarVec(
     "variable",
-    llvm::cl::desc("Change the name of a variable."),
+    llvm::cl::desc(
+        "Change the name of a variable. If multiple declarations are\n"
+        "within the same scope you can additionally pass the line\n"
+        "number, e.g. <var::line>, to differentiate between them."
+    ),
     llvm::cl::value_desc("victim=repl"),
-    llvm::cl::CommaSeparated
+    llvm::cl::CommaSeparated,
+    llvm::cl::cat(RefactoringOptions)
 );
 
 static llvm::cl::opt<std::string> CompDBPath(
@@ -88,6 +108,7 @@ static llvm::cl::opt<bool> DryRun(
         "Do not make any changes at all.\n"
         "Useful for debugging, especially when used with \"--verbose\"."
     ),
+    llvm::cl::cat(FlagOptions),
     llvm::cl::init(false)
 );
 
@@ -96,6 +117,7 @@ static llvm::cl::opt<bool> Verbose(
     llvm::cl::desc(
         "Increase verbosity: Prints a line for each replacment made."
     ),
+    llvm::cl::cat(FlagOptions),
     llvm::cl::init(false)
 );
 
@@ -106,6 +128,7 @@ static llvm::cl::opt<bool> Force(
         "break the code. No replacements are done if \"--dry-run\"\n"
         "is passed along this option."
     ),
+    llvm::cl::cat(FlagOptions),
     llvm::cl::init(false)
 );
 
@@ -124,6 +147,7 @@ static llvm::cl::opt<bool> AllowRoot(
     llvm::cl::desc(
         "Allow this application to run with root privileges.\n"
     ),
+    llvm::cl::cat(FlagOptions),
     llvm::cl::init(false)
 );
 #endif
@@ -171,7 +195,7 @@ int main(int argc, const char **argv)
     using namespace clang;
     using namespace clang::tooling;
     
-    llvm::cl::ParseCommandLineOptions(argc, argv, "");
+    llvm::cl::ParseCommandLineOptions(argc, argv);
     
 #ifdef __unix__
     if (!AllowRoot && getuid() == 0) {
