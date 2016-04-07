@@ -41,9 +41,6 @@ _rf()
     if [[ ${cur} == * ]]; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
         return 0
-#    elif [[ ${cur} == "" ]]; then
-#        COMPREPLY="( $(compgen -W "${opts}" -- ""))
-#        return 0
     fi
 }
 
