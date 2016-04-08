@@ -24,7 +24,9 @@ MD5FILE=$(md5sum main.cpp | cut -f1 -d " ");
 g++ -Wall -std=c++11 -o main main.cpp;
 MD5BIN=$(md5sum main | cut -f1 -d " ");
 
+
 rf --tag n::a=aa,b=bb,c=cc --function f=ff && rf --syntax-only;
+g++ -Wall -std=c++11 -o main main.cpp
 rf --tag n::aa=a,bb=b,cc=c --function ff=f && rf --syntax-only;
 
 if [ "$MD5FILE" != "$(md5sum main.cpp | cut -f1 -d " ")" ]; then

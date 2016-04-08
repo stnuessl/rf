@@ -74,13 +74,12 @@ void FunctionRefactorer::runCallExpr(const MatchResult &Result)
      * Normal function calls are handled with 'runDeclRefExpr()'
      */
     
-    auto CXXMethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(FunctionDecl);
-    if (!CXXMethodDecl)
-        return;
-    
-    if (!isVictim(FunctionDecl) && !overridesVictim(CXXMethodDecl))
-        return;
-    
+    if (!isVictim(FunctionDecl)) {
+        auto MethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(FunctionDecl);
+        if (!MethodDecl || !overridesVictim(MethodDecl))
+            return;
+    }
+
     auto Loc = CallExpr->getCallee()->getExprLoc();
     addReplacement(Result, Loc);
 }

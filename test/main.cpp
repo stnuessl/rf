@@ -18,9 +18,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
-#include <vector>
-
 namespace n {
 struct a {
     a() {};
@@ -33,15 +30,20 @@ struct a {
 template <typename T>
 struct b {
     b() {};
-    b(const b<T> &other);
-    b(b<T> &&other);
+    b(const b<T> &other) {};
+    b(b<T> &&other) {};
 #if 0
     // clang error? Unable to retrieve correct source location
     b(const class b &other) {};
     b(class b &&other) {};
 #endif
     ~b() {};
+    
+    void run() const {};
+    template <typename U> b(const b<U> &other) { run(); };
 };
+
+template <typename T> void f(b<T> b) {};
 
 template <typename T, typename U>
 bool operator==(const class b<T> &lhs, const class b<U> &rhs) { return true; };
@@ -55,8 +57,8 @@ template <typename T> struct c<const b<T>> {};
 
 int main(void)
 {
-    std::vector<struct n::a> v;
-    std::vector<struct b<int>> u;
+    b<struct n::a> v;
+    b<struct b<int>> u;
     
     struct n::a a1 = n::a();
     n::a a2 = n::a(a1);

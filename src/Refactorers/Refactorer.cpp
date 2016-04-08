@@ -216,23 +216,10 @@ std::string &Refactorer::qualifiedName(const clang::NamedDecl *NamedDecl)
     auto Context = NamedDecl->getDeclContext();
     
     while (Context) {
-        
-        /*
-         * template <typename T> a {};
-         * template <typename T> void f(a<T> a) {};
-         *                              ^~~~
-         * The marked position has the qualified name 'a::a'.
-         * Filter out the template dependent context to
-         * just get 'a'. We'll see if this conflicts with other
-         * qualified names...
-         */
-        if (!Context->isDependentContext()) {
-        
-            NamedDecl = clang::dyn_cast<clang::NamedDecl>(Context);
-            if (NamedDecl) {
-                rCopy(_Buffer, NamedDecl->getName());
-                _Buffer += "::";
-            }
+        NamedDecl = clang::dyn_cast<clang::NamedDecl>(Context);
+        if (NamedDecl) {
+            rCopy(_Buffer, NamedDecl->getName());
+            _Buffer += "::";
         }
         
         Context = Context->getParent();
