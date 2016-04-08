@@ -20,14 +20,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+MD5FILE=$(md5sum main.cpp | cut -f1 -d " ");
 g++ -Wall -std=c++11 -o main main.cpp;
-MD5=$(md5sum main | cut -f1 -d " ");
+MD5BIN=$(md5sum main | cut -f1 -d " ");
 
-rf --tag n::a=aa,b=bb,c=cc && rf --syntax-only;
-rf --tag n::aa=a,bb=b,cc=c && rf --syntax-only;
+rf --tag n::a=aa,b=bb,c=cc --function f=ff && rf --syntax-only;
+rf --tag n::aa=a,bb=b,cc=c --function ff=f && rf --syntax-only;
+
+if [ "$MD5FILE" != "$(md5sum main.cpp | cut -f1 -d " ")" ]; then
+    echo "**WARNING: MD5 sum of 'main' changed!";
+fi
+
 g++ -Wall -std=c++11 -o main main.cpp;
 
-if [ "$MD5" != "$(md5sum main | cut -f1 -d " ")" ]; then
+if [ "$MD5BIN" != "$(md5sum main | cut -f1 -d " ")" ]; then
     echo "**WARNING: MD5 sum of 'main' changed!";
 fi
 

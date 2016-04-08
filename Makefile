@@ -41,6 +41,10 @@ ifndef BIN
 $(error No binary name specified)
 endif
 
+SHELL_COMPL	:= ./bash-completion/rf
+SHELL_COMPL_DIR := /usr/share/bash-completion/completions/
+
+
 #
 # Specify all source files. The paths should be relative to this file.
 #
@@ -279,12 +283,12 @@ compile_commands.json: $(SRC)
 clean:
 	rm -rf $(TARGET) $(DIRS) compile_commands.json
 
-install: $(TARGET) ./bash-completion/rf
+install: $(TARGET) $(SHELL_COMPL)
 	cp $(TARGET) $(INSTALL_DIR)
-	cp ./bash-completion/rf /usr/share/bash-completion/completions/
+	cp $(SHELL_COMPL) $(SHELL_COMPL_DIR)
 
 uninstall:
-	rm -f $(INSTALL_DIR)$(BIN) /usr/share/bash-completion/completions/rf
+	rm -f $(INSTALL_DIR)$(BIN) $(SHELL_COMPL_DIR)$(notdir $(SHELL_COMPL))
 
 .PHONY: all clean install uninstall
 .SILENT: clean $(DIRS)

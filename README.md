@@ -108,6 +108,23 @@ This section describes the installation process for rf.
     $ rf --help
 ```
 
+### Refactoring rf's own source code
+
+This section shows how to refactor __rf's__ own source code. This shall help
+to understand how to use __rf__. First you need to install __rf__ as described
+in section [Installation](https://github.com/stnuessl/rf#Installation).
+For rf to be capable of refactoring its own source code you need to create a 
+compilation database named compile_commands.json. This can be done with
+
+```
+    $ make compile_commands.json
+```
+
+That's it. __rf__ should be ready for use in its own source code. 
+
+More will follow.
+
+
 ### Refactoring examples
 
 This subsection shows various examples on how to refactor certain code parts

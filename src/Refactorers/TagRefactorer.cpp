@@ -24,7 +24,7 @@ static clang::SourceLocation getLastTypeLocation(const clang::TypeLoc &TypeLoc)
 {
     /*
      * Statements like
-     *      class MyClass function();
+     *      class a var;
      *      ^(1)  ^(2)
      * generate the two shown type locations.
      * Calling "getNextTypeLoc()" on (1) will return location (2)
@@ -162,7 +162,6 @@ void TagRefactorer::runTypeLoc(const MatchResult &Result)
         return;
     }
     
-
     auto TagDecl = TypeLoc->getType()->getAsTagDecl();
     if (!TagDecl || !isVictim(TagDecl))
         return;

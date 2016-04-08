@@ -44,7 +44,10 @@ struct b {
 };
 
 template <typename T, typename U>
-bool operator==(const class b<T> lhs, const class b<U> rhs) { return true; };
+bool operator==(const class b<T> &lhs, const class b<U> &rhs) { return true; };
+
+template <typename T, typename U>
+bool f(const b<T> &lhs, const b<U> &rhs) { return lhs == rhs; };
 
 template <typename T> struct c;
 template <typename T> struct c<const b<T>> {};
@@ -63,6 +66,8 @@ int main(void)
     
     b<int> b1;
     struct b<double> b2;
+    
+    (void) f(b1, b2);
     
     return 0;
 }
