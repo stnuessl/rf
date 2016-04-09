@@ -27,6 +27,12 @@ struct a {
 };
 } // namespace
 
+namespace {
+
+auto a0 = n::a();
+    
+}
+
 template <typename T>
 struct b {
     b() {};
@@ -61,7 +67,7 @@ int main(void)
     b<struct b<int>> u;
     
     struct n::a a1 = n::a();
-    n::a a2 = n::a(a1);
+    n::a a2 = n::a(a0);
     
     using namespace n;
     a a3 = a(a());
