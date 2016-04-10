@@ -20,7 +20,7 @@
 
 #include <iostream>
 #include <memory>
-#include <vector>
+// #include <vector>
 #include <utility>
 #include <cstdlib>
 
@@ -37,16 +37,19 @@
 
 #include <llvm/Support/CommandLine.h>
 
-
 #include <Refactorers/TagRefactorer.hpp>
 #include <Refactorers/FunctionRefactorer.hpp>
 #include <Refactorers/NamespaceRefactorer.hpp>
 #include <Refactorers/VariableRefactorer.hpp>
+#include <Sanitizers/IncludeSanitizer.hpp>
 #include <util/memory.hpp>
-
 
 static llvm::cl::OptionCategory RefactoringOptions("Code refactoring options");
 static llvm::cl::OptionCategory FlagOptions("Flags");
+static llvm::cl::extrahelp HelpText(
+    "\n!! Commit your source code to a version control system before "
+    "refactoring it !!\n\n"
+);
 
 static llvm::cl::list<std::string> TagVec(
     "tag", 
@@ -63,7 +66,7 @@ static llvm::cl::list<std::string> FunctionVec(
     llvm::cl::desc(
         "Refactor a function or class method.\n"
         "Refactoring a function that is overloaded will also\n"
-        "refactor all the overloaded declarations\n"
+        "refactor all the overloaded declarations.\n"
     ),
     llvm::cl::value_desc("victim=repl"),
     llvm::cl::CommaSeparated,
@@ -98,7 +101,12 @@ static llvm::cl::list<std::string> VarVec(
 
 static llvm::cl::opt<std::string> CompDBPath(
     "comp-db",
-    llvm::cl::desc("Specify the <path> to the compilation database."),
+    llvm::cl::desc(
+        "Specify the <path> to the compilation database\n"
+        "(\"compile_commands.json\") for the project.\n"
+        "If not specified rf will automatically search all\n"
+        "parent directories for such a file."
+    ),
     llvm::cl::value_desc("path")
 );
 
@@ -115,7 +123,8 @@ static llvm::cl::opt<bool> DryRun(
 static llvm::cl::opt<bool> Verbose(
     "verbose",
     llvm::cl::desc(
-        "Increase verbosity: Prints a line for each replacment made."
+        "Increase verbosity:\n"
+        "Print a line for each replacement to be made."
     ),
     llvm::cl::cat(FlagOptions),
     llvm::cl::init(false)
@@ -228,6 +237,14 @@ int main(int argc, const char **argv)
         std::exit((err == 0) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
     
+#if 1
+    auto Action = newFrontendActionFactory<IncludeSanitizer>();
+    
+    int err = ClangTool(*CompilationDB, SourceFiles).run(Action.get());
+    std::exit((err == 0) ? EXIT_SUCCESS : EXIT_FAILURE);
+#endif
+
+    
     auto Tool = RefactoringTool(*CompilationDB, SourceFiles);
     
     for (auto &Refactorer : RefactorerVec) {
@@ -246,7 +263,12 @@ int main(int argc, const char **argv)
         int err = Tool.run(Action.get());
         if (err != 0) {
             std::cerr << "** ERROR: a refactoring run failed\n";
-            std::exit(EXIT_FAILURE);
+            
+            if (!Force) {
+                std::cerr << "** INFO: use \"--force\" if you still want to "
+                          << "apply replacements\n";
+                std::exit(EXIT_FAILURE);
+            }
         }
     }
     
