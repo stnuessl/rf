@@ -18,9 +18,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// #include <unordered_map>
-#include <string>
-
 namespace n {
 struct a {
     a() {};
@@ -28,13 +25,13 @@ struct a {
     a(a &&other) {};
     ~a() {};
 };
-} // namespace
+} // namespace n
 
 namespace {
 
 auto a0 = n::a();
     
-}
+} // namespace
 
 template <typename T>
 struct b {

@@ -31,18 +31,18 @@ class IncludeSanitizer : public Sanitizer {
 public:
     typedef std::pair<unsigned int, unsigned int> UIntPair;
     struct PairHash {
-        std::size_t operator()(const UIntPair &Pair)
+        std::size_t operator()(const UIntPair &Pair) const
         {
             auto Hasher = std::hash<unsigned int>();
             auto First = Hasher(Pair.first);
             auto Second = Hasher(Pair.second);
-            
+
             return First ^ Second;
         }
     };
     
     struct PairEqual {
-        bool operator()(const UIntPair &A, const UIntPair &B)
+        bool operator()(const UIntPair &A, const UIntPair &B) const
         {
             return A == B;
         }

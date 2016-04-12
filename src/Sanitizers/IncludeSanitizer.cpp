@@ -30,15 +30,19 @@ class PPCallbackHandler : public clang::PPCallbacks {
 public:
     explicit PPCallbackHandler(IncludeSanitizer *Sanitizer);
     
-    void InclusionDirective(clang::SourceLocation LocBegin, 
-                            const clang::Token &Token, 
-                            llvm::StringRef FileName, 
-                            bool isAngled, 
-                            clang::CharSourceRange FileNameRange, 
-                            const clang::FileEntry* File, 
-                            llvm::StringRef SearchPath, 
-                            llvm::StringRef RelativePath, 
-                            const clang::Module* Module);
+    virtual void InclusionDirective(clang::SourceLocation LocBegin, 
+                                    const clang::Token &Token, 
+                                    llvm::StringRef FileName, 
+                                    bool isAngled, 
+                                    clang::CharSourceRange FileNameRange, 
+                                    const clang::FileEntry* File, 
+                                    llvm::StringRef SearchPath, 
+                                    llvm::StringRef RelativePath, 
+                                    const clang::Module* Module) override;
+                            
+    virtual void FileSkipped(const clang::FileEntry &SkippedFile,
+                             const clang::Token &FileNameToken,
+                             clang::SrcMgr::CharacteristicKind Kind) override;
     
 private:
     IncludeSanitizer *_Sanitizer;
@@ -69,6 +73,15 @@ void PPCallbackHandler::InclusionDirective(clang::SourceLocation LocBegin,
     if (SM.isInSystemHeader(LocBegin) || !SM.isLocalSourceLocation(LocBegin))
         return;
     
+    auto FileID = SM.getFileID(LocBegin);
+    auto IncludingFile = SM.getFileEntryForID(FileID);
+    
+    if (!IncludingFile || !IncludingFile->isValid())
+        return;
+    
+    auto UID1 = IncludingFile->getUID();
+    auto UID2 = File->getUID();
+    
     /*
      * This source range can be visualized as
      * 
@@ -77,42 +90,69 @@ void PPCallbackHandler::InclusionDirective(clang::SourceLocation LocBegin,
      */
     auto Range = clang::SourceRange(LocBegin, FileNameRange.getEnd());
     
-    IncludeMap[File->getUID()].push_back(std::move(Range));
+    /* Same file could be included several times */
+    IncludeMap[{UID1, UID2}].push_back(std::move(Range));
     
-    auto FileID = SM.getFileID(LocBegin);
-    auto ThisFile = SM.getFileEntryForID(FileID);
-    
-    if (ThisFile && ThisFile->isValid()) {
-        auto ThisUID = ThisFile->getUID();
-        
-        llvm::errs() << ThisFile->getName() << " (" << ThisUID << ") includes " 
-                     << File->getName() << " (" << File->getUID() << ")\n";
-    }
-    
-//     LocBegin.dump(SM);
-//     llvm::errs() << "\nFile " << File->getUID() << " --> " << FileName << "\n";
-
-#if 0
-    llvm::errs() << "At: ";
-    LocBegin.dump(SM);
-    llvm::errs() << " :: included " << FileName << " / " << File->getName() << "\n";
-    
-    FileNameRange.getBegin().dump(SM);
-    llvm::errs() << " < -- > ";
-    FileNameRange.getEnd().dump(SM);
-    llvm::errs() << "\n\n";
-#endif
+//     llvm::errs() << IncludingFile->getName() << ", " << File->getName() << "\n";
+//     llvm::errs() << "Adding: (" << UID1 << ", " << UID2 << ")\n";
 }
+
+void PPCallbackHandler::FileSkipped(const clang::FileEntry &SkippedFile, 
+                                    const clang::Token &FileNameToken, 
+                                    clang::SrcMgr::CharacteristicKind Kind)
+{
+    /*
+     * Remove Source Locations which cannot possible achieve a hit
+     * in the Vistitor code below since they were included twice
+     * (only the first include will be hitted).
+     */
+    (void) Kind;
+    
+    auto &SM = _Sanitizer->getCompilerInstance().getSourceManager();
+    
+    auto Loc = FileNameToken.getEndLoc();
+    auto FileID = SM.getFileID(Loc);
+    auto IncludingFile = SM.getFileEntryForID(FileID);
+    
+    if (!IncludingFile || !IncludingFile->isValid())
+        return;
+    
+    auto IncludingUID = IncludingFile->getUID();
+    auto SkippedUID = SkippedFile.getUID();
+    
+    auto &IncludeMap = _Sanitizer->includeMap();
+    
+    auto MapIt = IncludeMap.find({IncludingUID, SkippedUID});
+    if (MapIt == IncludeMap.end())
+        return;
+    
+    auto &Vec = MapIt->second;
+    
+    for (auto It = Vec.begin(), End = Vec.end(); It != End; ++It) {
+        if (Loc == It->getEnd()) {
+            Vec.erase(It);
+            
+            if (Vec.empty())
+                IncludeMap.erase(MapIt);
+            
+            break;
+        }
+    }
+}
+
 
 namespace {
 class Visitor : public clang::RecursiveASTVisitor<Visitor> {
 public:
     Visitor(clang::ASTContext *ASTContext, IncludeSanitizer *Sanitizer);
     
-    bool VisitVarDecl(clang::VarDecl *VarDecl);
-    bool VisitDeclRefExpr(clang::DeclRefExpr *DeclRefExpr);
+    bool shouldVisitTemplateInstantiations() const;
     
-    void removeIncluded(clang::SourceLocation Loc);
+    bool VisitDeclRefExpr(clang::DeclRefExpr *DeclRefExpr);
+    bool VisitTypeLoc(const clang::TypeLoc &TypeLoc);
+    bool VisitTypedefNameDecl(clang::TypedefNameDecl *TypedefNamedDecl);
+    
+    void run(clang::SourceLocation Loc, unsigned int IncluderUID);
 private:
 //     clang::ASTContext *_ASTContext;
     IncludeSanitizer *_Sanitizer;
@@ -131,54 +171,116 @@ Visitor::Visitor(clang::ASTContext *ASTContext, IncludeSanitizer *Sanitizer)
 {
 }
 
-bool Visitor::VisitVarDecl(clang::VarDecl *VarDecl)
+bool Visitor::shouldVisitTemplateInstantiations() const
 {
-    auto TagDecl = VarDecl->getType()->getAsTagDecl();
-    if (!TagDecl)
-        return true;
-    
-    auto Loc = TagDecl->getCanonicalDecl()->getLocStart();
-    
-    removeIncluded(Loc);
-    
-//     VarDecl->dump();
-
-    return !_IncludeMap->empty();
-
+    return true;
 }
 
 bool Visitor::VisitDeclRefExpr(clang::DeclRefExpr *DeclRefExpr)
 {
-    auto ValueDecl = DeclRefExpr->getDecl();
-    auto Loc = ValueDecl->getCanonicalDecl()->getLocStart();
+    auto DeclRefExprLoc = DeclRefExpr->getLocStart();
     
-//     DeclRefExpr->getLocation().dump(*_SourceManager);
-//     llvm::errs() << "\n";
-//     ValueDecl->dump();
-//     llvm::errs() << "\n";
+    if (_SourceManager->isInSystemHeader(DeclRefExprLoc))
+        return true;
     
+    auto FileID = _SourceManager->getFileID(DeclRefExprLoc);
+    auto File = _SourceManager->getFileEntryForID(FileID);
     
-    removeIncluded(Loc);
+    if (!File || !File->isValid())
+        return true;
+    
+    auto UID = File->getUID();
+    auto ValueDecl = DeclRefExpr->getFoundDecl();
+    auto Loc = ValueDecl->getLocStart();
+
+    if (_SourceManager->isWrittenInSameFile(DeclRefExprLoc, Loc))
+        return true;
+    
+    run(Loc, UID);
     
     return !_IncludeMap->empty();
 }
 
+bool Visitor::VisitTypeLoc(const clang::TypeLoc &TypeLoc)
+{
+    auto Type = TypeLoc.getType();
+    
+    if (Type->isBuiltinType())
+        return true;
+    
+    auto Loc = TypeLoc.getLocStart();
+    
+    if (_SourceManager->isInSystemHeader(Loc))
+        return true;
+    
+    auto FileID = _SourceManager->getFileID(Loc);
+    auto File = _SourceManager->getFileEntryForID(FileID);
+    
+    if (!File || !File->isValid())
+        return true;
+    
+    auto UID = File->getUID();
+    
+    auto TemplateSpecType = Type->getAs<clang::TemplateSpecializationType>();    
+    if (TemplateSpecType) {
+        auto TemplateName = TemplateSpecType->getTemplateName();
+        auto TemplateDecl = TemplateName.getAsTemplateDecl();
+        
+        run(TemplateDecl->getLocStart(), UID);
+        
+        return !_IncludeMap->empty();
+    }
+    
+    auto TypedefType = Type->getAs<clang::TypedefType>();
+    if (TypedefType) {
+        auto TypedefNameDecl = TypedefType->getDecl();
+        
+        run(TypedefNameDecl->getLocStart(), UID);
+        return !_IncludeMap->empty();
+    }
+    
+    auto TagDecl = TypeLoc.getType()->getAsTagDecl();
+    if (!TagDecl)
+        return true;
+    
+    run(TagDecl->getLocStart(), UID);
+    
+    return !_IncludeMap->empty();
+}
 
-void Visitor::removeIncluded(clang::SourceLocation Loc)
+bool Visitor::VisitTypedefNameDecl(clang::TypedefNameDecl *TypedefNamedDecl)
+{
+//     llvm::errs() << "TypedefDecl: " << TypedefNamedDecl->getNameAsString() << "\n";
+//     auto UID = getFileUID(TypedefNamedDecl->getLocStart());
+//     
+//     auto TagDecl = TypedefNamedDecl->getAnonDeclWithTypedefName();
+//     if (!TagDecl)
+//         return true;
+//     
+//     if (_SourceManager->isInMainFile(TypedefNamedDecl->getLocStart())) {
+//         TypedefNamedDecl->dump();
+//     }
+//     
+//     llvm::errs() << "TypedefNameDecl\n";
+//     run(TagDecl->getLocStart(), UID);
+//     
+    return !_IncludeMap->empty();
+}
+
+
+void Visitor::run(clang::SourceLocation Loc, unsigned int IncluderUID)
 {
     while (Loc.isValid() && !_IncludeMap->empty()) {
         auto FileID = _SourceManager->getFileID(Loc);
         auto FileEntry = _SourceManager->getFileEntryForID(FileID);
         
-#if 0
-        if (FileEntry && FileEntry->isValid())
-            _IncludeMap->erase(FileEntry->getUID());
-#endif
         if (FileEntry && FileEntry->isValid()) {
-            auto UID = FileEntry->getUID();
+            auto IncludedUID = FileEntry->getUID();
             
-//             llvm::errs() << "Removing: " << UID << " / " << FileEntry->getName() << "\n";
-            _IncludeMap->erase(UID);
+            if (IncluderUID == IncludedUID)
+                return;
+            
+            _IncludeMap->erase({IncluderUID, IncludedUID});
         }
         
         Loc = _SourceManager->getIncludeLoc(FileID);
@@ -242,7 +344,8 @@ void IncludeSanitizer::EndSourceFileAction()
     
     for (const auto &x : _IncludeMap) {
         for (const auto &y : x.second) {
-            llvm::errs() << "  ";
+            llvm::errs() << "  (" << x.first.first << ", " << x.first.second
+                         << ") --->";
             y.getBegin().dump(SM);
             llvm::errs() << "\n";
         }

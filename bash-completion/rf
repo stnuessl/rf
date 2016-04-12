@@ -36,7 +36,8 @@ _rf()
           --allow-root 
           --force 
           --dry-run
-          --syntax-only"
+          --syntax-only
+          --sanitize-includes"
 
     if [[ ${cur} == * ]]; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )

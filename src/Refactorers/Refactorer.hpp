@@ -21,7 +21,7 @@
 #ifndef _REFACTORER_HPP_
 #define _REFACTORER_HPP_
 
-// #include <string>
+#include <string>
 
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/Tooling/Refactoring.h>

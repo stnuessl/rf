@@ -21,7 +21,7 @@
 #include <iostream>
 #include <memory>
 // #include <vector>
-#include <utility>
+// #include <utility>
 #include <cstdlib>
 
 #ifdef __unix__
@@ -97,6 +97,15 @@ static llvm::cl::list<std::string> VarVec(
     llvm::cl::value_desc("victim=repl"),
     llvm::cl::CommaSeparated,
     llvm::cl::cat(RefactoringOptions)
+);
+
+static llvm::cl::opt<bool> SanitizeIncludes(
+    "sanitize-includes",
+    llvm::cl::desc(
+        "Find unused included header files and remove them."
+    ),
+    llvm::cl::cat(RefactoringOptions),
+    llvm::cl::init(false)
 );
 
 static llvm::cl::opt<std::string> CompDBPath(
@@ -237,13 +246,17 @@ int main(int argc, const char **argv)
         std::exit((err == 0) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
     
-#if 1
-    auto Action = newFrontendActionFactory<IncludeSanitizer>();
-    
-    int err = ClangTool(*CompilationDB, SourceFiles).run(Action.get());
-    std::exit((err == 0) ? EXIT_SUCCESS : EXIT_FAILURE);
-#endif
-
+    if (SanitizeIncludes) {
+        auto Action = newFrontendActionFactory<IncludeSanitizer>();
+        
+        int err = ClangTool(*CompilationDB, SourceFiles).run(Action.get());
+        if (err != 0) {
+            std::cerr << "** ERROR: sanitizing include files failed\n";
+            
+            if (!Force)
+                std::exit(EXIT_FAILURE);
+        }
+    }
     
     auto Tool = RefactoringTool(*CompilationDB, SourceFiles);
     
