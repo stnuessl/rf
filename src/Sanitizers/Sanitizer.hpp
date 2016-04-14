@@ -23,7 +23,6 @@
 
 #include <memory>
 
-// #include <clang/Frontend/ASTConsumers.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/FrontendAction.h>
 

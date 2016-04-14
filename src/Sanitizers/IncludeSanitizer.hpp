@@ -22,7 +22,7 @@
 #define _INCLUDESANITIZER_HPP_
 
 #include <unordered_map>
-// #include <vector>
+#include <vector>
 
 #include <Sanitizers/Sanitizer.hpp>
 
@@ -30,26 +30,13 @@
 class IncludeSanitizer : public Sanitizer {
 public:
     typedef std::pair<unsigned int, unsigned int> UIntPair;
-    struct PairHash {
-        std::size_t operator()(const UIntPair &Pair) const
-        {
-            auto Hasher = std::hash<unsigned int>();
-            auto First = Hasher(Pair.first);
-            auto Second = Hasher(Pair.second);
-
-            return First ^ Second;
-        }
+    struct UIntPairHash {   
+        std::size_t operator()(const UIntPair &Pair) const;
     };
     
-    struct PairEqual {
-        bool operator()(const UIntPair &A, const UIntPair &B) const
-        {
-            return A == B;
-        }
-    };
     typedef std::vector<clang::SourceRange> SourceRangeVector;
-    typedef std::unordered_map<UIntPair, SourceRangeVector, PairHash, PairEqual>
-    IncludeMap;
+    typedef 
+    std::unordered_map<UIntPair, SourceRangeVector, UIntPairHash> IncludeMap;
     
     IncludeMap &includeMap();
     const IncludeMap &includeMap() const;
