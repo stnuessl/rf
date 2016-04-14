@@ -18,6 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if 0
+
 // #include <algorithm>
 #include <utility>
 #include <cctype>
@@ -199,3 +201,4 @@ bool VariableRefactorer::isVictim(const clang::NamedDecl *NamedDecl,
     return Equal;
 }
 
+#endif

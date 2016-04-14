@@ -32,15 +32,18 @@
 #include <clang/Tooling/Refactoring.h>
 #include <clang/Tooling/CompilationDatabase.h>
 #include <clang/Tooling/JSONCompilationDatabase.h>
+#include <clang/Tooling/Tooling.h>
 
 #include <llvm/Support/CommandLine.h>
 
 #include <Refactorers/TagRefactorer.hpp>
 #include <Refactorers/FunctionRefactorer.hpp>
-#include <Refactorers/NamespaceRefactorer.hpp>
-#include <Refactorers/VariableRefactorer.hpp>
+// #include <Refactorers/NamespaceRefactorer.hpp>
+// #include <Refactorers/VariableRefactorer.hpp>
 #include <Sanitizers/IncludeSanitizer.hpp>
 #include <util/memory.hpp>
+
+#include <RefactoringActionFactory.hpp>
 
 static llvm::cl::OptionCategory RefactoringOptions("Code refactoring options");
 static llvm::cl::OptionCategory FlagOptions("Flags");
@@ -183,9 +186,10 @@ makeCompilationDatabase(const std::string &Path, std::string &ErrMsg)
     return CompilationDatabase::autoDetectFromDirectory(WorkDir, ErrMsg);
 }
 
-template<typename T> static 
-void addRefactorers(const std::vector<std::string> &ArgVec, 
-                    std::vector<std::unique_ptr<Refactorer>> &RefactorerVec)
+template<typename T> 
+static void addRefactorers(RefactorerVector &Refactorers,
+                           const std::vector<std::string> &ArgVec, 
+                           clang::tooling::Replacements *Repls)
 {
     for (const auto &Str : ArgVec) {
         auto Pos = Str.find('=');
@@ -199,10 +203,13 @@ void addRefactorers(const std::vector<std::string> &ArgVec,
         auto ReplName = Str.substr(Pos + sizeof(char));
 
         auto Refactorer = std::make_unique<T>();
+        Refactorer->setReplacements(Repls);
         Refactorer->setVictimQualifier(std::move(VictimName));
         Refactorer->setReplacementQualifier(std::move(ReplName));
+        Refactorer->setVerbose(Verbose);
+        Refactorer->setForce(Force);
         
-        RefactorerVec.push_back(std::move(Refactorer));
+        Refactorers.push_back(std::move(Refactorer));
     }
 }
 
@@ -219,13 +226,6 @@ int main(int argc, const char **argv)
         std::exit(EXIT_FAILURE);
     }
 #endif
-    
-    auto RefactorerVec = std::vector<std::unique_ptr<Refactorer>>();
-    
-    addRefactorers<TagRefactorer>(TagVec, RefactorerVec);
-    addRefactorers<FunctionRefactorer>(FunctionVec, RefactorerVec);
-    addRefactorers<NamespaceRefactorer>(NamespaceVec, RefactorerVec);
-    addRefactorers<VariableRefactorer>(VarVec, RefactorerVec);
     
     auto ErrMsg = std::string();
     auto CompilationDB = makeCompilationDatabase(CompDBPath, ErrMsg);
@@ -257,29 +257,31 @@ int main(int argc, const char **argv)
     }
     
     auto Tool = RefactoringTool(*CompilationDB, SourceFiles);
+    auto Repls = &Tool.getReplacements();
     
-    for (auto &Refactorer : RefactorerVec) {
-        Refactorer->setReplacementSet(&Tool.getReplacements());
-        Refactorer->setVerbose(Verbose);
-        Refactorer->setForce(Force);
+    auto RefactorerVec = RefactorerVector();
+    
+    addRefactorers<TagRefactorerNew>(RefactorerVec, TagVec, Repls);
+    //     addRefactorers<TagRefactorer>(TagVec, RefactorerVec);
+    addRefactorers<FunctionRefactorer>(RefactorerVec, FunctionVec, Repls);
+    //     addRefactorers<NamespaceRefactorer>(NamespaceVec, RefactorerVec);
+    //     addRefactorers<VariableRefactorer>(VarVec, RefactorerVec);
 
-        auto Action = newFrontendActionFactory(Refactorer->matchFinder());
+    auto Factory = std::make_unique<RefactoringActionFactory>();
+    Factory->setRefactorers(&RefactorerVec);
+
+//     auto Action = std::make_unique<RefactoringAction>();
+//     Action->setReplacements(Tool.getReplacements());
+//     Action->setRefactorers(&RefactorerVec);
+    
+    int err = Tool.run(Factory.get());
+    if (err != 0) {
+        std::cerr << "** ERROR: error(s) generated while refactoring\n";
         
-        /* 
-         * Do _NOT_ use runAndSave() here: We want to support multiple
-         * (non-conflicting) refactoring runs. This means we have to
-         * collect all replacements first or different runs can interact
-         * in unpredicted ways because the underlying files have been changed.
-         */
-        int err = Tool.run(Action.get());
-        if (err != 0) {
-            std::cerr << "** ERROR: a refactoring run failed\n";
-            
-            if (!Force) {
-                std::cerr << "** INFO: use \"--force\" if you still want to "
-                          << "apply replacements\n";
-                std::exit(EXIT_FAILURE);
-            }
+        if (!Force) {
+            std::cerr << "** INFO: use \"--force\" if you still want to "
+            << "apply replacements\n";
+            std::exit(EXIT_FAILURE);
         }
     }
     
@@ -307,6 +309,6 @@ int main(int argc, const char **argv)
             std::exit(EXIT_FAILURE);
         }
     }
-    
+        
     return 0;
 }

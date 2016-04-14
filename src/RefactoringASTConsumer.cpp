@@ -18,24 +18,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _NAMESPACEREFACTORER_HPP_
-#define _NAMESPACEREFACTORER_HPP_
+#include <RefactoringASTConsumer.hpp>
 
-#if 0
 
-#include <Refactorers/Refactorer.hpp>
+RefactoringASTConsumer::RefactoringASTConsumer()
+    : clang::ASTConsumer(),
+      _Visitor()
+{
+}
 
-class NamespaceRefactorer : public Refactorer {
-public:
-    NamespaceRefactorer();
-    
-    virtual void run(const MatchResult &Result) override;
-private:
-    void runNamespaceDecl(const MatchResult &Result);
-    void runNestedNameSpecifierLoc(const MatchResult &Result);
-    void runUsingDecl(const MatchResult &Result);
-};
+void RefactoringASTConsumer::setRefactorers(RefactorerVector *Vec)
+{
+    _Visitor.setRefactorers(Vec);
+}
 
-#endif
-
-#endif /* _NAMESPACEREFACTORER_HPP_ */
+void 
+RefactoringASTConsumer::HandleTranslationUnit(clang::ASTContext &ASTContext)
+{
+    _Visitor.setASTContext(ASTContext);
+    _Visitor.TraverseDecl(ASTContext.getTranslationUnitDecl());
+}

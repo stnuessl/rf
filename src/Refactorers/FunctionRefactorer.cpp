@@ -20,6 +20,102 @@
 
 #include <Refactorers/FunctionRefactorer.hpp>
 
+void FunctionRefactorer::visitCallExpr(const clang::CallExpr *Expr)
+{
+    /*
+     * Only calls to class methods have to be handled here.
+     * Normal function calls are handled with 'visitDeclRefExpr()'
+     */
+    
+    auto FuncDecl = Expr->getDirectCallee();
+    if (isVictim(FuncDecl) || overridesVictim(FuncDecl))
+        addReplacement(Expr->getCallee()->getExprLoc());
+}
+
+void FunctionRefactorer::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
+{
+    /*
+     * Handle replacements for expressions like:
+     * 
+     *      function_name();
+     *      namespace_name::function_name();
+     *      void (*callback)() = &victim;
+     *      void (class_name::*callback)() = &class_name::function_name();
+     */
+    
+    auto ValueDecl = Expr->getDecl();
+    
+    auto FuncDecl = clang::dyn_cast<clang::FunctionDecl>(ValueDecl);
+    if (!FuncDecl)
+        return;
+    
+    if (isVictim(FuncDecl) || overridesVictim(FuncDecl))
+        addReplacement(Expr->getNameInfo().getLoc());
+}
+
+void FunctionRefactorer::visitFunctionDecl(const clang::FunctionDecl *Decl)
+{
+    if (isVictim(Decl) || overridesVictim(Decl))
+        addReplacement(Decl->getLocation());
+}
+
+bool FunctionRefactorer::isVictim(const clang::FunctionDecl *Decl)
+{
+    if (!NameRefactorer::isVictim(Decl))
+        return false;
+    
+    if (overrides(Decl) && !_Force) {
+        auto MethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(Decl);
+        
+        auto Begin = MethodDecl->begin_overridden_methods();
+        auto QualifiedName = (*Begin)->getQualifiedNameAsString();
+        
+        llvm::errs() << "** ERROR: refactoring overriding class method \""
+                     << victimQualifier() << "\" - aborting\n"
+                     << "** INFO: consider refactoring \"" << QualifiedName
+                     << "\" instead or use the \"--force\" option\n";
+        
+        std::exit(EXIT_FAILURE);
+    }
+    
+    return true;
+}
+
+bool FunctionRefactorer::overridesVictim(const clang::CXXMethodDecl *Decl)
+{
+    auto Begin = Decl->begin_overridden_methods();
+    auto End = Decl->end_overridden_methods();
+    
+    for (auto It = Begin; It != End; ++It) {
+        if (isVictim(*It))
+            return true;
+    }
+    
+    return false;
+}
+
+bool FunctionRefactorer::overridesVictim(const clang::FunctionDecl *Decl)
+{
+    auto MethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(Decl);
+    return (MethodDecl) ? overridesVictim(MethodDecl) : false;
+}
+
+
+bool FunctionRefactorer::overrides(const clang::CXXMethodDecl *Decl)
+{
+    return !!Decl->size_overridden_methods();
+}
+
+bool FunctionRefactorer::overrides(const clang::FunctionDecl *Decl)
+{
+    auto MethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(Decl);
+    return (MethodDecl) ? overrides(MethodDecl) : false;
+}
+
+
+#if 0
+
+#include <Refactorers/FunctionRefactorer.hpp>
 
 
 FunctionRefactorer::FunctionRefactorer()
@@ -162,3 +258,4 @@ bool FunctionRefactorer::overrides(const clang::CXXMethodDecl* CXXMethodDecl)
     return !!CXXMethodDecl->size_overridden_methods();
 }
 
+#endif

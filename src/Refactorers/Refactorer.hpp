@@ -23,63 +23,58 @@
 
 #include <string>
 
-#include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/Tooling/Refactoring.h>
 
-class Refactorer : public clang::ast_matchers::MatchFinder::MatchCallback {
+#include <clang/ASTMatchers/ASTMatchFinder.h>
+
+class RefactorerNew {
 public:
-    typedef clang::ast_matchers::MatchFinder::MatchResult MatchResult;
+    RefactorerNew();
+    virtual ~RefactorerNew() = default;
     
-    Refactorer();
+    void setASTContext(clang::ASTContext *ASTContext);
     
-    virtual void setVictimQualifier(const std::string &Str);
-    virtual void setVictimQualifier(std::string &&Str);
+    void setReplacements(clang::tooling::Replacements *Repls);
+    const clang::tooling::Replacements *replacements() const;
     
-    const std::string &victimQualifier() const;
-    
-    void setReplacementQualifier(const std::string &Str);
-    void setReplacementQualifier(std::string &&Str);
-    const std::string &replacementQualifier() const;
-    
-    void setReplacementSet(clang::tooling::Replacements *Repls);
-    const clang::tooling::Replacements *replacementSet() const;
-    
-    void setVerbose(bool Verbose);
+    void setVerbose(bool Value);
     bool verbose() const;
     
-    void setForce(bool Force);
+    void setForce(bool Value);
     bool force() const;
     
-    virtual void run(const MatchResult &Result) = 0;
+    virtual void visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl);
+    virtual void visitCXXDestructorDecl(const clang::CXXDestructorDecl *Decl);
+    virtual void visitCXXMethodDecl(const clang::CXXMethodDecl *Decl);
+    virtual void visitCXXRecordDecl(const clang::CXXRecordDecl *Decl);
+    virtual void visitEnumDecl(const clang::EnumDecl *Decl);
+    virtual void visitFieldDecl(const clang::FieldDecl *Decl);
+    virtual void visitFunctionDecl(const clang::FunctionDecl *Decl);
+    virtual void visitRecordDecl(const clang::RecordDecl *Decl);
+    virtual void visitVarDecl(const clang::VarDecl *Decl);
     
-    clang::ast_matchers::MatchFinder *matchFinder();
+    virtual void visitCallExpr(const clang::CallExpr *Expr);
+    virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr);
+    virtual void visitMemberExpr(const clang::MemberExpr *Expr);
+    
+    virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc);
     
 protected:
+    void addReplacement(const clang::SourceLocation &Loc,
+                        unsigned int Length,
+                        clang::StringRef ReplText);
+    void addReplacement(const clang::SourceManager &SM,
+                        const clang::SourceLocation &Loc,
+                        unsigned int Length,
+                        clang::StringRef ReplText);
     
-    void addReplacement(const MatchResult &Result, 
-                        const clang::SourceLocation &Loc);
-    void addReplacement(const clang::SourceManager &SM, 
-                        const clang::SourceLocation &Loc);
-    
-    bool isVictim(const clang::NamedDecl *NamedDecl);
-    
-    clang::ast_matchers::MatchFinder _Finder;
-    clang::tooling::Replacements *_Repls;
-    
-    std::string _Victim;
-    std::string _ReplName;
-    
-    std::size_t _ReplSize;
-    
-private:
-    std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
-
-    std::string _Buffer;
-    
+    clang::ASTContext *_ASTContext;
+    clang::tooling::Replacements *_ReplSet;
     unsigned int _DupCount;
-    
     bool _Verbose;
     bool _Force;
 };
+
+typedef std::vector<std::unique_ptr<RefactorerNew>> RefactorerVector;
 
 #endif /* _REFACTORER_HPP_ */

@@ -21,6 +21,19 @@
 #ifndef _TAGREFACTORER_HPP_
 #define _TAGREFACTORER_HPP_
 
+#include <Refactorers/NameRefactorer.hpp>
+
+class TagRefactorerNew : public NameRefactorer {
+public:
+    virtual void visitEnumDecl(const clang::EnumDecl *Decl) override;
+    virtual void 
+    visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl) override;
+    virtual void visitRecordDecl(const clang::RecordDecl *Decl) override;
+    
+    virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc) override;
+};
+
+#if 0
 #include <Refactorers/Refactorer.hpp>
 
 class TagRefactorer : public Refactorer {
@@ -34,6 +47,8 @@ private:
     void runTypeLoc(const MatchResult &Result);
     void runCXXMethodDecl(const MatchResult &Result);
 };
+
+#endif
 
 
 #endif /* _TAGREFACTORER_HPP_ */

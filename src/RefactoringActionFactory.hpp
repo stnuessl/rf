@@ -18,24 +18,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _NAMESPACEREFACTORER_HPP_
-#define _NAMESPACEREFACTORER_HPP_
+#ifndef _REFACTORINGACTIONFACTORY_HPP_
+#define _REFACTORINGACTIONFACTORY_HPP_
 
-#if 0
+#include <clang/Frontend/FrontendAction.h>
+#include <clang/Frontend/CompilerInstance.h>
 
 #include <Refactorers/Refactorer.hpp>
 
-class NamespaceRefactorer : public Refactorer {
+class RefactoringAction : public clang::ASTFrontendAction {
 public:
-    NamespaceRefactorer();
+
+    void setRefactorers(RefactorerVector *Vec);
+
+    bool usesPreprocessorOnly() const override;
     
-    virtual void run(const MatchResult &Result) override;
+    virtual std::unique_ptr<clang::ASTConsumer> 
+    CreateASTConsumer(clang::CompilerInstance &CI, 
+                      clang::StringRef File) override;
 private:
-    void runNamespaceDecl(const MatchResult &Result);
-    void runNestedNameSpecifierLoc(const MatchResult &Result);
-    void runUsingDecl(const MatchResult &Result);
+    RefactorerVector *_Refactorers;
 };
 
-#endif
+class RefactoringActionFactory : public clang::tooling::FrontendActionFactory {
+public:
+    void setRefactorers(RefactorerVector *Refactorers);
+    
+    virtual clang::FrontendAction *create() override;
+private:
+    RefactorerVector *_Refactorers;
+};
 
-#endif /* _NAMESPACEREFACTORER_HPP_ */
+#endif /* _REFACTORINGACTIONFACTORY_HPP_ */

@@ -21,6 +21,8 @@
 #ifndef _VARIABLEREFACTORER_HPP_
 #define _VARIABLEREFACTORER_HPP_
 
+#if 0
+
 #include <Refactorers/Refactorer.hpp>
 
 class VariableRefactorer : public Refactorer {
@@ -45,5 +47,7 @@ private:
     clang::SourceLocation _VictimLoc;
     unsigned int _LineNum;
 };
+
+#endif
 
 #endif /* _VARIABLEREFACTORER_HPP_ */

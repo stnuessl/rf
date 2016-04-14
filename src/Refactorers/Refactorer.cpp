@@ -22,8 +22,146 @@
 #include <utility>
 #include <cctype>
 
+#include <clang/Tooling/Refactoring.h>
 #include <Refactorers/Refactorer.hpp>
 
+
+RefactorerNew::RefactorerNew()
+    : _ASTContext(nullptr),
+      _ReplSet(nullptr),
+      _DupCount(0),
+      _Verbose(false),
+      _Force(false)
+{
+}
+
+void RefactorerNew::setASTContext(clang::ASTContext *ASTContext)
+{
+    _ASTContext = ASTContext;
+}
+
+void RefactorerNew::setReplacements(clang::tooling::Replacements *ReplSet)
+{
+    _ReplSet = ReplSet;
+}
+
+const clang::tooling::Replacements *RefactorerNew::replacements() const
+{
+    return _ReplSet;
+}
+
+void RefactorerNew::setVerbose(bool Value)
+{
+    _Verbose = Value;
+}
+
+bool RefactorerNew::verbose() const
+{
+    return _Verbose;
+}
+
+void RefactorerNew::setForce(bool Value)
+{
+    _Force = Value;
+}
+
+bool RefactorerNew::force() const
+{
+    return _Force;
+}
+
+void RefactorerNew::visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl)
+{
+    (void) Decl;
+}
+
+void RefactorerNew::visitCXXDestructorDecl(const clang::CXXDestructorDecl *Decl)
+{
+    (void) Decl;
+}
+
+void RefactorerNew::visitCXXMethodDecl(const clang::CXXMethodDecl *Decl)
+{
+    (void) Decl;
+}
+
+void RefactorerNew::visitCXXRecordDecl(const clang::CXXRecordDecl *Decl)
+{
+    (void) Decl;
+}
+
+void RefactorerNew::visitEnumDecl(const clang::EnumDecl *Decl)
+{
+    (void) Decl;
+}
+
+void RefactorerNew::visitFieldDecl(const clang::FieldDecl *Decl)
+{
+    (void) Decl;
+}
+
+void RefactorerNew::visitFunctionDecl(const clang::FunctionDecl *Decl)
+{
+    (void) Decl;
+}
+
+void RefactorerNew::visitRecordDecl(const clang::RecordDecl *Decl)
+{
+    (void) Decl;
+}
+
+void RefactorerNew::visitVarDecl(const clang::VarDecl *Decl)
+{
+    (void) Decl;
+}
+
+void RefactorerNew::visitCallExpr(const clang::CallExpr *Expr)
+{
+    (void) Expr;
+}
+
+void RefactorerNew::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
+{
+    (void) Expr;
+}
+
+void RefactorerNew::visitMemberExpr(const clang::MemberExpr *Expr)
+{
+    (void) Expr;
+}
+
+void RefactorerNew::visitTypeLoc(const clang::TypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
+
+void RefactorerNew::addReplacement(const clang::SourceLocation &Loc, 
+                                   unsigned int Length, 
+                                   StringRef ReplText)
+{
+    addReplacement(_ASTContext->getSourceManager(), Loc, Length, ReplText);
+}
+
+
+void RefactorerNew::addReplacement(const clang::SourceManager &SM, 
+                                   const clang::SourceLocation &Loc, 
+                                   unsigned int Length, 
+                                   StringRef ReplText)
+{
+    auto Repl = clang::tooling::Replacement(SM, Loc, Length, ReplText);
+    
+    auto Ok = _ReplSet->insert(std::move(Repl)).second;
+    if (_Verbose && Ok) {
+        Loc.dump(SM);
+        llvm::errs() << " --> \"" << ReplText << "\"\n";
+    }
+    
+    _DupCount += !Ok;
+}
+
+
+#if 0
 static void rCopy(std::string &Str, const clang::StringRef &Ref)
 {
     auto n = Ref.size();
@@ -232,3 +370,5 @@ std::string &Refactorer::qualifiedName(const clang::NamedDecl *NamedDecl)
     
     return _Buffer;
 }
+
+#endif

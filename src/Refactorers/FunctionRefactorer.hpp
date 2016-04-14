@@ -21,6 +21,24 @@
 #ifndef _FUNCTIONREFACTORER_HPP_
 #define _FUNCTIONREFACTORER_HPP_
 
+#include <Refactorers/NameRefactorer.hpp>
+
+class FunctionRefactorer : public NameRefactorer {
+public:
+    virtual void visitCallExpr(const clang::CallExpr *Expr) override;
+    virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr) override;
+    virtual void visitFunctionDecl(const clang::FunctionDecl *Decl) override;
+private:
+    bool isVictim(const clang::FunctionDecl *Decl);
+    bool overridesVictim(const clang::CXXMethodDecl *Decl);
+    bool overridesVictim(const clang::FunctionDecl *Decl);
+    
+    static bool overrides(const clang::CXXMethodDecl *Decl);
+    static bool overrides(const clang::FunctionDecl *Decl);
+};
+
+#if 0
+
 #include <Refactorers/Refactorer.hpp>
 
 class FunctionRefactorer : public Refactorer {
@@ -40,5 +58,7 @@ private:
     static bool overrides(const clang::FunctionDecl *FunctionDecl);
     static bool overrides(const clang::CXXMethodDecl *CXXMethodDecl);
 };
+
+#endif
 
 #endif /* _FUNCTIONREFACTORER_HPP_ */

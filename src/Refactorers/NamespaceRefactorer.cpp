@@ -18,6 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#if 0
+
 #include <Refactorers/NamespaceRefactorer.hpp>
 
 NamespaceRefactorer::NamespaceRefactorer()
@@ -88,3 +90,5 @@ void NamespaceRefactorer::runUsingDecl(const MatchResult &Result)
 
     addReplacement(Result, UDDecl->getIdentLocation());
 }
+
+#endif
