@@ -21,21 +21,16 @@
 #ifndef _NAMESPACEREFACTORER_HPP_
 #define _NAMESPACEREFACTORER_HPP_
 
-#if 0
+#include <Refactorers/NameRefactorer.hpp>
 
-#include <Refactorers/Refactorer.hpp>
-
-class NamespaceRefactorer : public Refactorer {
+class NamespaceRefactorer : public NameRefactorer {
 public:
-    NamespaceRefactorer();
-    
-    virtual void run(const MatchResult &Result) override;
-private:
-    void runNamespaceDecl(const MatchResult &Result);
-    void runNestedNameSpecifierLoc(const MatchResult &Result);
-    void runUsingDecl(const MatchResult &Result);
+    virtual void visitNamespaceDecl(const clang::NamespaceDecl *Decl) override;
+    virtual void 
+    visitNestedNameSpecifierLoc(const clang::NestedNameSpecifierLoc &NNSLoc) 
+                                                                       override;
+    virtual void 
+    visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl) override;
 };
-
-#endif
 
 #endif /* _NAMESPACEREFACTORER_HPP_ */

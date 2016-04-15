@@ -37,28 +37,5 @@ private:
     static bool overrides(const clang::FunctionDecl *Decl);
 };
 
-#if 0
-
-#include <Refactorers/Refactorer.hpp>
-
-class FunctionRefactorer : public Refactorer {
-public:
-    FunctionRefactorer();
-    
-    virtual void run(const MatchResult &Result) override;
-private:
-    void runFunctionDecl(const MatchResult &Result);
-    void runCallExpr(const MatchResult &Result);
-    void runDeclRefExpr(const MatchResult &Result);
-    
-    bool isVictim(const clang::FunctionDecl *FunctionDecl);
-    
-    bool overridesVictim(const clang::CXXMethodDecl *CXXMethodDecl);
-    
-    static bool overrides(const clang::FunctionDecl *FunctionDecl);
-    static bool overrides(const clang::CXXMethodDecl *CXXMethodDecl);
-};
-
-#endif
 
 #endif /* _FUNCTIONREFACTORER_HPP_ */

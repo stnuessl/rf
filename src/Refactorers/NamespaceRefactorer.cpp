@@ -18,64 +18,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if 0
-
 #include <Refactorers/NamespaceRefactorer.hpp>
 
-NamespaceRefactorer::NamespaceRefactorer()
-    : Refactorer()
+void NamespaceRefactorer::visitNamespaceDecl(const clang::NamespaceDecl *Decl)
 {
-    using namespace clang::ast_matchers;
-    
-    auto NamespaceDeclMatcher = namespaceDecl().bind("NSDecl");
-    auto NNSLocMatcher = nestedNameSpecifierLoc().bind("NNSLoc");
-    auto UsingDDeclMatcher = usingDirectiveDecl().bind("UDDecl");
-    
-    _Finder.addMatcher(NamespaceDeclMatcher, this);
-    _Finder.addMatcher(NNSLocMatcher, this);
-    _Finder.addMatcher(UsingDDeclMatcher, this);
-}
-
-void NamespaceRefactorer::run(const MatchResult &Result)
-{
-    runNamespaceDecl(Result);
-    runNestedNameSpecifierLoc(Result);
-    runUsingDecl(Result);
-}
-
-void NamespaceRefactorer::runNamespaceDecl(const MatchResult &Result)
-{
-    auto NamespaceDecl = Result.Nodes.getNodeAs<clang::NamespaceDecl>("NSDecl");
-    if (!NamespaceDecl || !isVictim(NamespaceDecl))
+    if (!isVictim(Decl))
         return;
     
-    addReplacement(Result, NamespaceDecl->getLocation());
+    addReplacement(Decl->getLocation());
 }
 
-void NamespaceRefactorer::runNestedNameSpecifierLoc(const MatchResult &Result)
+void NamespaceRefactorer::
+visitNestedNameSpecifierLoc(const clang::NestedNameSpecifierLoc &NNSLoc)
 {
-    auto NLoc = Result.Nodes.getNodeAs<clang::NestedNameSpecifierLoc>("NNSLoc");
-    if (!NLoc)
-        return;
+    auto NNSLocIter = NNSLoc;
     
-    auto NNSLoc = *NLoc;
-    
-    while (NNSLoc) {
-        auto NestedNameSpecifer = NNSLoc.getNestedNameSpecifier();
-        if (!NestedNameSpecifer)
-            continue;
+    while (NNSLocIter) {
+        auto NNSpecifier = NNSLocIter.getNestedNameSpecifier();
         
-        auto NamespaceDecl = NestedNameSpecifer->getAsNamespace();
+        auto NamespaceDecl = NNSpecifier->getAsNamespace();
         if (NamespaceDecl && isVictim(NamespaceDecl)) {
-            addReplacement(Result, NNSLoc.getLocalBeginLoc());
+            addReplacement(NNSLocIter.getLocalBeginLoc());
             break;
         }
         
-        NNSLoc = NNSLoc.getPrefix();
+        NNSLocIter = NNSLocIter.getPrefix();
     }
 }
 
-void NamespaceRefactorer::runUsingDecl(const MatchResult &Result)
+void NamespaceRefactorer::
+visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl)
 {
     /*
      * This function handles statements like
@@ -84,11 +56,9 @@ void NamespaceRefactorer::runUsingDecl(const MatchResult &Result)
      *      using namespace::namespace::...;
      * are handled by 'runNestedNameSpecifierLoc()'
      */
-    auto UDDecl = Result.Nodes.getNodeAs<clang::UsingDirectiveDecl>("UDDecl");
-    if (!UDDecl || !isVictim(UDDecl->getNominatedNamespaceAsWritten()))
+    if (!isVictim(Decl->getNominatedNamespaceAsWritten()))
         return;
-
-    addReplacement(Result, UDDecl->getIdentLocation());
+    
+    addReplacement(Decl->getIdentLocation());
 }
 
-#endif

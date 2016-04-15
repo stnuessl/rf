@@ -23,9 +23,9 @@
 
 #include <util/memory.hpp>
 
-void RefactoringAction::setRefactorers(RefactorerVector *Vec)
+void RefactoringAction::setRefactorers(RefactorerVector *Refactorers)
 {
-    _Refactorers = Vec;
+    _Refactorers = Refactorers;
 }
 
 bool RefactoringAction::usesPreprocessorOnly() const

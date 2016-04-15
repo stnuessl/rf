@@ -88,10 +88,37 @@ bool RefactoringASTVisitor::VisitFunctionDecl(clang::FunctionDecl *Decl)
     return true;
 }
 
+bool RefactoringASTVisitor::VisitNamespaceDecl(clang::NamespaceDecl *Decl)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->visitNamespaceDecl(Decl);
+    
+    return true;
+}
+
+
 bool RefactoringASTVisitor::VisitRecordDecl(clang::RecordDecl *Decl)
 {
     for (auto &Refactorer : *_Refactorers)
         Refactorer->visitRecordDecl(Decl);
+    
+    return true;
+}
+
+bool RefactoringASTVisitor::VisitUsingDecl(clang::UsingDecl *Decl)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->visitUsingDecl(Decl);
+    
+    return true;
+}
+
+
+bool 
+RefactoringASTVisitor::VisitUsingDirectiveDecl(clang::UsingDirectiveDecl *Decl)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->visitUsingDirectiveDecl(Decl);
     
     return true;
 }
@@ -111,6 +138,16 @@ bool RefactoringASTVisitor::VisitDeclRefExpr(const clang::DeclRefExpr *Expr)
     
     return true;
 }
+
+bool RefactoringASTVisitor::
+VisitNestedNameSpecifierLoc(clang::NestedNameSpecifierLoc &NNSLoc)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->visitNestedNameSpecifierLoc(NNSLoc);
+    
+    return true;
+}
+
 
 bool RefactoringASTVisitor::VisitTypeLoc(clang::TypeLoc &TypeLoc)
 {

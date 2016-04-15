@@ -197,6 +197,7 @@ void PPCallbackHandler::FileSkipped(const clang::FileEntry &SkippedFile,
             if (Vec.empty()) {
                 IncludeMap.erase(MapIt);
             } else {
+                /* HACK / BUG: It was invalided by erase() */
                 It->getBegin().dump(SM);
                 llvm::errs() << " --> unused #include directive\n";
             }

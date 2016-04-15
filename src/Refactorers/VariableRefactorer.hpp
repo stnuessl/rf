@@ -21,33 +21,17 @@
 #ifndef _VARIABLEREFACTORER_HPP_
 #define _VARIABLEREFACTORER_HPP_
 
-#if 0
+#include <Refactorers/NameRefactorer.hpp>
 
-#include <Refactorers/Refactorer.hpp>
-
-class VariableRefactorer : public Refactorer {
+class VariableRefactorer : public NameRefactorer {
 public:
-    VariableRefactorer();
+    virtual void 
+    visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl) override;
+    virtual void visitFieldDecl(const clang::FieldDecl *Decl) override;
+    virtual void visitVarDecl(const clang::VarDecl *Decl) override;
     
-    virtual void setVictimQualifier(const std::string &Str) override;
-    virtual void setVictimQualifier(std::string &&Str) override;
-    
-    virtual void run(const MatchResult &Result) override;
-private:
-    void runVarDecl(const MatchResult &Result);
-    void runDeclRefExpr(const MatchResult &Result);
-    void runFieldDecl(const MatchResult &Result);
-    void runMemberExpr(const MatchResult &Result);
-    void runCXXConstructorDecl(const MatchResult &Result);
-    
-    bool isVictim(const clang::NamedDecl *NamedDecl, const MatchResult &Result);
-    bool isVictim(const clang::NamedDecl *NamedDecl, 
-                  const clang::SourceManager &SM);
-
-    clang::SourceLocation _VictimLoc;
-    unsigned int _LineNum;
+    virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr) override;
+    virtual void visitMemberExpr(const clang::MemberExpr *Expr) override;
 };
-
-#endif
 
 #endif /* _VARIABLEREFACTORER_HPP_ */

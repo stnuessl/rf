@@ -50,13 +50,18 @@ public:
     virtual void visitEnumDecl(const clang::EnumDecl *Decl);
     virtual void visitFieldDecl(const clang::FieldDecl *Decl);
     virtual void visitFunctionDecl(const clang::FunctionDecl *Decl);
+    virtual void visitNamespaceDecl(const clang::NamespaceDecl *Decl);
     virtual void visitRecordDecl(const clang::RecordDecl *Decl);
+    virtual void visitUsingDecl(const clang::UsingDecl *Decl);
+    virtual void visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl);
     virtual void visitVarDecl(const clang::VarDecl *Decl);
     
     virtual void visitCallExpr(const clang::CallExpr *Expr);
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr);
     virtual void visitMemberExpr(const clang::MemberExpr *Expr);
     
+    virtual void 
+    visitNestedNameSpecifierLoc(const clang::NestedNameSpecifierLoc &NNSLoc);
     virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc);
     
 protected:

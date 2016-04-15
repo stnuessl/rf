@@ -41,11 +41,15 @@ public:
     bool VisitCXXRecordDecl(clang::CXXRecordDecl *Decl);
     bool VisitEnumDecl(clang::EnumDecl *Decl);
     bool VisitFunctionDecl(clang::FunctionDecl *Decl);
+    bool VisitNamespaceDecl(clang::NamespaceDecl *Decl);
     bool VisitRecordDecl(clang::RecordDecl *Decl);
+    bool VisitUsingDecl(clang::UsingDecl *Decl);
+    bool VisitUsingDirectiveDecl(clang::UsingDirectiveDecl *Decl);
     
     bool VisitCallExpr(const clang::CallExpr *Expr);
     bool VisitDeclRefExpr(const clang::DeclRefExpr *Expr);
     
+    bool VisitNestedNameSpecifierLoc(clang::NestedNameSpecifierLoc &NNSLoc);
     bool VisitTypeLoc(clang::TypeLoc &TypeLoc);
     
 private:

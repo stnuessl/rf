@@ -108,8 +108,7 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim)
                 std::exit(EXIT_FAILURE);
             }
             
-            /* safe without check: see rfind above */
-            Victim.erase(Pos + 1);
+            Victim.erase(Pos);
         }
     }
     
@@ -176,7 +175,7 @@ bool NameRefactorer::isVictim(const clang::NamedDecl *NamedDecl)
 {
     if (_Victim != qualifiedName(NamedDecl))
         return false;
-    
+
     if (!_Line)
         return true;
     

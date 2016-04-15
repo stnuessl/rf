@@ -33,22 +33,4 @@ public:
     virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc) override;
 };
 
-#if 0
-#include <Refactorers/Refactorer.hpp>
-
-class TagRefactorer : public Refactorer {
-public:
-    TagRefactorer();
-    
-    virtual void run(const MatchResult &Result) override;
-private:
-    void runRecordDecl(const MatchResult &Result);
-    void runEnumDecl(const MatchResult &Result);
-    void runTypeLoc(const MatchResult &Result);
-    void runCXXMethodDecl(const MatchResult &Result);
-};
-
-#endif
-
-
 #endif /* _TAGREFACTORER_HPP_ */
