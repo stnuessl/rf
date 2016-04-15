@@ -23,7 +23,7 @@
 
 #include <Refactorers/NameRefactorer.hpp>
 
-class TagRefactorerNew : public NameRefactorer {
+class TagRefactorer : public NameRefactorer {
 public:
     virtual void visitEnumDecl(const clang::EnumDecl *Decl) override;
     virtual void 

@@ -18,6 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <clang/AST/DeclTemplate.h>
+
 #include <Refactorers/TagRefactorer.hpp>
 
 static clang::SourceLocation getLastTypeLocation(const clang::TypeLoc &TypeLoc)
@@ -41,7 +43,7 @@ static clang::SourceLocation getLastTypeLocation(const clang::TypeLoc &TypeLoc)
     return Loc;
 }
 
-void TagRefactorerNew::visitEnumDecl(const clang::EnumDecl *Decl)
+void TagRefactorer::visitEnumDecl(const clang::EnumDecl *Decl)
 {
     if (!isVictim(Decl))
         return;
@@ -50,7 +52,7 @@ void TagRefactorerNew::visitEnumDecl(const clang::EnumDecl *Decl)
 }
 
 void 
-TagRefactorerNew::visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl)
+TagRefactorer::visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl)
 {
     if (!isVictim(Decl->getParent()))
         return;
@@ -58,7 +60,7 @@ TagRefactorerNew::visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl)
     addReplacement(Decl->getNameInfo().getLoc());
 }
 
-void TagRefactorerNew::visitRecordDecl(const clang::RecordDecl *Decl)
+void TagRefactorer::visitRecordDecl(const clang::RecordDecl *Decl)
 {
     if (!isVictim(Decl))
         return;
@@ -66,7 +68,7 @@ void TagRefactorerNew::visitRecordDecl(const clang::RecordDecl *Decl)
     addReplacement(Decl->getLocation());
 }
 
-void TagRefactorerNew::visitTypeLoc(const clang::TypeLoc &TypeLoc)
+void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
 {
     auto Type = TypeLoc.getType();
     

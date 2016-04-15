@@ -23,7 +23,7 @@
 
 #include <Refactorers/Refactorer.hpp>
 
-class NameRefactorer : public RefactorerNew {
+class NameRefactorer : public Refactorer {
 public:
     NameRefactorer();
     

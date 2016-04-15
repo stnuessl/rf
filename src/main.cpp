@@ -261,7 +261,7 @@ int main(int argc, const char **argv)
     
     auto RefactorerVec = RefactorerVector();
     
-    addRefactorers<TagRefactorerNew>(RefactorerVec, TagVec, Repls);
+    addRefactorers<TagRefactorer>(RefactorerVec, TagVec, Repls);
     //     addRefactorers<TagRefactorer>(TagVec, RefactorerVec);
     addRefactorers<FunctionRefactorer>(RefactorerVec, FunctionVec, Repls);
     //     addRefactorers<NamespaceRefactorer>(NamespaceVec, RefactorerVec);

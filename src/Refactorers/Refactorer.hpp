@@ -21,16 +21,13 @@
 #ifndef _REFACTORER_HPP_
 #define _REFACTORER_HPP_
 
-#include <string>
-
+#include <clang/AST/DeclCXX.h>
 #include <clang/Tooling/Refactoring.h>
 
-#include <clang/ASTMatchers/ASTMatchFinder.h>
-
-class RefactorerNew {
+class Refactorer {
 public:
-    RefactorerNew();
-    virtual ~RefactorerNew() = default;
+    Refactorer();
+    virtual ~Refactorer() = default;
     
     void setASTContext(clang::ASTContext *ASTContext);
     
@@ -80,6 +77,6 @@ protected:
     bool _Force;
 };
 
-typedef std::vector<std::unique_ptr<RefactorerNew>> RefactorerVector;
+typedef std::vector<std::unique_ptr<Refactorer>> RefactorerVector;
 
 #endif /* _REFACTORER_HPP_ */

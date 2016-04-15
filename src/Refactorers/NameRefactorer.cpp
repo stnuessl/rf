@@ -54,7 +54,7 @@ fail:
 }
 
 NameRefactorer::NameRefactorer()
-    : RefactorerNew(),
+    : Refactorer(),
       _Victim(),
       _ReplName(),
       _Buffer(),
@@ -203,7 +203,7 @@ bool NameRefactorer::isVictim(const clang::NamedDecl *NamedDecl)
 
 void NameRefactorer::addReplacement(const clang::SourceLocation &Loc)
 {
-    RefactorerNew::addReplacement(Loc, _ReplSize, _ReplName);
+    Refactorer::addReplacement(Loc, _ReplSize, _ReplName);
 }
 
 const std::string &

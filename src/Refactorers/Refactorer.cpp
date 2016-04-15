@@ -20,13 +20,12 @@
 
 
 #include <utility>
-#include <cctype>
 
 #include <clang/Tooling/Refactoring.h>
 #include <Refactorers/Refactorer.hpp>
 
 
-RefactorerNew::RefactorerNew()
+Refactorer::Refactorer()
     : _ASTContext(nullptr),
       _ReplSet(nullptr),
       _DupCount(0),
@@ -35,131 +34,131 @@ RefactorerNew::RefactorerNew()
 {
 }
 
-void RefactorerNew::setASTContext(clang::ASTContext *ASTContext)
+void Refactorer::setASTContext(clang::ASTContext *ASTContext)
 {
     _ASTContext = ASTContext;
 }
 
-void RefactorerNew::setReplacements(clang::tooling::Replacements *ReplSet)
+void Refactorer::setReplacements(clang::tooling::Replacements *ReplSet)
 {
     _ReplSet = ReplSet;
 }
 
-const clang::tooling::Replacements *RefactorerNew::replacements() const
+const clang::tooling::Replacements *Refactorer::replacements() const
 {
     return _ReplSet;
 }
 
-void RefactorerNew::setVerbose(bool Value)
+void Refactorer::setVerbose(bool Value)
 {
     _Verbose = Value;
 }
 
-bool RefactorerNew::verbose() const
+bool Refactorer::verbose() const
 {
     return _Verbose;
 }
 
-void RefactorerNew::setForce(bool Value)
+void Refactorer::setForce(bool Value)
 {
     _Force = Value;
 }
 
-bool RefactorerNew::force() const
+bool Refactorer::force() const
 {
     return _Force;
 }
 
-void RefactorerNew::visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl)
+void Refactorer::visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl)
 {
     (void) Decl;
 }
 
-void RefactorerNew::visitCXXDestructorDecl(const clang::CXXDestructorDecl *Decl)
+void Refactorer::visitCXXDestructorDecl(const clang::CXXDestructorDecl *Decl)
 {
     (void) Decl;
 }
 
-void RefactorerNew::visitCXXMethodDecl(const clang::CXXMethodDecl *Decl)
+void Refactorer::visitCXXMethodDecl(const clang::CXXMethodDecl *Decl)
 {
     (void) Decl;
 }
 
-void RefactorerNew::visitCXXRecordDecl(const clang::CXXRecordDecl *Decl)
+void Refactorer::visitCXXRecordDecl(const clang::CXXRecordDecl *Decl)
 {
     (void) Decl;
 }
 
-void RefactorerNew::visitEnumDecl(const clang::EnumDecl *Decl)
+void Refactorer::visitEnumDecl(const clang::EnumDecl *Decl)
 {
     (void) Decl;
 }
 
-void RefactorerNew::visitFieldDecl(const clang::FieldDecl *Decl)
+void Refactorer::visitFieldDecl(const clang::FieldDecl *Decl)
 {
     (void) Decl;
 }
 
-void RefactorerNew::visitFunctionDecl(const clang::FunctionDecl *Decl)
+void Refactorer::visitFunctionDecl(const clang::FunctionDecl *Decl)
 {
     (void) Decl;
 }
 
-void RefactorerNew::visitNamespaceDecl(const clang::NamespaceDecl *Decl)
+void Refactorer::visitNamespaceDecl(const clang::NamespaceDecl *Decl)
 {
     (void) Decl;
 }
 
-void RefactorerNew::visitRecordDecl(const clang::RecordDecl *Decl)
+void Refactorer::visitRecordDecl(const clang::RecordDecl *Decl)
 {
     (void) Decl;
 }
 
-void RefactorerNew::visitUsingDecl(const clang::UsingDecl *Decl)
+void Refactorer::visitUsingDecl(const clang::UsingDecl *Decl)
 {
     (void) Decl;
 }
 
 void 
-RefactorerNew::visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl)
+Refactorer::visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl)
 {
     (void) Decl;
 }
 
-void RefactorerNew::visitVarDecl(const clang::VarDecl *Decl)
+void Refactorer::visitVarDecl(const clang::VarDecl *Decl)
 {
     (void) Decl;
 }
 
-void RefactorerNew::visitCallExpr(const clang::CallExpr *Expr)
+void Refactorer::visitCallExpr(const clang::CallExpr *Expr)
 {
     (void) Expr;
 }
 
-void RefactorerNew::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
+void Refactorer::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
 {
     (void) Expr;
 }
 
-void RefactorerNew::visitMemberExpr(const clang::MemberExpr *Expr)
+void Refactorer::visitMemberExpr(const clang::MemberExpr *Expr)
 {
     (void) Expr;
 }
 
-void RefactorerNew::
+void Refactorer::
 visitNestedNameSpecifierLoc(const clang::NestedNameSpecifierLoc &NNSLoc)
 {
     (void) NNSLoc;
 }
 
 
-void RefactorerNew::visitTypeLoc(const clang::TypeLoc &TypeLoc)
+void Refactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
 {
     (void) TypeLoc;
 }
 
 
-void RefactorerNew::addReplacement(const clang::SourceLocation &Loc, 
+void Refactorer::addReplacement(const clang::SourceLocation &Loc, 
                                    unsigned int Length, 
                                    StringRef ReplText)
 {
@@ -167,7 +166,7 @@ void RefactorerNew::addReplacement(const clang::SourceLocation &Loc,
 }
 
 
-void RefactorerNew::addReplacement(const clang::SourceManager &SM, 
+void Refactorer::addReplacement(const clang::SourceManager &SM, 
                                    const clang::SourceLocation &Loc, 
                                    unsigned int Length, 
                                    StringRef ReplText)
