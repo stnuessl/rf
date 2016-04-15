@@ -27,9 +27,9 @@ RefactoringASTConsumer::RefactoringASTConsumer()
 {
 }
 
-void RefactoringASTConsumer::setRefactorers(RefactorerVector *Vec)
+void RefactoringASTConsumer::setRefactorers(RefactorerVector *Refactorers)
 {
-    _Visitor.setRefactorers(Vec);
+    _Visitor.setRefactorers(Refactorers);
 }
 
 void 

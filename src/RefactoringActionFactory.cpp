@@ -18,6 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <utility>
+
 #include <RefactoringASTConsumer.hpp>
 #include <RefactoringActionFactory.hpp>
 
@@ -37,12 +39,14 @@ std::unique_ptr<clang::ASTConsumer>
 RefactoringAction::CreateASTConsumer(clang::CompilerInstance &CI, 
                                      llvm::StringRef File)
 {
+    (void) CI;
     (void) File;
     
     auto Consumer = std::make_unique<RefactoringASTConsumer>();
     Consumer->setRefactorers(_Refactorers);
     
-    return Consumer;
+    /* This 'std::move()' removes an error when running "--syntax-only" */
+    return std::move(Consumer);
 }
 
 

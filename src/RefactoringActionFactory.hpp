@@ -28,7 +28,6 @@
 
 class RefactoringAction : public clang::ASTFrontendAction {
 public:
-
     void setRefactorers(RefactorerVector *Refactorers);
 
     bool usesPreprocessorOnly() const override;
