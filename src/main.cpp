@@ -100,6 +100,13 @@ static llvm::cl::list<std::string> VarVec(
     llvm::cl::cat(RefactoringOptions)
 );
 
+static llvm::cl::list<std::string> InputFiles(
+    llvm::cl::desc("<Files>"),
+    llvm::cl::Positional,
+    llvm::cl::ZeroOrMore,
+    llvm::cl::PositionalEatsArgs
+);
+
 static llvm::cl::opt<bool> SanitizeIncludes(
     "sanitize-includes",
     llvm::cl::desc(
@@ -234,7 +241,11 @@ int main(int argc, const char **argv)
         std::exit(EXIT_FAILURE);
     }
     
+//     auto SourceFiles = std::vector<std::string>();
+//     if (!InputFiles.empty()) 
     auto SourceFiles = CompilationDB->getAllFiles();
+    if (!InputFiles.empty())
+        std::swap(SourceFiles, *&InputFiles);
     
     if (SyntaxOnly) {
         auto Action = newFrontendActionFactory<clang::SyntaxOnlyAction>();
@@ -263,17 +274,19 @@ int main(int argc, const char **argv)
         RefactorerVec.push_back(std::move(Refactorer));
     }
 
-    auto Factory = std::make_unique<RefactoringActionFactory>();
-    Factory->setRefactorers(&RefactorerVec);
-    
-    int err = Tool.run(Factory.get());
-    if (err != 0) {
-        std::cerr << "** ERROR: error(s) generated while refactoring\n";
+    if (!RefactorerVec.empty()) {
+        auto Factory = std::make_unique<RefactoringActionFactory>();
+        Factory->setRefactorers(&RefactorerVec);
         
-        if (!Force) {
-            std::cerr << "** INFO: use \"--force\" if you still want to "
-                      << "apply replacements\n";
-            std::exit(EXIT_FAILURE);
+        int err = Tool.run(Factory.get());
+        if (err != 0) {
+            std::cerr << "** ERROR: error(s) generated while refactoring\n";
+            
+            if (!Force) {
+                std::cerr << "** INFO: use \"--force\" if you still want to "
+                          << "apply replacements\n";
+                std::exit(EXIT_FAILURE);
+            }
         }
     }
     
