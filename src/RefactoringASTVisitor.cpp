@@ -20,11 +20,6 @@
 
 #include <RefactoringASTVisitor.hpp>
 
-RefactoringASTVisitor::RefactoringASTVisitor()
-    : clang::RecursiveASTVisitor<RefactoringASTVisitor>(),
-      _Refactorers(nullptr)
-{
-}
 
 void RefactoringASTVisitor::setRefactorers(RefactorerVector *Vec)
 {

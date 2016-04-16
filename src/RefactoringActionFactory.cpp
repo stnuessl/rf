@@ -20,19 +20,40 @@
 
 #include <utility>
 
+#include <clang/Lex/Preprocessor.h>
+
 #include <RefactoringASTConsumer.hpp>
 #include <RefactoringActionFactory.hpp>
 
 #include <util/memory.hpp>
+
+#include <PPCallbackDispatcher.hpp>
+
 
 void RefactoringAction::setRefactorers(RefactorerVector *Refactorers)
 {
     _Refactorers = Refactorers;
 }
 
-bool RefactoringAction::usesPreprocessorOnly() const
+bool RefactoringAction::BeginSourceFileAction(clang::CompilerInstance &CI, 
+                                              llvm::StringRef File)
 {
-    return false;
+    for (auto &Refactorer : *_Refactorers) {
+        Refactorer->beforeSourceFileAction(CI, File);
+    }
+    
+    auto Dispatcher = std::make_unique<PPCallbackDispatcher>();
+    Dispatcher->setRefactorers(_Refactorers);
+        
+    CI.getPreprocessor().addPPCallbacks(std::move(Dispatcher));
+    
+    return true;
+}
+
+void RefactoringAction::EndSourceFileAction()
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->afterSourceFileAction();
 }
 
 std::unique_ptr<clang::ASTConsumer> 
@@ -48,7 +69,6 @@ RefactoringAction::CreateASTConsumer(clang::CompilerInstance &CI,
     /* This 'std::move()' removes an error when running "--syntax-only" */
     return std::move(Consumer);
 }
-
 
 void RefactoringActionFactory::setRefactorers(RefactorerVector *Refactorers)
 {

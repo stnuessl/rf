@@ -21,10 +21,21 @@
 #ifndef _REFACTORER_HPP_
 #define _REFACTORER_HPP_
 
+#include <clang/AST/ASTContext.h>
 #include <clang/AST/DeclCXX.h>
+#include <clang/Frontend/CompilerInstance.h>
+#include <clang/Lex/PPCallbacks.h>
 #include <clang/Tooling/Refactoring.h>
 
-class Refactorer {
+
+/* 
+ * Inheriting from PPCallbacks saves a lot of ugly boilerplate code.
+ * Those PPCallbacks function are not directly called from the clang
+ * preprocessor but from PPCallbackDispatcher. This enables to serve multiple
+ * PPCallbacks clients at once.
+ */
+
+class Refactorer : public clang::PPCallbacks {
 public:
     Refactorer();
     virtual ~Refactorer() = default;
@@ -39,6 +50,10 @@ public:
     
     void setForce(bool Value);
     bool force() const;
+    
+    virtual void beforeSourceFileAction(clang::CompilerInstance &CI, 
+                                        llvm::StringRef File);
+    virtual void afterSourceFileAction();
     
     virtual void visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl);
     virtual void visitCXXDestructorDecl(const clang::CXXDestructorDecl *Decl);

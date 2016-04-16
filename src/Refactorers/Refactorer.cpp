@@ -69,6 +69,18 @@ bool Refactorer::force() const
     return _Force;
 }
 
+void Refactorer::beforeSourceFileAction(clang::CompilerInstance &CI, 
+                                        llvm::StringRef File)
+{
+    (void) CI;
+    (void) File;
+}
+
+void Refactorer::afterSourceFileAction()
+{
+
+}
+
 void Refactorer::visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl)
 {
     (void) Decl;

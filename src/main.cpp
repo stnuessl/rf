@@ -38,9 +38,9 @@
 
 #include <Refactorers/TagRefactorer.hpp>
 #include <Refactorers/FunctionRefactorer.hpp>
-// #include <Refactorers/NamespaceRefactorer.hpp>
-// #include <Refactorers/VariableRefactorer.hpp>
-#include <Sanitizers/IncludeSanitizer.hpp>
+#include <Refactorers/IncludeRefactorer.hpp>
+#include <Refactorers/NamespaceRefactorer.hpp>
+#include <Refactorers/VariableRefactorer.hpp>
 #include <util/memory.hpp>
 
 #include <RefactoringActionFactory.hpp>
@@ -243,36 +243,28 @@ int main(int argc, const char **argv)
         
         std::exit((err == 0) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
-    
-    if (SanitizeIncludes) {
-        auto Action = newFrontendActionFactory<IncludeSanitizer>();
         
-        int err = ClangTool(*CompilationDB, SourceFiles).run(Action.get());
-        if (err != 0) {
-            std::cerr << "** ERROR: sanitizing include files failed\n";
-            
-            if (!Force)
-                std::exit(EXIT_FAILURE);
-        }
-    }
-    
     auto Tool = RefactoringTool(*CompilationDB, SourceFiles);
     auto Repls = &Tool.getReplacements();
     
     auto RefactorerVec = RefactorerVector();
     
     addRefactorers<TagRefactorer>(RefactorerVec, TagVec, Repls);
-    //     addRefactorers<TagRefactorer>(TagVec, RefactorerVec);
     addRefactorers<FunctionRefactorer>(RefactorerVec, FunctionVec, Repls);
-    //     addRefactorers<NamespaceRefactorer>(NamespaceVec, RefactorerVec);
-    //     addRefactorers<VariableRefactorer>(VarVec, RefactorerVec);
+    addRefactorers<NamespaceRefactorer>(RefactorerVec, NamespaceVec, Repls);
+    addRefactorers<VariableRefactorer>(RefactorerVec, VarVec, Repls);
+    
+    if (SanitizeIncludes) {
+        auto Refactorer = std::make_unique<IncludeRefactorer>();
+        Refactorer->setReplacements(Repls);
+        Refactorer->setVerbose(Verbose);
+        Refactorer->setForce(Force);
+        
+        RefactorerVec.push_back(std::move(Refactorer));
+    }
 
     auto Factory = std::make_unique<RefactoringActionFactory>();
     Factory->setRefactorers(&RefactorerVec);
-
-//     auto Action = std::make_unique<RefactoringAction>();
-//     Action->setReplacements(Tool.getReplacements());
-//     Action->setRefactorers(&RefactorerVec);
     
     int err = Tool.run(Factory.get());
     if (err != 0) {
@@ -280,7 +272,7 @@ int main(int argc, const char **argv)
         
         if (!Force) {
             std::cerr << "** INFO: use \"--force\" if you still want to "
-            << "apply replacements\n";
+                      << "apply replacements\n";
             std::exit(EXIT_FAILURE);
         }
     }

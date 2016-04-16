@@ -21,12 +21,6 @@
 #include <RefactoringASTConsumer.hpp>
 
 
-RefactoringASTConsumer::RefactoringASTConsumer()
-    : clang::ASTConsumer(),
-      _Visitor()
-{
-}
-
 void RefactoringASTConsumer::setRefactorers(RefactorerVector *Refactorers)
 {
     _Visitor.setRefactorers(Refactorers);

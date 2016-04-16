@@ -23,18 +23,21 @@
 
 #include <clang/Frontend/FrontendAction.h>
 #include <clang/Frontend/CompilerInstance.h>
+#include <clang/Tooling/Tooling.h>
 
 #include <Refactorers/Refactorer.hpp>
 
 class RefactoringAction : public clang::ASTFrontendAction {
 public:
     void setRefactorers(RefactorerVector *Refactorers);
-
-    bool usesPreprocessorOnly() const override;
     
+    virtual bool BeginSourceFileAction(clang::CompilerInstance &CI,
+                                       llvm::StringRef File) override;
+    virtual void EndSourceFileAction() override;
+                                 
     virtual std::unique_ptr<clang::ASTConsumer> 
     CreateASTConsumer(clang::CompilerInstance &CI, 
-                      clang::StringRef File) override;
+                      llvm::StringRef File) override;
 private:
     RefactorerVector *_Refactorers;
 };

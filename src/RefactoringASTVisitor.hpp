@@ -30,8 +30,6 @@
 class RefactoringASTVisitor 
     : public clang::RecursiveASTVisitor<RefactoringASTVisitor> {
 public:
-    RefactoringASTVisitor();
-    
     void setRefactorers(RefactorerVector *Vec);
     void setASTContext(clang::ASTContext &ASTContext);
     
