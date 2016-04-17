@@ -25,19 +25,20 @@ _rf()
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="--help 
-          --verbose 
-          --version 
-          --tag 
-          --function 
-          --namespace 
-          --variable
+    opts="--allow-root 
           --comp-db 
-          --allow-root 
-          --force 
           --dry-run
+          --force 
+          --function 
+          --help 
+          --macro
+          --namespace 
+          --sanitize-includes
           --syntax-only
-          --sanitize-includes"
+          --tag 
+          --variable
+          --verbose 
+          --version"
 
     if [[ ${cur} == * ]]; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
