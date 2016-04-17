@@ -175,22 +175,36 @@ bool NameRefactorer::isVictim(const clang::NamedDecl *NamedDecl)
 {
     if (_Victim != qualifiedName(NamedDecl))
         return false;
+    
+    return !_Line || isVictimLine(NamedDecl->getLocation());
+}
 
-    if (!_Line)
-        return true;
+bool NameRefactorer::isVictim(const clang::Token &MacroName, 
+                              const clang::MacroInfo *MacroInfo)
+{
+    if (_Victim != MacroName.getIdentifierInfo()->getName())
+        return false;
     
-    auto Loc = NamedDecl->getLocation();
-    
+    return !_Line || isVictimLine(MacroInfo->getDefinitionLoc());
+}
+
+void NameRefactorer::addReplacement(const clang::SourceLocation Loc)
+{
+    Refactorer::addReplacement(Loc, _ReplSize, _ReplName);
+}
+
+bool NameRefactorer::isVictimLine(const clang::SourceLocation Loc)
+{
     if (_LineLoc.isValid())
         return _LineLoc == Loc;
     
-    auto &SM = _ASTContext->getSourceManager();
+    auto &SM = _CompilerInstance->getSourceManager();
     bool Invalid;
     
     auto Line = SM.getSpellingLineNumber(Loc, &Invalid);
     if (Invalid) {
         llvm::errs() << "** ERROR: failed to retrieve line number for "
-                     << "declaration \"" << _Victim << "\"\n";
+        << "declaration \"" << _Victim << "\"\n";
         std::exit(EXIT_FAILURE);
     }
     
@@ -199,11 +213,6 @@ bool NameRefactorer::isVictim(const clang::NamedDecl *NamedDecl)
         _LineLoc = Loc;
     
     return Equal;
-}
-
-void NameRefactorer::addReplacement(const clang::SourceLocation &Loc)
-{
-    Refactorer::addReplacement(Loc, _ReplSize, _ReplName);
 }
 
 const std::string &

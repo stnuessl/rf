@@ -21,6 +21,8 @@
 #ifndef _PPCALLBACKDISPATCHER_HPP_
 #define _PPCALLBACKDISPATCHER_HPP_
 
+#include <clang/Lex/MacroArgs.h>
+#include <clang/Lex/MacroInfo.h>
 #include <clang/Lex/PPCallbacks.h>
 
 #include <Refactorers/Refactorer.hpp>
@@ -47,6 +49,13 @@ public:
                               const clang::MacroDefinition &MacroDef,
                               clang::SourceRange Range,
                               const clang::MacroArgs *Args) override;
+                              
+    virtual void MacroDefined(const clang::Token &MacroName, 
+                              const clang::MacroDirective *MD) override;
+    
+    virtual void MacroUndefined(const clang::Token &MacroName, 
+                                const clang::MacroDefinition &MD) override;
+    
 private:
     RefactorerVector *_Refactorers;
 };

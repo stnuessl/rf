@@ -59,3 +59,18 @@ void PPCallbackDispatcher::MacroExpands(const clang::Token &Token,
     for (auto &Refactorer : *_Refactorers)
         Refactorer->MacroExpands(Token, MacroDef, Range, Args);
 }
+
+void PPCallbackDispatcher::MacroDefined(const clang::Token &MacroName, 
+                                        const clang::MacroDirective *MD)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->MacroDefined(MacroName, MD);
+}
+
+void PPCallbackDispatcher::MacroUndefined(const clang::Token &MacroName, 
+                                          const clang::MacroDefinition &MD)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->MacroUndefined(MacroName, MD);
+}
+

@@ -40,6 +40,7 @@ public:
     Refactorer();
     virtual ~Refactorer() = default;
     
+    void setCompilerInstance(clang::CompilerInstance *CI);
     void setASTContext(clang::ASTContext *ASTContext);
     
     void setReplacements(clang::tooling::Replacements *Repls);
@@ -50,9 +51,8 @@ public:
     
     void setForce(bool Value);
     bool force() const;
-    
-    virtual void beforeSourceFileAction(clang::CompilerInstance &CI, 
-                                        llvm::StringRef File);
+
+    virtual void beforeSourceFileAction(llvm::StringRef File);
     virtual void afterSourceFileAction();
     
     virtual void visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl);
@@ -77,14 +77,15 @@ public:
     virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc);
     
 protected:
-    void addReplacement(const clang::SourceLocation &Loc,
+    void addReplacement(const clang::SourceLocation Loc,
                         unsigned int Length,
-                        clang::StringRef ReplText);
+                        llvm::StringRef ReplText);
     void addReplacement(const clang::SourceManager &SM,
-                        const clang::SourceLocation &Loc,
+                        const clang::SourceLocation Loc,
                         unsigned int Length,
-                        clang::StringRef ReplText);
+                        llvm::StringRef ReplText);
     
+    clang::CompilerInstance *_CompilerInstance;
     clang::ASTContext *_ASTContext;
     clang::tooling::Replacements *_ReplSet;
     unsigned int _DupCount;

@@ -32,6 +32,8 @@
 
 class IncludeRefactorer : public Refactorer {
 public:
+    virtual void afterSourceFileAction() override;
+    
     virtual void InclusionDirective(clang::SourceLocation LocBegin, 
                                     const clang::Token &Token, 
                                     llvm::StringRef FileName, 
@@ -50,11 +52,7 @@ public:
                               const clang::MacroDefinition &MacroDef,
                               clang::SourceRange Range,
                               const clang::MacroArgs *Args) override;
-    
-    virtual void beforeSourceFileAction(clang::CompilerInstance &CI,
-                                        llvm::StringRef File) override;
-    virtual void afterSourceFileAction() override;
-    
+
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr) override;
     virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc) override;
 private:
@@ -73,10 +71,9 @@ private:
     
     bool isHeaderFile(const clang::StringRef &FileName) const;
     
-    void addReplacement(const clang::SourceRange &Range);
-    void addReplacement(const clang::SourceLocation &Loc, unsigned int Length);
+    void addReplacement(const clang::SourceRange Range);
+    void addReplacement(const clang::SourceLocation Loc, unsigned int Length);
     
-    clang::CompilerInstance *_CompilerInstance;
     std::unordered_map<UIntPair, SourceRangeVector, UIntPairHash> _IncludeMap;
 };
 

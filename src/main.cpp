@@ -41,6 +41,7 @@
 #include <Refactorers/IncludeRefactorer.hpp>
 #include <Refactorers/NamespaceRefactorer.hpp>
 #include <Refactorers/VariableRefactorer.hpp>
+#include <Refactorers/MacroRefactorer.hpp>
 #include <util/memory.hpp>
 
 #include <RefactoringActionFactory.hpp>
@@ -100,11 +101,30 @@ static llvm::cl::list<std::string> VarVec(
     llvm::cl::cat(RefactoringOptions)
 );
 
+static llvm::cl::list<std::string> MacroVec(
+    "macro",
+    llvm::cl::desc(
+        ""
+    ),
+    llvm::cl::value_desc("victim=repl"),
+    llvm::cl::CommaSeparated,
+    llvm::cl::cat(RefactoringOptions)       
+);
+
 static llvm::cl::list<std::string> InputFiles(
-    llvm::cl::desc("<Files>"),
+    llvm::cl::desc("[File01 [File02 [...]]]"),
     llvm::cl::Positional,
     llvm::cl::ZeroOrMore,
     llvm::cl::PositionalEatsArgs
+);
+
+static llvm::cl::opt<bool> SyntaxOnly(
+    "syntax-only",
+    llvm::cl::desc(
+        "Perform a syntax check and exit.\n"
+        "No changes are made even if replacements were specified."
+    ),
+    llvm::cl::init(false)
 );
 
 static llvm::cl::opt<bool> SanitizeIncludes(
@@ -158,14 +178,6 @@ static llvm::cl::opt<bool> Force(
     llvm::cl::init(false)
 );
 
-static llvm::cl::opt<bool> SyntaxOnly(
-    "syntax-only",
-    llvm::cl::desc(
-        "Perform a syntax check and exit.\n"
-        "No changes are made even if replacements were specified."
-    ),
-    llvm::cl::init(false)
-);
 
 #ifdef __unix__
 static llvm::cl::opt<bool> AllowRoot(
@@ -264,6 +276,7 @@ int main(int argc, const char **argv)
     addRefactorers<FunctionRefactorer>(RefactorerVec, FunctionVec, Repls);
     addRefactorers<NamespaceRefactorer>(RefactorerVec, NamespaceVec, Repls);
     addRefactorers<VariableRefactorer>(RefactorerVec, VarVec, Repls);
+    addRefactorers<MacroRefactorer>(RefactorerVec, MacroVec, Repls);
     
     if (SanitizeIncludes) {
         auto Refactorer = std::make_unique<IncludeRefactorer>();

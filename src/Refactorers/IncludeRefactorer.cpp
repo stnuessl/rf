@@ -182,15 +182,6 @@ void IncludeRefactorer::MacroExpands(const clang::Token &Token,
     removeUsedIncludes(IncludingLoc, DefinitionLoc);
 }
 
-void IncludeRefactorer::beforeSourceFileAction(clang::CompilerInstance &CI, 
-                                               llvm::StringRef File)
-{
-    (void) File;
-    
-    _CompilerInstance = &CI;
-}
-
-
 void IncludeRefactorer::afterSourceFileAction()
 {
     for (const auto &Item : _IncludeMap) {
@@ -375,9 +366,9 @@ bool IncludeRefactorer::isHeaderFile(const StringRef &FileName) const
     return false;
 }
 
-void IncludeRefactorer::addReplacement(const clang::SourceRange &Range)
+void IncludeRefactorer::addReplacement(const clang::SourceRange Range)
 {
-    auto &SM = _ASTContext->getSourceManager();
+    auto &SM = _CompilerInstance->getSourceManager();
     
     auto Begin = Range.getBegin();
     auto BeginInfo = SM.getDecomposedLoc(Begin);
@@ -389,7 +380,7 @@ void IncludeRefactorer::addReplacement(const clang::SourceRange &Range)
     addReplacement(Begin, EndInfo.second - BeginInfo.second);
 }
 
-void IncludeRefactorer::addReplacement(const clang::SourceLocation &Loc, 
+void IncludeRefactorer::addReplacement(const clang::SourceLocation Loc, 
                                        unsigned int Length)
 {
     Refactorer::addReplacement(Loc, Length, "");

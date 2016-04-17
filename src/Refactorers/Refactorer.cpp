@@ -26,12 +26,18 @@
 
 
 Refactorer::Refactorer()
-    : _ASTContext(nullptr),
+    : _CompilerInstance(nullptr),
+      _ASTContext(nullptr),
       _ReplSet(nullptr),
       _DupCount(0),
       _Verbose(false),
       _Force(false)
 {
+}
+
+void Refactorer::setCompilerInstance(clang::CompilerInstance *CI)
+{
+    _CompilerInstance = CI;
 }
 
 void Refactorer::setASTContext(clang::ASTContext *ASTContext)
@@ -69,16 +75,13 @@ bool Refactorer::force() const
     return _Force;
 }
 
-void Refactorer::beforeSourceFileAction(clang::CompilerInstance &CI, 
-                                        llvm::StringRef File)
+void Refactorer::beforeSourceFileAction(llvm::StringRef File)
 {
-    (void) CI;
     (void) File;
 }
 
 void Refactorer::afterSourceFileAction()
 {
-
 }
 
 void Refactorer::visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl)
@@ -163,26 +166,28 @@ visitNestedNameSpecifierLoc(const clang::NestedNameSpecifierLoc &NNSLoc)
     (void) NNSLoc;
 }
 
-
 void Refactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
 {
     (void) TypeLoc;
 }
 
-
-void Refactorer::addReplacement(const clang::SourceLocation &Loc, 
-                                   unsigned int Length, 
-                                   StringRef ReplText)
+void Refactorer::addReplacement(const clang::SourceLocation Loc, 
+                                unsigned int Length, 
+                                llvm::StringRef ReplText)
 {
-    addReplacement(_ASTContext->getSourceManager(), Loc, Length, ReplText);
+    auto &SM = _CompilerInstance->getSourceManager();
+    
+    addReplacement(SM, Loc, Length, ReplText);
 }
 
-
 void Refactorer::addReplacement(const clang::SourceManager &SM, 
-                                   const clang::SourceLocation &Loc, 
-                                   unsigned int Length, 
-                                   StringRef ReplText)
+                                const clang::SourceLocation Loc, 
+                                unsigned int Length, 
+                                llvm::StringRef ReplText)
 {
+    if (Loc.isMacroID() || SM.isInSystemHeader(Loc))
+        return;
+    
     auto Repl = clang::tooling::Replacement(SM, Loc, Length, ReplText);
     
     auto Ok = _ReplSet->insert(std::move(Repl)).second;

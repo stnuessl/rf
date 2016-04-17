@@ -21,6 +21,9 @@
 #ifndef _NAMEREFACTORER_HPP_
 #define _NAMEREFACTORER_HPP_
 
+#include <clang/Lex/MacroArgs.h>
+#include <clang/Lex/MacroInfo.h>
+
 #include <Refactorers/Refactorer.hpp>
 
 class NameRefactorer : public Refactorer {
@@ -39,10 +42,13 @@ public:
     
 protected:
     bool isVictim(const clang::NamedDecl *NamedDecl);
+    bool isVictim(const clang::Token &MacroName,
+                  const clang::MacroInfo *MacroInfo);
     
-    void addReplacement(const clang::SourceLocation &Loc);
-    
+    void addReplacement(const clang::SourceLocation Loc);
 private:
+    bool isVictimLine(const clang::SourceLocation Loc);
+    
     const std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
     
     std::string _Victim;

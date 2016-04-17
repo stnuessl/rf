@@ -18,6 +18,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define M 100
+#define N (M)
+
 namespace n {
 struct a {
     a() {};
@@ -76,6 +79,11 @@ int main(void)
     struct b<double> b2;
     
     (void) f(b1, b2);
+    
+#undef M
+#define M 1000
+    f(b<decltype(M)>(), b<decltype(N)>());
+#undef M
     
     return 0;
 }

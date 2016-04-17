@@ -39,7 +39,8 @@ bool RefactoringAction::BeginSourceFileAction(clang::CompilerInstance &CI,
                                               llvm::StringRef File)
 {
     for (auto &Refactorer : *_Refactorers) {
-        Refactorer->beforeSourceFileAction(CI, File);
+        Refactorer->setCompilerInstance(&CI);
+        Refactorer->beforeSourceFileAction(File);
     }
     
     auto Dispatcher = std::make_unique<PPCallbackDispatcher>();
