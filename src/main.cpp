@@ -66,9 +66,7 @@ static llvm::cl::list<std::string> TagVec(
 static llvm::cl::list<std::string> FunctionVec(
     "function",
     llvm::cl::desc(
-        "Refactor a function or class method.\n"
-        "Refactoring a function that is overloaded will also\n"
-        "refactor all the overloaded declarations.\n"
+        "Refactor a function or class method name."
     ),
     llvm::cl::value_desc("victim=repl"),
     llvm::cl::CommaSeparated,
@@ -78,11 +76,7 @@ static llvm::cl::list<std::string> FunctionVec(
 static llvm::cl::list<std::string> NamespaceVec(
     "namespace",
     llvm::cl::desc(
-        "Refactor a namespace.\n"
-        "Only produces a correct result if the whole implementation\n"
-        "of the specified namespace is within the project, e.g. this\n"
-        "will not work if you extended the \"std\" namespace and you\n"
-        "want the refactor that extension."
+        "Refactor a namespace."
     ),
     llvm::cl::value_desc("victim=repl"),
     llvm::cl::CommaSeparated,
@@ -92,9 +86,7 @@ static llvm::cl::list<std::string> NamespaceVec(
 static llvm::cl::list<std::string> VarVec(
     "variable",
     llvm::cl::desc(
-        "Change the name of a variable. If multiple declarations are\n"
-        "within the same scope you can additionally pass the line\n"
-        "number, e.g. <var::line>, to differentiate between them."
+        "Refactor the name of a variable or class field."
     ),
     llvm::cl::value_desc("victim=repl"),
     llvm::cl::CommaSeparated,
@@ -104,7 +96,7 @@ static llvm::cl::list<std::string> VarVec(
 static llvm::cl::list<std::string> MacroVec(
     "macro",
     llvm::cl::desc(
-        ""
+        "Refactor a preprocessor macro."
     ),
     llvm::cl::value_desc("victim=repl"),
     llvm::cl::CommaSeparated,
@@ -252,9 +244,7 @@ int main(int argc, const char **argv)
         std::cerr << "** ERROR: " << ErrMsg << std::endl;
         std::exit(EXIT_FAILURE);
     }
-    
-//     auto SourceFiles = std::vector<std::string>();
-//     if (!InputFiles.empty()) 
+
     auto SourceFiles = CompilationDB->getAllFiles();
     if (!InputFiles.empty())
         std::swap(SourceFiles, *&InputFiles);

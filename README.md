@@ -3,6 +3,7 @@
 rf is a command-line tool capable of refactoring C and C++ source code.
 
 # Overview
+# Overview
 * [rf - refactoring for C and C++](https://github.com/stnuessl/rf#rf---refactoring-for-c-and-c)
 * [Overview](https://github.com/stnuessl/rf#overview)
     * [Motivation](https://github.com/stnuessl/rf#motivation)
@@ -17,17 +18,18 @@ rf is a command-line tool capable of refactoring C and C++ source code.
             * [Arch Linux](https://github.com/stnuessl/rf#arch-linux)
         * [Compiling](https://github.com/stnuessl/rf#compiling)
     * [Usage](https://github.com/stnuessl/rf#usage)
+        * [Attention](https://github.com/stnuessl/rf#attention)
         * [Refactoring rf's own source code](https://github.com/stnuessl/rf#refactoring-rfs-own-source-code)
             * [Refactoring Tags](https://github.com/stnuessl/rf#refactoring-tags)
-            * [Refactoring Functions](https://github.com/stnuessl/rf#refactoring-functions)
-            * [Refactoring Variables](https://github.com/stnuessl/rf#refactoring-variables)
-        * [Refactoring examples](https://github.com/stnuessl/rf#refactoring-examples)
-            * [Inherited functions](https://github.com/stnuessl/rf#inherited-functions)
-            * [Overridden functions](https://github.com/stnuessl/rf#overridden-functions)
-            * [Overlapping qualifiers](https://github.com/stnuessl/rf#overlapping-qualifiers)
-        * [Setting up rf for a project](https://github.com/stnuessl/rf#setting-up-rf-for-a-project)
-        * [Creating a Compilation Database using CMake](https://github.com/stnuessl/rf#creating-a-compilation-database-using-cmake)
-    * [Code Breakage](https://github.com/stnuessl/rf#code-breakage)
+            * [Refactoring Functions](https://github.com/stnuessl/rf#refactoring-functions)                                                                                                                                                  
+            * [Refactoring Variables](https://github.com/stnuessl/rf#refactoring-variables)                                                                                                                                                  
+        * [Refactoring examples](https://github.com/stnuessl/rf#refactoring-examples)                                                                                                                                                        
+            * [Inherited functions](https://github.com/stnuessl/rf#inherited-functions)                                                                                                                                                      
+            * [Overridden functions](https://github.com/stnuessl/rf#overridden-functions)                                                                                                                                                    
+            * [Overlapping qualifiers](https://github.com/stnuessl/rf#overlapping-qualifiers)                                                                                                                                                
+        * [Setting up rf for a project](https://github.com/stnuessl/rf#setting-up-rf-for-a-project)                                                                                                                                          
+        * [Creating a Compilation Database using CMake](https://github.com/stnuessl/rf#creating-a-compilation-database-using-cmake)                                                                                                          
+    * [Code Breakage](https://github.com/stnuessl/rf#code-breakage)                                                                                                                                                                          
     * [Bugs and Bug Reports](https://github.com/stnuessl/rf#bugs-and-bug-reports)
 
 ## Motivation
@@ -148,6 +150,14 @@ This section describes the installation process for rf.
     $ rf --help
 ```
 
+### Attention
+
+Before invoking __rf__ make absolutley sure that the new name does not conflict
+with an already existing one. The refactoring will succeed but the resulting
+program won't compile (in the best case, see 
+[Code Breakage](https://github.com/stnuessl/rf#code-breakage)).
+There are no safety guards implemented to avoid such __rf__ invocations.
+
 ### Refactoring rf's own source code
 
 This section shows how to refactor __rf's__ own source code. This shall help
@@ -166,7 +176,7 @@ That's it. __rf__ should be ready for use with its own source code.
 #### Refactoring Tags
 
 The following command will change the name of the two classes _Refactorer_
-and _NameRefactore_.
+and _NameRefactorer_.
 
 ```
     $ rf --tag Refactorer=MyNewName,NameRefactorer=MyOtherNewName
@@ -336,7 +346,6 @@ The resulting program is shown immediatley after the invoked __rf__ command.
 2 |     void f(double val) { }
 3 |     int main() { f(0); ff(0.0); }
 ```
-
 
 
 ### Setting up rf for a project
