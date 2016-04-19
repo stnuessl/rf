@@ -26,6 +26,14 @@
 
 #include <Refactorers/Refactorer.hpp>
 
+/*
+ * Base class for Refactorers which want to replace a name with a new one.
+ * Handles qualifier parsing, checking if an entity has to be replaced, and
+ * conveniently adding replacements with just one argument. With this most
+ * subclasses only need to implement the corresponding 'visit*()' or
+ * PPCallbacks functions.
+ */
+
 class NameRefactorer : public Refactorer {
 public:
     NameRefactorer();
