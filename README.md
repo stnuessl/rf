@@ -11,7 +11,7 @@ rf is a command-line tool capable of refactoring C and C++ source code.
     * [Project Status](https://github.com/stnuessl/rf#project-status)
         * [What's supported right now?](https://github.com/stnuessl/rf#whats-supported-right-now)
         * [What might be supported in the future?](https://github.com/stnuessl/rf#what-might-be-supported-in-the-future)
-        * [What is __not__ supported?](https://github.com/stnuessl/rf#what-is-not-supported)
+        * [What is not supported?](https://github.com/stnuessl/rf#what-is-not-supported)
     * [Installation](https://github.com/stnuessl/rf#installation)
         * [Dependencies](https://github.com/stnuessl/rf#dependencies)
             * [Arch Linux](https://github.com/stnuessl/rf#arch-linux)
@@ -44,14 +44,14 @@ with refactoring tools provided by IDEs.
 
 ## Advantages
 
-* no graphical user interface needed
-* capable of running multiple refactorings with one invocation
-* fully parses the source code and makes sure it is correct before refactoring
+* No graphical user interface --> works with any IDE / code editor
+* Capable of running multiple refactorings with one invocation
+* Fully parses the source code and makes sure it is correct before refactoring
 
 ## Disadvantages 
 
-* getting a working compilation database can be tricky
-* slow, especially for big C++ projects
+* Getting a working compilation database can be tricky
+* Slow, especially for big C++ projects
 
 ## Project Status
 
@@ -76,7 +76,7 @@ anonymous namespaces.
 * Adding a column specifier for victim qualifiers
 * Refactoring typedef's
 
-### What is __not__ supported?
+### What is not supported?
 
 Constructs where a scoped variable overshadows another variable and both
 corresponding declarations happen on the __same__ line, e.g:
@@ -198,7 +198,7 @@ code (line numbers may vary):
     ...
     };
 ```
-A normal _rf_ invocation could be:
+A normal __rf__ invocation could be:
 
 ```
     $ rf --function NameRefactorer::setReplacementQualifier=MyNewFunctionName
@@ -268,7 +268,7 @@ to achieve the desired results.
 
 Consider the following piece of code.
 ```cpp
-    struct base { void work() { }; };
+    struct base { void work() { } };
     struct derived : public base { };
     int main() { derived().work(); }
 ```
@@ -284,8 +284,8 @@ this is by running __rf --function base::work=run__.
 
 Consider the following piece of code.
 ```cpp
-    struct base { virtual void run() { }; };
-    struct derived : public base { virtual void run() override { ; }; };
+    struct base { virtual void run() { } };
+    struct derived : public base { virtual void run() override { } };
     int main() {
         base *x = new derived();
         x->run();
