@@ -331,19 +331,19 @@ The resulting program is shown immediatley after the invoked __rf__ command.
 ```cpp
 1 |     void f(int val) { }
 2 |     void f(double val) { }
-3 |     int main() { f(0); ff(0.0); }
+3 |     int main() { f(0); f(0.0); }
 ```
 * __$ tq --variable f::value::1=val__
 ```cpp
 1 |     void f(int val) { }
 2 |     void f(double value) { }
-3 |     int main() { f(0); ff(0.0); }
+3 |     int main() { f(0); f(0.0); }
 ```
 * __$ tq --variable f::value::2=val__
 ```cpp
 1 |     void f(int value) { }
 2 |     void f(double val) { }
-3 |     int main() { f(0); ff(0.0); }
+3 |     int main() { f(0); f(0.0); }
 ```
 
 
