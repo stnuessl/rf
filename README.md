@@ -3,7 +3,7 @@
 rf is a command-line tool capable of refactoring C and C++ source code.
 
 # Overview
-* [rf - refactoring for C and C++](https://github.com/stnuessl/rf#rf---refactoring-for-c-and-c++)
+* [rf - refactoring for C and C++](https://github.com/stnuessl/rf#rf---refactoring-for-c-and-c)
 * [Overview](https://github.com/stnuessl/rf#overview)
     * [Motivation](https://github.com/stnuessl/rf#motivation)
     * [Advantages](https://github.com/stnuessl/rf#advantages)
@@ -11,7 +11,7 @@ rf is a command-line tool capable of refactoring C and C++ source code.
     * [Project Status](https://github.com/stnuessl/rf#project-status)
         * [What's supported right now?](https://github.com/stnuessl/rf#whats-supported-right-now)
         * [What might be supported in the future?](https://github.com/stnuessl/rf#what-might-be-supported-in-the-future)
-        * [What is __not__ supported?](https://github.com/stnuessl/rf#what-is-__not__-supported)
+        * [What is __not__ supported?](https://github.com/stnuessl/rf#what-is-not-supported)
     * [Installation](https://github.com/stnuessl/rf#installation)
         * [Dependencies](https://github.com/stnuessl/rf#dependencies)
             * [Arch Linux](https://github.com/stnuessl/rf#arch-linux)
