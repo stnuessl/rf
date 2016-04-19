@@ -310,37 +310,37 @@ The are two overlapping qualifiers: f and f::value.
 There are multiple ways to refactor this which are shown in the following.
 The resulting program is shown immediatley after the invoked __rf__ command.
 
-1. __$ tq --function f=ff__
+* __$ tq --function f=ff__
 ```cpp
 1 |     void ff(int value) { }
 2 |     void ff(double value) { }
 3 |     int main() { ff(0); ff(0.0); }
 ```
-2. __$ tq --function f::1=ff__
+* __$ tq --function f::1=ff__
 ```cpp
 1 |     void ff(int value) { }
 2 |     void f(double value) { }
 3 |     int main() { ff(0); f(0.0); }
 ```
-3. __$ tq --function f::2=ff__
+* __$ tq --function f::2=ff__
 ```cpp
 1 |     void f(int value) { }
 2 |     void ff(double value) { }
 3 |     int main() { f(0); ff(0.0); }
 ```
-4. __$ tq --variable f::value=val__
+* __$ tq --variable f::value=val__
 ```cpp
 1 |     void f(int val) { }
 2 |     void f(double val) { }
 3 |     int main() { f(0); ff(0.0); }
 ```
-5. __$ tq --variable f::value::1=val__
+* __$ tq --variable f::value::1=val__
 ```cpp
 1 |     void f(int val) { }
 2 |     void f(double value) { }
 3 |     int main() { f(0); ff(0.0); }
 ```
-6. __$ tq --variable f::value::2=val__
+* __$ tq --variable f::value::2=val__
 ```cpp
 1 |     void f(int value) { }
 2 |     void f(double val) { }
