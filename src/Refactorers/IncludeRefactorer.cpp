@@ -288,7 +288,7 @@ IncludeRefactorer::getFileUID(clang::SourceLocation Loc) const
         Pair.second = true;
     }
     
-    return std::move(Pair);
+    return Pair;
 }
 
 void IncludeRefactorer::removeUsedIncludes(clang::SourceLocation IncludingLoc,
