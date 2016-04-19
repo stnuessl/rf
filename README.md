@@ -3,7 +3,6 @@
 rf is a command-line tool capable of refactoring C and C++ source code.
 
 # Overview
-# Overview
 * [rf - refactoring for C and C++](https://github.com/stnuessl/rf#rf---refactoring-for-c-and-c)
 * [Overview](https://github.com/stnuessl/rf#overview)
     * [Motivation](https://github.com/stnuessl/rf#motivation)
