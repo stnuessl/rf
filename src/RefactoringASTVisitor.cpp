@@ -75,6 +75,14 @@ bool RefactoringASTVisitor::VisitEnumDecl(clang::EnumDecl *Decl)
     return true;
 }
 
+bool RefactoringASTVisitor::VisitFieldDecl(clang::FieldDecl *Decl)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->visitFieldDecl(Decl);
+    
+    return true;
+}
+
 bool RefactoringASTVisitor::VisitFunctionDecl(clang::FunctionDecl *Decl)
 {
     for (auto &Refactorer : *_Refactorers)
@@ -108,12 +116,19 @@ bool RefactoringASTVisitor::VisitUsingDecl(clang::UsingDecl *Decl)
     return true;
 }
 
-
 bool 
 RefactoringASTVisitor::VisitUsingDirectiveDecl(clang::UsingDirectiveDecl *Decl)
 {
     for (auto &Refactorer : *_Refactorers)
         Refactorer->visitUsingDirectiveDecl(Decl);
+    
+    return true;
+}
+
+bool RefactoringASTVisitor::VisitVarDecl(clang::VarDecl *Decl)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->visitVarDecl(Decl);
     
     return true;
 }
@@ -133,6 +148,15 @@ bool RefactoringASTVisitor::VisitDeclRefExpr(const clang::DeclRefExpr *Expr)
     
     return true;
 }
+
+bool RefactoringASTVisitor::VisitMemberExpr(const clang::MemberExpr *Expr)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->visitMemberExpr(Expr);
+    
+    return true;
+}
+
 
 bool RefactoringASTVisitor::
 VisitNestedNameSpecifierLoc(clang::NestedNameSpecifierLoc &NNSLoc)
