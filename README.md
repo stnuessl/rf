@@ -30,7 +30,6 @@ rf is a command-line tool capable of refactoring C and C++ source code.
     * [Code Breakage](https://github.com/stnuessl/rf#code-breakage)
     * [Bugs and Bug Reports](https://github.com/stnuessl/rf#bugs-and-bug-reports)
 
-
 ## Motivation
 
 My favorite IDE lacks a good refactoring tool which more often then not breaks
