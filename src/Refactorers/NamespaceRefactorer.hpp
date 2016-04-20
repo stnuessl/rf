@@ -26,11 +26,13 @@
 class NamespaceRefactorer : public NameRefactorer {
 public:
     virtual void visitNamespaceDecl(const clang::NamespaceDecl *Decl) override;
+    
     virtual void 
     visitNestedNameSpecifierLoc(const clang::NestedNameSpecifierLoc &NNSLoc) 
                                                                        override;
-    virtual void 
-    visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl) override;
+    
+    virtual void visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl) 
+                                                                       override;
 };
 
 #endif /* _NAMESPACEREFACTORER_HPP_ */

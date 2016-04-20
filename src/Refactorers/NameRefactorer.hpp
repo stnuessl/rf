@@ -50,7 +50,7 @@ public:
     
 protected:
     bool isVictim(const clang::NamedDecl *NamedDecl);
-    bool isVictim(const clang::Token &MacroName,
+    bool isVictim(const clang::Token &MacroName, 
                   const clang::MacroInfo *MacroInfo);
     
     void addReplacement(const clang::SourceLocation Loc);

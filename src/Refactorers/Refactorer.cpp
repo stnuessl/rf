@@ -104,6 +104,11 @@ void Refactorer::visitCXXRecordDecl(const clang::CXXRecordDecl *Decl)
     (void) Decl;
 }
 
+void Refactorer::visitEnumConstantDecl(const clang::EnumConstantDecl *Decl)
+{
+    (void) Decl;
+}
+
 void Refactorer::visitEnumDecl(const clang::EnumDecl *Decl)
 {
     (void) Decl;

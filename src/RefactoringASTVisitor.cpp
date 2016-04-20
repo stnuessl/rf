@@ -50,7 +50,6 @@ RefactoringASTVisitor::VisitCXXDestructorDecl(clang::CXXDestructorDecl *Decl)
     return true;
 }
 
-
 bool RefactoringASTVisitor::VisitCXXMethodDecl(clang::CXXMethodDecl *Decl)
 {
     for (auto &Refactorer : *_Refactorers)
@@ -66,6 +65,15 @@ bool RefactoringASTVisitor::VisitCXXRecordDecl(clang::CXXRecordDecl *Decl)
     
     return true;
 }
+
+bool RefactoringASTVisitor::VisitEnumConstantDecl(clang::EnumConstantDecl *Decl)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->visitEnumConstantDecl(Decl);
+    
+    return true;
+}
+
 
 bool RefactoringASTVisitor::VisitEnumDecl(clang::EnumDecl *Decl)
 {

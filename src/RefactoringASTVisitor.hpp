@@ -37,6 +37,7 @@ public:
     bool VisitCXXDestructorDecl(clang::CXXDestructorDecl *Decl);
     bool VisitCXXMethodDecl(clang::CXXMethodDecl *Decl);
     bool VisitCXXRecordDecl(clang::CXXRecordDecl *Decl);
+    bool VisitEnumConstantDecl(clang::EnumConstantDecl *Decl);
     bool VisitEnumDecl(clang::EnumDecl *Decl);
     bool VisitFieldDecl(clang::FieldDecl *Decl);
     bool VisitFunctionDecl(clang::FunctionDecl *Decl);

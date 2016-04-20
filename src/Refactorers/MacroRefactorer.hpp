@@ -33,6 +33,7 @@ public:
                               const clang::MacroDefinition &MD,
                               clang::SourceRange Range,
                               const clang::MacroArgs *Args) override;
+                              
     virtual void MacroDefined(const clang::Token &MacroName, 
                               const clang::MacroDirective *MD) override;
     
@@ -42,6 +43,7 @@ public:
 private:
     bool isVictim(const clang::Token &MacroName, 
                   const clang::MacroDefinition &MD);
+    
     bool isVictim(const clang::Token &MacroName, 
                   const clang::MacroDirective *MD);
 };

@@ -60,7 +60,7 @@ I don't expect it the produce a correct program after refactoring.
 
 ### What's supported right now?
 
-* Renaming tags, e.g. structs, classes, and enums
+* Renaming tags, e.g. structs, classes, enums and enum constants
 * Renaming functions including class methods
 * Renaming (class) variables 
 * Renaming namespaces
@@ -72,6 +72,8 @@ anonymous namespaces.
 
 ### What might be supported in the future?
 
+* Refactoring enum constants
+* Refactoring typedefs
 * Supporting anonymous namespaces
 * Adding a column specifier for victim qualifiers
 * Refactoring typedef's

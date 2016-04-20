@@ -59,6 +59,7 @@ public:
     virtual void visitCXXDestructorDecl(const clang::CXXDestructorDecl *Decl);
     virtual void visitCXXMethodDecl(const clang::CXXMethodDecl *Decl);
     virtual void visitCXXRecordDecl(const clang::CXXRecordDecl *Decl);
+    virtual void visitEnumConstantDecl(const clang::EnumConstantDecl *Decl);
     virtual void visitEnumDecl(const clang::EnumDecl *Decl);
     virtual void visitFieldDecl(const clang::FieldDecl *Decl);
     virtual void visitFunctionDecl(const clang::FunctionDecl *Decl);
