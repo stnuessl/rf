@@ -43,6 +43,7 @@ public:
     bool VisitFunctionDecl(clang::FunctionDecl *Decl);
     bool VisitNamespaceDecl(clang::NamespaceDecl *Decl);
     bool VisitRecordDecl(clang::RecordDecl *Decl);
+    bool VisitTypedefNameDecl(clang::TypedefNameDecl *Decl);
     bool VisitUsingDecl(clang::UsingDecl *Decl);
     bool VisitUsingDirectiveDecl(clang::UsingDirectiveDecl *Decl);
     bool VisitVarDecl(clang::VarDecl *Decl);

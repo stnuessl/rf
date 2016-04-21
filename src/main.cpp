@@ -170,6 +170,16 @@ static llvm::cl::opt<bool> Force(
     llvm::cl::init(false)
 );
 
+static llvm::cl::opt<bool> DupCount (
+    "duplication-count",
+    llvm::cl::desc(
+        "Report the number of duplicated source locations for which\n"
+        "replacements where found. This may help identifying problems\n"
+        "with rf's refactoring algorithm."
+    ),
+    llvm::cl::cat(FlagOptions),
+    llvm::cl::init(false)
+);
 
 #ifdef __unix__
 static llvm::cl::opt<bool> AllowRoot(
@@ -295,7 +305,18 @@ int main(int argc, const char **argv)
     
     if (Tool.getReplacements().empty()) {
         std::cerr << "** Info: no code replacements to make - done\n";
-    } else if (!DryRun) {
+        std::exit(EXIT_SUCCESS);
+    } 
+    
+    /* TODO: This one is really bad if multiple refactorers are used */
+    if (DupCount) {
+        for (auto &Refactorer : RefactorerVec) {
+            auto Count = Refactorer->duplicationCount();
+            std::cerr << "Duplication count: " << Count << "\n";
+        }
+    }
+    
+    if (!DryRun) {
         IntrusiveRefCntPtr<DiagnosticOptions> Opts = new DiagnosticOptions();
         IntrusiveRefCntPtr<DiagnosticIDs> Id = new DiagnosticIDs();
         
@@ -318,5 +339,5 @@ int main(int argc, const char **argv)
         }
     }
         
-    return 0;
+    return EXIT_SUCCESS;
 }

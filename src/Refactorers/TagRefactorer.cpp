@@ -76,6 +76,15 @@ void TagRefactorer::visitRecordDecl(const clang::RecordDecl *Decl)
     addReplacement(Decl->getLocation());
 }
 
+void TagRefactorer::visitTypedefNameDecl(const clang::TypedefNameDecl *Decl)
+{
+    if (!isVictim(Decl))
+        return;
+    
+    addReplacement(Decl->getLocation());
+}
+
+
 void TagRefactorer::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
 {
     /* This handles enum constants, e.g.:
@@ -101,11 +110,11 @@ void TagRefactorer::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
 void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
 {
     auto Type = TypeLoc.getType();
-    
+
     /*
      * Problem: Given
-     *      template<typename T> func(void) { T() }
-     *                                        ^(1) 
+     *      template<typename T> func() { T() }
+     *                                    ^(1) 
      * and
      *      func<VictimType>();
      *           ^(2)
@@ -113,17 +122,64 @@ void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
      * breaking the code.
      * Filter out type (1) locations.
      */
-    auto STTPTypeLoc = TypeLoc.getAs<clang::SubstTemplateTypeParmTypeLoc>();
-    if (STTPTypeLoc)
+    auto STTypeParmType = Type->getAs<clang::SubstTemplateTypeParmType>();
+    if (STTypeParmType)
         return;
+    
+    /*
+     * Given
+     *      struct a { };
+     *      typedef a b;
+     * and 
+     *      f(b *val) { }   and     g(b &val) { }
+     *        ^(1)                    ^(2)
+     * 
+     * (1) Generates a PointerType which wraps a reference type 'b'
+     * (2) Generates a ReferenceType which also wraps a reference type 'b'
+     * 
+     * If 'b' is about to be refactored both locations have to be refactored,
+     * so we unwrap the pointer and reference types. 
+     * The location of this unwrapping is intentional.
+     */
+    auto PointerType = Type->getAs<clang::PointerType>();
+    if (PointerType)
+        Type = PointerType->getPointeeType();
+    
+    auto ReferenceType = Type->getAs<clang::ReferenceType>();
+    if (ReferenceType)
+        Type = ReferenceType->getPointeeType();
+    
+    /*
+     * Given;
+     *      typedef std::vector<int> s32_vector;
+     * 
+     * This handles all the occurences ((1) and (2)) of 's32_vector' like:
+     *      s32_vector v;   and     std::vector<s32_vector> s32_matrix;
+     *      ^(1)                                ^(2)
+     * 
+     * This has to be done explicitly here since clang thinks of typedef types
+     * not as tag types but rf does.
+     */
+    auto TypedefType = Type->getAs<clang::TypedefType>();
+    if (TypedefType) {
+        auto TypedefNameDecl = TypedefType->getDecl();
+        
+        if (isVictim(TypedefNameDecl)) {
+            auto Loc = getLastTypeLocation(TypeLoc);
+            addReplacement(Loc);
+        }
+        
+        return;
+    }
     
     /* 
      * This handles declarations like:
      * 
-     *      template <typename T> class a;
+     *      template <typename T> class a {};
      *      template <typename T> class b<const a<T>> {};
+     *                                          ^
      *      template <typename T> void f(a<T> a) { }
-     * 
+     *                                   ^
      * Casting the Typeloc to a TemplateSpecializationTypeLoc did not
      * always work. Casting the Type to the TemplateSpecializationType
      * seems to be doing fine.
@@ -138,35 +194,7 @@ void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
             auto Loc = getLastTypeLocation(TypeLoc);
             addReplacement(Loc);
         }
-        
-        return;
-    }
-    
-    /*
-     * This handles templated functions like:
-     * 
-     *      template <typename T> class a { };
-     *      template <typename T, typename U>
-     *      bool equals(a<T> &lhs, a<U> &rhs) { return true; }
-     * 
-     * Don't now why the approach later on won't handle this case,
-     * so it is done explicitly here.
-     */
-    auto LValueRefTypeLoc = TypeLoc.getAs<clang::LValueReferenceTypeLoc>();
-    if (LValueRefTypeLoc) {
-        auto QualType = LValueRefTypeLoc.getTypePtr()->getPointeeType();
-        auto TSpecType = QualType->getAs<clang::TemplateSpecializationType>();
-        
-        if (TSpecType) {
-            auto TemplateName = TSpecType->getTemplateName();
-            auto TemplateDecl = TemplateName.getAsTemplateDecl();
-            
-            if (isVictim(TemplateDecl)) {
-                auto Loc = getLastTypeLocation(LValueRefTypeLoc);
-                addReplacement(Loc);
-            }
-        }
-        
+
         return;
     }
     

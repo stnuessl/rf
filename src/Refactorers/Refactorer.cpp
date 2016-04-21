@@ -75,6 +75,11 @@ bool Refactorer::force() const
     return _Force;
 }
 
+unsigned int Refactorer::duplicationCount() const
+{
+    return _DupCount;
+}
+
 void Refactorer::beforeSourceFileAction(llvm::StringRef File)
 {
     (void) File;
@@ -130,6 +135,11 @@ void Refactorer::visitNamespaceDecl(const clang::NamespaceDecl *Decl)
 }
 
 void Refactorer::visitRecordDecl(const clang::RecordDecl *Decl)
+{
+    (void) Decl;
+}
+
+void Refactorer::visitTypedefNameDecl(const clang::TypedefNameDecl *Decl)
 {
     (void) Decl;
 }

@@ -51,6 +51,8 @@ public:
     
     void setForce(bool Value);
     bool force() const;
+    
+    unsigned int duplicationCount() const;
 
     virtual void beforeSourceFileAction(llvm::StringRef File);
     virtual void afterSourceFileAction();
@@ -65,6 +67,7 @@ public:
     virtual void visitFunctionDecl(const clang::FunctionDecl *Decl);
     virtual void visitNamespaceDecl(const clang::NamespaceDecl *Decl);
     virtual void visitRecordDecl(const clang::RecordDecl *Decl);
+    virtual void visitTypedefNameDecl(const clang::TypedefNameDecl *Decl);
     virtual void visitUsingDecl(const clang::UsingDecl *Decl);
     virtual void visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl);
     virtual void visitVarDecl(const clang::VarDecl *Decl);

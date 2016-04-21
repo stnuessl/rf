@@ -116,6 +116,14 @@ bool RefactoringASTVisitor::VisitRecordDecl(clang::RecordDecl *Decl)
     return true;
 }
 
+bool RefactoringASTVisitor::VisitTypedefNameDecl(clang::TypedefNameDecl *Decl)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->visitTypedefNameDecl(Decl);
+    
+    return true;
+}
+
 bool RefactoringASTVisitor::VisitUsingDecl(clang::UsingDecl *Decl)
 {
     for (auto &Refactorer : *_Refactorers)

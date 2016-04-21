@@ -31,6 +31,9 @@ public:
     virtual void visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl) 
                                                                        override;
     virtual void visitRecordDecl(const clang::RecordDecl *Decl) override;
+    virtual void visitTypedefNameDecl(const clang::TypedefNameDecl *Decl)
+                                                                       override;
+    
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr) override;
     virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc) override;
 };
