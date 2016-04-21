@@ -63,7 +63,6 @@ bool f(const b<T> &lhs, const b<U> &rhs) { return lhs == rhs; };
 template <typename T> struct c;
 template <typename T> struct c<const b<T>> {};
 
-
 int main(void)
 {
     b<struct n::a> v;
@@ -79,6 +78,9 @@ int main(void)
     struct b<double> b2;
     
     (void) f(b1, b2);
+    
+    typedef b<n::a> ba;
+    ba ba0 = ba();
     
 #undef M
 #define M 1000
