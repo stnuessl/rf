@@ -23,10 +23,10 @@
 
 namespace n {
 struct a {
-    a() {};
-    a(const a &other) {};
-    a(a &&other) {};
-    ~a() {};
+    a() { }
+    a(const a &other) { }
+    a(a &&other) { }
+    ~a() { }
 };
 } // namespace n
 
@@ -38,18 +38,18 @@ auto a0 = n::a();
 
 template <typename T>
 struct b {
-    b() {};
-    b(const b<T> &other) {};
-    b(b<T> &&other) {};
+    b() { } 
+    b(const b<T> &other) { }
+    b(b<T> &&other) { }
 #if 0
     // clang error? Unable to retrieve correct source location
     b(const class b &other) {};
     b(class b &&other) {};
 #endif
-    ~b() {};
+    ~b() { }
     
-    void run() const {};
-    template <typename U> b(const b<U> &other) { run(); };
+    void run() const { }
+    template <typename U> b(const b<U> &other) { run(); }
 };
 
 template <typename T> void f(b<T> b) {};
