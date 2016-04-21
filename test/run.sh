@@ -25,10 +25,10 @@ g++ -Wall -std=c++11 -o main main.cpp;
 MD5BIN=$(md5sum main | cut -f1 -d " ");
 
 
-rf --tag n::a=aa,b=bb,c=cc,ba=baba --function f=ff --macro M=MM --namespace n=nn && 
+rf --tag n::a=aa,b=bb,c=cc,ba=baba --function f=ff --macro M=MM --namespace n=m; 
 rf --syntax-only;
 g++ -Wall -std=c++11 -o main main.cpp
-rf --tag n::aa=a,bb=b,cc=c,baba=ba --function ff=f --macro MM=M --namespace nn=n && 
+rf --tag m::aa=a,bb=b,cc=c,baba=ba --function ff=f --macro MM=M --namespace m=n; 
 rf --syntax-only;
 
 if [ "$MD5FILE" != "$(md5sum main.cpp | cut -f1 -d " ")" ]; then

@@ -28,26 +28,8 @@ void NamespaceRefactorer::visitNamespaceDecl(const clang::NamespaceDecl *Decl)
     addReplacement(Decl->getLocation());
 }
 
-void NamespaceRefactorer::
-visitNestedNameSpecifierLoc(const clang::NestedNameSpecifierLoc &NNSLoc)
-{
-    auto NNSLocIter = NNSLoc;
-    
-    while (NNSLocIter) {
-        auto NNSpecifier = NNSLocIter.getNestedNameSpecifier();
-        
-        auto NamespaceDecl = NNSpecifier->getAsNamespace();
-        if (NamespaceDecl && isVictim(NamespaceDecl)) {
-            addReplacement(NNSLocIter.getLocalBeginLoc());
-            break;
-        }
-        
-        NNSLocIter = NNSLocIter.getPrefix();
-    }
-}
-
-void NamespaceRefactorer::
-visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl)
+void NamespaceRefactorer::visitUsingDirectiveDecl(
+    const clang::UsingDirectiveDecl *Decl)
 {
     /*
      * This function handles statements like
@@ -56,9 +38,26 @@ visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl)
      *      using namespace::namespace::...;
      * are handled by 'runNestedNameSpecifierLoc()'
      */
-    if (!isVictim(Decl->getNominatedNamespaceAsWritten()))
+    if (!isVictim(Decl->getNominatedNamespace()))
         return;
     
     addReplacement(Decl->getIdentLocation());
+}
+
+void NamespaceRefactorer::visitElaboratedTypeLoc(
+    const clang::ElaboratedTypeLoc &TypeLoc)
+{
+    auto NNSLoc = TypeLoc.getQualifierLoc();
+    while (NNSLoc) {
+        auto NNSpecifier = NNSLoc.getNestedNameSpecifier();
+        
+        auto NamespaceDecl = NNSpecifier->getAsNamespace();
+        if (NamespaceDecl && isVictim(NamespaceDecl)) {
+            addReplacement(NNSLoc.getLocalBeginLoc());
+            break;
+        }
+        
+        NNSLoc = NNSLoc.getPrefix();
+    }
 }
 

@@ -48,11 +48,18 @@ public:
     bool VisitUsingDirectiveDecl(clang::UsingDirectiveDecl *Decl);
     bool VisitVarDecl(clang::VarDecl *Decl);
     
-    bool VisitCallExpr(const clang::CallExpr *Expr);
-    bool VisitDeclRefExpr(const clang::DeclRefExpr *Expr);
-    bool VisitMemberExpr(const clang::MemberExpr *Expr);
+    bool VisitCallExpr(clang::CallExpr *Expr);
+    bool VisitDeclRefExpr(clang::DeclRefExpr *Expr);
+    bool VisitMemberExpr(clang::MemberExpr *Expr);
     
-    bool VisitNestedNameSpecifierLoc(clang::NestedNameSpecifierLoc &NNSLoc);
+    bool VisitElaboratedTypeLoc(clang::ElaboratedTypeLoc &TypeLoc);
+    bool VisitPointerTypeLoc(clang::PointerTypeLoc &TypeLoc);
+    bool VisitReferenceTypeLoc(clang::ReferenceTypeLoc &TypeLoc);
+    bool VisitTagTypeLoc(clang::TagTypeLoc &TypeLoc);
+    bool VisitTemplateSpecializationTypeLoc(
+        clang::TemplateSpecializationTypeLoc &TypeLoc);
+    
+    bool VisitTypedefTypeLoc(clang::TypedefTypeLoc &TypeLoc);
     bool VisitTypeLoc(clang::TypeLoc &TypeLoc);
     
 private:

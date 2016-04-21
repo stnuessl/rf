@@ -175,10 +175,34 @@ void Refactorer::visitMemberExpr(const clang::MemberExpr *Expr)
     (void) Expr;
 }
 
-void Refactorer::
-visitNestedNameSpecifierLoc(const clang::NestedNameSpecifierLoc &NNSLoc)
+void Refactorer::visitElaboratedTypeLoc(const clang::ElaboratedTypeLoc &TypeLoc)
 {
-    (void) NNSLoc;
+    (void) TypeLoc;
+}
+
+void Refactorer::visitPointerTypeLoc(const clang::PointerTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
+void Refactorer::visitReferenceTypeLoc(const clang::ReferenceTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
+void Refactorer::visitTagTypeLoc(const clang::TagTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
+void Refactorer::visitTemplateSpecializationTypeLoc(const clang::TemplateSpecializationTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
+void Refactorer::visitTypedefTypeLoc(const clang::TypedefTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
 }
 
 void Refactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
