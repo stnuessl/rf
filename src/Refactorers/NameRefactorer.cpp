@@ -188,7 +188,7 @@ bool NameRefactorer::isVictim(const clang::Token &MacroName,
     return !_Line || isVictimLine(MacroInfo->getDefinitionLoc());
 }
 
-void NameRefactorer::addReplacement(const clang::SourceLocation Loc)
+void NameRefactorer::addReplacement(clang::SourceLocation Loc)
 {
     Refactorer::addReplacement(Loc, _ReplSize, _ReplName);
 }

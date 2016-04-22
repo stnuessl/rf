@@ -44,10 +44,23 @@ void NamespaceRefactorer::visitUsingDirectiveDecl(
     addReplacement(Decl->getIdentLocation());
 }
 
-void NamespaceRefactorer::visitElaboratedTypeLoc(
-    const clang::ElaboratedTypeLoc &TypeLoc)
+void NamespaceRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
 {
-    auto NNSLoc = TypeLoc.getQualifierLoc();
+    /* 
+     * This basically searchs all NestedNameSpecifier's for a reference
+     * to the namespace which shall be refactored.
+     * The loop proceeds like this:
+     *      a::b::c::d 
+     *          -> a::b::c 
+     *              -> a::b 
+     *                  -> a
+     * and checks each qualifer for a match.
+     */
+    auto ElaboratedTypeLoc = TypeLoc.getAs<clang::ElaboratedTypeLoc>();
+    if (!ElaboratedTypeLoc)
+        return;
+    
+    auto NNSLoc = ElaboratedTypeLoc.getQualifierLoc();
     while (NNSLoc) {
         auto NNSpecifier = NNSLoc.getNestedNameSpecifier();
         
@@ -60,4 +73,3 @@ void NamespaceRefactorer::visitElaboratedTypeLoc(
         NNSLoc = NNSLoc.getPrefix();
     }
 }
-

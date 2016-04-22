@@ -12,6 +12,9 @@ rf is a command-line tool capable of refactoring C and C++ source code.
         * [What's supported right now?](https://github.com/stnuessl/rf#whats-supported-right-now)
         * [What might be supported in the future?](https://github.com/stnuessl/rf#what-might-be-supported-in-the-future)
         * [What is not supported?](https://github.com/stnuessl/rf#what-is-not-supported)
+            * [Overshadowing declarations on the same line](https://github.com/stnuessl/rf#overshadowing-declarations-on-the-same-line)
+            * [Copy constructor of a templated record with elaborated type specifier](https://github.com/stnuessl/rf#copy-constructor-of-a-templated-record-with-elaborated-type-specifier)
+            * [Non self-contained macros](https://github.com/stnuessl/rf#non-self-contained-macros)
     * [Installation](https://github.com/stnuessl/rf#installation)
         * [Dependencies](https://github.com/stnuessl/rf#dependencies)
             * [Arch Linux](https://github.com/stnuessl/rf#arch-linux)
@@ -20,14 +23,15 @@ rf is a command-line tool capable of refactoring C and C++ source code.
         * [Attention](https://github.com/stnuessl/rf#attention)
         * [Refactoring rf's own source code](https://github.com/stnuessl/rf#refactoring-rfs-own-source-code)
             * [Refactoring Tags](https://github.com/stnuessl/rf#refactoring-tags)
-            * [Refactoring Functions](https://github.com/stnuessl/rf#refactoring-functions)                                                                                                                                                  
-            * [Refactoring Variables](https://github.com/stnuessl/rf#refactoring-variables)                                                                                                                                                  
-        * [Refactoring examples](https://github.com/stnuessl/rf#refactoring-examples)                                                                                                                                                        
-            * [Inherited functions](https://github.com/stnuessl/rf#inherited-functions)                                                                                                                                                      
-            * [Overridden functions](https://github.com/stnuessl/rf#overridden-functions)                                                                                                                                                    
-            * [Overlapping qualifiers](https://github.com/stnuessl/rf#overlapping-qualifiers)                                                                                                                                                
-        * [Setting up rf for a project](https://github.com/stnuessl/rf#setting-up-rf-for-a-project)                                                                                                                                          
+            * [Refactoring Functions](https://github.com/stnuessl/rf#refactoring-functions)
+            * [Refactoring Variables](https://github.com/stnuessl/rf#refactoring-variables)
+        * [Refactoring examples](https://github.com/stnuessl/rf#refactoring-examples)
+            * [Inherited functions](https://github.com/stnuessl/rf#inherited-functions)
+            * [Overridden functions](https://github.com/stnuessl/rf#overridden-functions)
+            * [Overlapping qualifiers](https://github.com/stnuessl/rf#overlapping-qualifiers)
+        * [Setting up rf for a project](https://github.com/stnuessl/rf#setting-up-rf-for-a-project)
         * [Creating a Compilation Database using CMake](https://github.com/stnuessl/rf#creating-a-compilation-database-using-cmake)                                                                                                          
+        * [Creating a Compilation Database using Make](https://github.com/stnuessl/rf#creating-a-compilation-database-using-make)                                                                                                            
     * [Code Breakage](https://github.com/stnuessl/rf#code-breakage)                                                                                                                                                                          
     * [Bugs and Bug Reports](https://github.com/stnuessl/rf#bugs-and-bug-reports)
 
@@ -80,6 +84,11 @@ anonymous namespaces.
 
 ### What is not supported?
 
+This section describes some of the known scenarios where __rf__ will fail
+to correctly refactor the source code. 
+
+#### Overshadowing declarations on the same line
+
 Constructs where a scoped variable overshadows another variable and both
 corresponding declarations happen on the __same__ line, e.g:
 
@@ -97,6 +106,7 @@ number of the declaration you want to be refactored:
 The problm above could easily be fixed with an optional column specification. 
 This may be added in the future.
 
+#### Copy constructor of a templated record with elaborated type specifier
 
 __$ rf --tag a=b__ will produce an incorrect program for something like
 the following copy constructor:
@@ -110,13 +120,47 @@ the following copy constructor:
 ```
 
 For some reason I cannot retrieve the correct source location at (2) but
-only the one at (1). However, the more common case should work:
+only the one at (1). However, the more common cases should work:
 
 ```cpp
     template <typename T> class a {
     public:
         a(const a &other);
     };
+```
+```cpp
+    template <typename T> class a {
+    public:
+        a(const a<T> &other);
+    };
+```
+#### Non self-contained macros
+
+Given the command __rf --variable main::a=var__,
+I really think it is quite unfeasible to support something like the following:
+
+```cpp
+#define PREINC ++a
+int main() {
+    int a = 0;
+    PREINC;
+    PREINC;
+}
+```
+The preprocessor cannot possible know if _++a_ inside _PREINC_ has to be 
+refactored. Later on, while traversing the AST it is quite hard to know for sure
+that _++a_ is exactly meant for the variable _a_ in _main_. Consider the 
+possibility of another function existing with a variable _a_ and the macro 
+_PREINC_ being used. How would one detect such a scenario?
+However, the more sane case is supported:
+
+```cpp
+#define PREINC(_a) ++_a
+int main() {
+    int a = 0;
+    PREINC(a);
+    PREINC(a);
+}
 ```
 
 ## Installation
@@ -403,10 +447,22 @@ __rf__ should be usable now for refactoring the
 ```
 
 ### Creating a Compilation Database using CMake
+
+To create a _compile_commands.json_ with CMake simply run:
     
 ```
     $ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ../
 ```
+Unfortunately this compilation database does not work out of the box with 
+__rf__ on my system. Have a look at this 
+[section](https://github.com/stnuessl/rf#setting-up-rf-for-a-project) 
+to resolve the issue.
+
+
+### Creating a Compilation Database using Make
+
+You might want to look at this project 
+[bear - Build EAR](https://github.com/rizsotto/Bear)
 
 ## Code Breakage
 

@@ -25,16 +25,12 @@ void MacroRefactorer::MacroExpands(const clang::Token &MacroName,
                                    clang::SourceRange Range, 
                                    const clang::MacroArgs *Args)
 {
+    (void) Args;
+    
     if (!isVictim(MacroName, MD))
         return;
-    
-    auto &SM = _CompilerInstance->getSourceManager();
-    
-    auto Loc = Range.getBegin();
-    if (Loc.isMacroID())
-        Loc = SM.getSpellingLoc(Loc);
-    
-    addReplacement(Loc);
+
+    addReplacement(Range.getBegin());
 }
 
 void MacroRefactorer::MacroDefined(const clang::Token &MacroName, 

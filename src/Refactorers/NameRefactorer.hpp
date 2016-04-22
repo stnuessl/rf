@@ -53,7 +53,7 @@ protected:
     bool isVictim(const clang::Token &MacroName, 
                   const clang::MacroInfo *MacroInfo);
     
-    void addReplacement(const clang::SourceLocation Loc);
+    void addReplacement(clang::SourceLocation Loc);
 private:
     bool isVictimLine(const clang::SourceLocation Loc);
     

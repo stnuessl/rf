@@ -175,42 +175,12 @@ void Refactorer::visitMemberExpr(const clang::MemberExpr *Expr)
     (void) Expr;
 }
 
-void Refactorer::visitElaboratedTypeLoc(const clang::ElaboratedTypeLoc &TypeLoc)
-{
-    (void) TypeLoc;
-}
-
-void Refactorer::visitPointerTypeLoc(const clang::PointerTypeLoc &TypeLoc)
-{
-    (void) TypeLoc;
-}
-
-void Refactorer::visitReferenceTypeLoc(const clang::ReferenceTypeLoc &TypeLoc)
-{
-    (void) TypeLoc;
-}
-
-void Refactorer::visitTagTypeLoc(const clang::TagTypeLoc &TypeLoc)
-{
-    (void) TypeLoc;
-}
-
-void Refactorer::visitTemplateSpecializationTypeLoc(const clang::TemplateSpecializationTypeLoc &TypeLoc)
-{
-    (void) TypeLoc;
-}
-
-void Refactorer::visitTypedefTypeLoc(const clang::TypedefTypeLoc &TypeLoc)
-{
-    (void) TypeLoc;
-}
-
 void Refactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
 {
     (void) TypeLoc;
 }
 
-void Refactorer::addReplacement(const clang::SourceLocation Loc, 
+void Refactorer::addReplacement(clang::SourceLocation Loc, 
                                 unsigned int Length, 
                                 llvm::StringRef ReplText)
 {
@@ -220,11 +190,20 @@ void Refactorer::addReplacement(const clang::SourceLocation Loc,
 }
 
 void Refactorer::addReplacement(const clang::SourceManager &SM, 
-                                const clang::SourceLocation Loc, 
+                                clang::SourceLocation Loc, 
                                 unsigned int Length, 
                                 llvm::StringRef ReplText)
 {
-    if (Loc.isMacroID() || SM.isInSystemHeader(Loc))
+    /* 
+     * If we land here we basically found a source location which needs
+     * refactoring. So this checks if the source location is a result
+     * of an macro expansion. If it is we locate the source location from
+     * before the macro expansion as written in the source code.
+     */
+    if (Loc.isMacroID())
+        Loc = SM.getSpellingLoc(Loc);
+    
+    if (SM.isInSystemHeader(Loc))
         return;
     
     auto Repl = clang::tooling::Replacement(SM, Loc, Length, ReplText);

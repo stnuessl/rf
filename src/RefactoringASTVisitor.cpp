@@ -173,58 +173,6 @@ bool RefactoringASTVisitor::VisitMemberExpr(clang::MemberExpr *Expr)
     return true;
 }
 
-bool 
-RefactoringASTVisitor::VisitElaboratedTypeLoc(clang::ElaboratedTypeLoc &TypeLoc)
-{
-    for (auto &Refactorer : *_Refactorers)
-        Refactorer->visitElaboratedTypeLoc(TypeLoc);
-    
-    return true;
-}
-
-bool RefactoringASTVisitor::VisitPointerTypeLoc(clang::PointerTypeLoc &TypeLoc)
-{
-    for (auto &Refactorer : *_Refactorers)
-        Refactorer->visitPointerTypeLoc(TypeLoc);
-    
-    return true;
-}
-
-bool 
-RefactoringASTVisitor::VisitReferenceTypeLoc(clang::ReferenceTypeLoc &TypeLoc)
-{
-    for (auto &Refactorer : *_Refactorers)
-        Refactorer->visitReferenceTypeLoc(TypeLoc);
-    
-    return true;
-}
-
-bool RefactoringASTVisitor::VisitTagTypeLoc(clang::TagTypeLoc &TypeLoc)
-{
-    for (auto &Refactorer : *_Refactorers)
-        Refactorer->visitTagTypeLoc(TypeLoc);
-    
-    return true;
-}
-
-bool RefactoringASTVisitor::VisitTemplateSpecializationTypeLoc(
-    clang::TemplateSpecializationTypeLoc &TypeLoc)
-{
-    for (auto &Refactorer : *_Refactorers)
-        Refactorer->visitTemplateSpecializationTypeLoc(TypeLoc);
-    
-    return true;
-}
-
-bool RefactoringASTVisitor::VisitTypedefTypeLoc(clang::TypedefTypeLoc &TypeLoc)
-{
-    for (auto &Refactorer : *_Refactorers)
-        Refactorer->visitTypedefTypeLoc(TypeLoc);
-    
-    return true;
-}
-
-
 bool RefactoringASTVisitor::VisitTypeLoc(clang::TypeLoc &TypeLoc)
 {
     for (auto &Refactorer : *_Refactorers)
