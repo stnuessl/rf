@@ -45,12 +45,9 @@ _rf()
         -*)
             COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
             ;;
-        *)
-            compopt -o default
-            ;;
     esac
     
     return 0
 }
 
-complete -F _rf rf
+complete -o default -F _rf rf
