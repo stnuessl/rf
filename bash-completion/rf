@@ -28,6 +28,7 @@ _rf()
     opts="--allow-root 
           --comp-db 
           --dry-run
+          --duplication-count
           --force 
           --function 
           --help 
@@ -37,13 +38,19 @@ _rf()
           --syntax-only
           --tag 
           --variable
-          --verbose 
+          --verbose
           --version"
 
-    if [[ ${cur} == * ]]; then
-        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-        return 0
-    fi
+    case "${cur}" in 
+        -*)
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            ;;
+        *)
+            compopt -o default
+            ;;
+    esac
+    
+    return 0
 }
 
 complete -F _rf rf
