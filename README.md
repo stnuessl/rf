@@ -21,18 +21,17 @@ rf is a command-line tool capable of refactoring C and C++ source code.
         * [Compiling](https://github.com/stnuessl/rf#compiling)
     * [Usage](https://github.com/stnuessl/rf#usage)
         * [Attention](https://github.com/stnuessl/rf#attention)
+        * [Setting up rf for a project](https://github.com/stnuessl/rf#setting-up-rf-for-a-project)
         * [Refactoring rf's own source code](https://github.com/stnuessl/rf#refactoring-rfs-own-source-code)
             * [Refactoring Tags](https://github.com/stnuessl/rf#refactoring-tags)
             * [Refactoring Functions](https://github.com/stnuessl/rf#refactoring-functions)
             * [Refactoring Variables](https://github.com/stnuessl/rf#refactoring-variables)
-        * [Refactoring examples](https://github.com/stnuessl/rf#refactoring-examples)
+        * [Further Refactoring examples](https://github.com/stnuessl/rf#further-refactoring-examples)
             * [Inherited functions](https://github.com/stnuessl/rf#inherited-functions)
             * [Overridden functions](https://github.com/stnuessl/rf#overridden-functions)
             * [Overlapping qualifiers](https://github.com/stnuessl/rf#overlapping-qualifiers)
-        * [Setting up rf for a project](https://github.com/stnuessl/rf#setting-up-rf-for-a-project)
-        * [Creating a Compilation Database using CMake](https://github.com/stnuessl/rf#creating-a-compilation-database-using-cmake)                                                                                                          
-        * [Creating a Compilation Database using Make](https://github.com/stnuessl/rf#creating-a-compilation-database-using-make)                                                                                                            
-    * [Code Breakage](https://github.com/stnuessl/rf#code-breakage)                                                                                                                                                                          
+        * [Creating a Compilation Database using CMake](https://github.com/stnuessl/rf#creating-a-compilation-database-using-cmake)
+        * [Creating a Compilation Database using Make](https://github.com/stnuessl/rf#creating-a-compilation-database-using-make)
     * [Bugs and Bug Reports](https://github.com/stnuessl/rf#bugs-and-bug-reports)
 
 ## Motivation
@@ -44,7 +43,7 @@ reliable refactoring tool which just works. By avoiding any graphical user
 interface this program may help other developers experiencing similiar issues
 with their IDE or editor. This also enables the user the specify more than
 one entity to be refactored at the same time which can't be usually be done
-with refactoring tools provided by IDEs. 
+with refactoring tools provided by IDEs.
 
 ## Advantages
 
@@ -66,8 +65,9 @@ I don't expect it the produce a correct program after refactoring.
 
 * Renaming tags, e.g. structs, classes, enums and enum constants
 * Renaming functions including class methods
-* Renaming (class) variables 
+* Renaming variables and class variables
 * Renaming namespaces
+* Renaming typedefs
 * Renaming macros
 * Removing unused include directives
 
@@ -76,11 +76,8 @@ anonymous namespaces.
 
 ### What might be supported in the future?
 
-* Refactoring enum constants
-* Refactoring typedefs
 * Supporting anonymous namespaces
 * Adding a column specifier for victim qualifiers
-* Refactoring typedef's
 
 ### What is not supported?
 
@@ -191,17 +188,97 @@ This section describes the installation process for rf.
 
 ## Usage
 
+You can always have a look at the help message. Use:
 ```
     $ rf --help
 ```
+If you forgot the name of the flag you can also just type __rf --[tab][tab]__
+and the bash completion will suggest all available options.
 
 ### Attention
 
 Before invoking __rf__ make absolutley sure that the new name does not conflict
 with an already existing one. The refactoring will succeed but the resulting
-program won't compile (in the best case, see 
-[Code Breakage](https://github.com/stnuessl/rf#code-breakage)).
-There are no safety guards implemented to avoid such __rf__ invocations.
+program won't compile or its behaviour may have been altered. 
+E.g. consider the following program:
+
+```cpp
+    class a {};
+    a b() { return a(); }
+    int main() { b(); }
+```
+Running __$ rf --tag a=b__ with the following command will produce:
+
+```cpp
+    class b {};
+    b b() { return b(); }
+    int main() { b(); }
+```
+
+The function _b()_ is now a recursive function without a stopping condition
+and the program will crash at runtime.
+There are no safety guards implemented to avoid __rf__ invocations which
+could produce such behaviour. 
+
+Also, having your code under version control is recommended before invoking 
+__rf__.
+
+### Setting up rf for a project
+
+This section shows how to set up __rf__ for use from within a project. 
+[llvm](https://github.com/llvm-mirror/llvm) will be used as a real world 
+example.
+
+```
+    $ git clone https://github.com/llvm-mirror/llvm
+    $ mkdir llvm/build
+    $ cd llvm/build
+    $ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ../
+    $ cp compile_commands.json ../
+```
+
+[llvm](https://github.com/llvm-mirror/llvm)
+needs to generate some files which are then included from source 
+files. This can probably be done more efficient but this will do the job.
+
+```
+    $ make -j4
+```
+
+Note that for some reason the Opts.inc is still missing in an include.
+Good thing it was created, meaning a quick fix for this problem is to run
+```
+    $ cp ./unittests/Option/Opts.inc ../unittests/Option/
+```
+
+The __compile_commands.json__ needs (at least on my machine) to be adjusted.
+The clang frontend has its own 
+[builtin includes](http://clang.llvm.org/docs/FAQ.html#i-get-errors-about-some-headers-being-missing-stddef-h-stdarg-h) 
+which are not located in _/usr/include/_ but instead in 
+_/usr/lib/clang/$(llvm-config --version)/include_. To help with this task 
+there is a script _fixdb.py_ located in _rf/utils_. 
+The following command will fix the __compile_commands.json__ file.
+
+```
+    python fixdb.py -p -f /path/to/compile_commands.json -- -I/usr/lib/clang/$(llvm-config --version)/include
+```
+
+The next command will remove some warnings 
+(unknown warning flag and language extension) generated by the frontend. This is
+just a cosmetic change but helps to minimize visual clutter when running __rf__.
+```
+    python fixdb.py -r -p -f /path/to/compile_commands.json -- -pedantic -Wno-maybe-initialized
+```
+
+__rf__ should be usable now for refactoring the 
+[llvm](https://github.com/llvm-mirror/llvm) project.
+
+```
+    $ rf --tag llvm::IntrusiveRefCntPtr=intrusive_ref_cnt_ptr
+```
+
+Note that this project is fairly large and a refactoring run with __rf__
+may take a very long time (about __30__ min).
 
 ### Refactoring rf's own source code
 
@@ -305,7 +382,7 @@ _src/Refactorers/NameRefactorer.cpp_ for refactoring.
 ```
 
 
-### Refactoring examples
+### Further Refactoring examples
 
 This subsection shows various examples on how to refactor certain code parts
 to achieve the desired results. 
@@ -392,60 +469,6 @@ The resulting program is shown immediatley after the invoked __rf__ command.
 3 |     int main() { f(0); f(0.0); }
 ```
 
-
-### Setting up rf for a project
-
-This section shows how to set up __rf__ for use from within a project. 
-[llvm](https://github.com/llvm-mirror/llvm) will be used as a real world 
-example.
-
-```
-    $ git clone https://github.com/llvm-mirror/llvm
-    $ mkdir llvm/build
-    $ cd llvm/build
-    $ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ../
-    $ cp compile_commands.json ../
-```
-
-llvm needs to generate some files which are then included from source 
-files. This can probably be done more efficient but this will do the job.
-
-```
-    $ make -j4
-```
-
-Note that for some reason the Opts.inc is still missing in an include.
-Good thing it was created, meaning a quick fix for this problem is to run
-```
-    $ cp ./unittests/Option/Opts.inc ../unittests/Option/
-```
-
-The __compile_commands.json__ needs (at least on my machine) to be adjusted.
-The clang frontend has its own 
-[builtin includes](http://clang.llvm.org/docs/FAQ.html#i-get-errors-about-some-headers-being-missing-stddef-h-stdarg-h) 
-which are not located in _/usr/include/_ but instead in 
-_/usr/lib/clang/$(llvm-config --version)/include_. To help with this task 
-there is a script located in _rf/utils_. The following command will fix the 
-__compile_commands.json__ file.
-
-```
-    python fixdb.py --pretty -f /path/to/llvm/compile_commands.json -- -I/usr/lib/clang/$(llvm-config --version)/include
-```
-
-The next command will remove some warnings 
-(unknown warning flag and language extension) generated by the frontend. This is
-just a cosmetic change but helps to minimize visual clutter when running __rf__.
-```
-    python fixdb.py --pretty -f /path/to/llvm/compile_commands.json --remove -- -pedantic -Wno-maybe-initialized
-```
-
-__rf__ should be usable now for refactoring the 
-[llvm](https://github.com/llvm-mirror/llvm) project.
-
-```
-    $ rf --tag llvm::IntrusiveRefCntPtr=intrusive_ref_cnt_ptr
-```
-
 ### Creating a Compilation Database using CMake
 
 To create a _compile_commands.json_ with CMake simply run:
@@ -462,55 +485,8 @@ to resolve the issue.
 ### Creating a Compilation Database using Make
 
 You might want to look at this project 
-[bear - Build EAR](https://github.com/rizsotto/Bear)
+[bear - Build EAR](https://github.com/rizsotto/Bear).
 
-## Code Breakage
-
-This section covers examples of source code which should __not__ be 
-refactored with certain __rf__ invocations. Most if not all of those examples
-should be very rare in real world programs.
-
-
-The following example illustrates a program which will crash after a refactoring
-run with __rf__.
-Consider the following valid program:
-```cpp
-    class a {};
-    a b() { return a(); }
-    int main() { b(); }
-```
-Running __$ rf --tag a=b__ with the following command will produce a 
-program which will crash on __runtime__:
-```cpp
-    class b {};
-    b b() { return b(); }
-    int main() { b(); }
-```
-The code refactoring produced a recursive function b that lacks a stopping 
-condition and will therefore overflow the runtime stack.
-
-The following two pieces of code illustrate a similiar case which is even more 
-subtle since it won't crash the program. However, it still can alter its 
-behaviour in unintended ways.
-```cpp
-    class a {};
-    class a b() { class a a; return a; }
-    int main() { class a var = b(); }
-```
-
-Running __$ rf --tag a=b__ will produce:
-
-```cpp
-    class b {};
-    class b b() { class b a; return a; }
-    int main() { class b var = b(); }
-```
-
-This is a valid program which will compile and unlike the example above it won't
-crash but the behaviour may be very well different than before.
-The function "b()" now overshadows the constructor call from "class b".
-So before refactoring the main function calls the constructor of class b.
-After refactoring the main function will call the function "b()".
 
 ## Bugs and Bug Reports
 
@@ -526,9 +502,9 @@ which the provided command fails to refactor.
 * A trivial and working _compile_commands.json_, like:
 ```
 [{
-        "file": "main.cpp",
-        "directory": "/path/to/directory/",
-        "command": "g++ -std=c++11 -o test -I/usr/lib/clang/3.7.1/include /path/to/directory/main.cpp"
+    "file": "main.cpp",
+    "directory": "/path/to/dir/",
+    "command": "g++ -std=c++11 -o test -I/usr/lib/clang/3.7.1/include /path/to/dir/main.cpp"
 }]
 ```
 
