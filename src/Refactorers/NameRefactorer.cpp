@@ -204,7 +204,7 @@ bool NameRefactorer::isVictimLine(const clang::SourceLocation Loc)
     auto Line = SM.getSpellingLineNumber(Loc, &Invalid);
     if (Invalid) {
         llvm::errs() << "** ERROR: failed to retrieve line number for "
-        << "declaration \"" << _Victim << "\"\n";
+                     << "declaration \"" << _Victim << "\"\n";
         std::exit(EXIT_FAILURE);
     }
     

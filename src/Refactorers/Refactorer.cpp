@@ -203,7 +203,7 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
     if (Loc.isMacroID())
         Loc = SM.getSpellingLoc(Loc);
     
-    if (SM.isInSystemHeader(Loc))
+    if (SM.isInSystemHeader(Loc) || SM.isInExternCSystemHeader(Loc))
         return;
     
     auto Repl = clang::tooling::Replacement(SM, Loc, Length, ReplText);

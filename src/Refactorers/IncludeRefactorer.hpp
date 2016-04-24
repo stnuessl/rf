@@ -53,6 +53,7 @@ public:
                               clang::SourceRange Range,
                               const clang::MacroArgs *Args) override;
 
+    virtual void visitCallExpr(const clang::CallExpr *Expr) override;
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr) override;
     virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc) override;
 private:
@@ -64,6 +65,8 @@ private:
     
     std::pair<unsigned int, bool> getFileUID(clang::SourceLocation Loc) const;
     
+    bool isInSystemLibraryHeader(clang::SourceLocation Loc);
+    void run(clang::SourceLocation IncludingLoc, const clang::Decl *Decl);
     void removeUsedIncludes(clang::SourceLocation IncludingLoc,
                             clang::SourceLocation IncludedLoc);
     void removeUsedIncludes(unsigned int IncludingUID,

@@ -21,7 +21,7 @@
 #ifndef _NAMEREFACTORER_HPP_
 #define _NAMEREFACTORER_HPP_
 
-#include <clang/Lex/MacroArgs.h>
+
 #include <clang/Lex/MacroInfo.h>
 
 #include <Refactorers/Refactorer.hpp>

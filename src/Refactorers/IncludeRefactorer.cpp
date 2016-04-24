@@ -40,14 +40,9 @@ void IncludeRefactorer::InclusionDirective(clang::SourceLocation LocBegin,
     (void) RelativePath;
     (void) Module;
     
-    auto &SM = _CompilerInstance->getSourceManager();
-    
-    if (!isHeaderFile(FileName))
+    if (!isHeaderFile(FileName) || isInSystemLibraryHeader(LocBegin))
         return;
-    
-    if (SM.isInSystemHeader(LocBegin))
-        return;
-    
+
     unsigned int IncludingUID;
     bool Ok;
     
@@ -143,14 +138,6 @@ void IncludeRefactorer::FileSkipped(const clang::FileEntry &SkippedFile,
                 _IncludeMap.erase(MapIt);
             }
 
-//             auto Range = *It;
-//             Vec.erase(It);
-//             
-//             if (Vec.empty())
-//                 _IncludeMap.erase(MapIt);
-//             else
-//                 addReplacement(Range);
-            
             break;
         }
     }
@@ -193,31 +180,24 @@ void IncludeRefactorer::afterSourceFileAction()
     _IncludeMap.clear();
 }
 
+void IncludeRefactorer::visitCallExpr(const clang::CallExpr *Expr)
+{
+    if (_IncludeMap.empty())
+        return;
+    
+    auto FunctionDecl = Expr->getDirectCallee();
+    if (!FunctionDecl)
+        return;
+
+    run(Expr->getLocStart(), FunctionDecl);
+}
+
 void IncludeRefactorer::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
 {
     if (_IncludeMap.empty())
         return;
     
-    auto &SM = _CompilerInstance->getSourceManager();
-    
-    auto IncludingLoc = Expr->getLocStart();
-    
-    if (SM.isInSystemHeader(IncludingLoc))
-        return;
-    
-    unsigned int IncludingUID;
-    bool Ok;
-    
-    std::tie(IncludingUID, Ok) = getFileUID(IncludingLoc);
-    if (!Ok)
-        return;
-    
-    auto IncludedLoc = Expr->getDecl()->getLocStart();
-    
-    if (SM.isWrittenInSameFile(IncludingLoc, IncludedLoc))
-        return;
-    
-    removeUsedIncludes(IncludingLoc, IncludedLoc);
+    run(Expr->getLocStart(), Expr->getDecl());
 }
 
 void IncludeRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
@@ -226,11 +206,9 @@ void IncludeRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
         return;
     
     auto Type = TypeLoc.getType();
-    auto &SM = _CompilerInstance->getSourceManager();
-    
     auto IncludingLoc = TypeLoc.getLocStart();
     
-    if (SM.isInSystemHeader(IncludingLoc))
+    if (isInSystemLibraryHeader(IncludingLoc))
         return;
     
     auto TemplateSpecType = Type->getAs<clang::TemplateSpecializationType>();    
@@ -242,13 +220,13 @@ void IncludeRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
         return;
     }
     
-    /* 
-     * I don't know why the TagRefactorer handles pointers correctly
-     * and here I have to make a seperate case for them
-     */
     auto PointerType = Type->getAs<clang::PointerType>();
     if (PointerType)
         Type = PointerType->getPointeeType();
+    
+    auto ReferenceType = Type->getAs<clang::ReferenceType>();
+    if (ReferenceType)
+        Type = ReferenceType->getPointeeType();
     
     auto TypedefType = Type->getAs<clang::TypedefType>();
     if (TypedefType) {
@@ -291,6 +269,33 @@ IncludeRefactorer::getFileUID(clang::SourceLocation Loc) const
     return Pair;
 }
 
+bool IncludeRefactorer::isInSystemLibraryHeader(clang::SourceLocation Loc)
+{
+    auto &SM = _CompilerInstance->getSourceManager();
+    
+    if (SM.isInSystemHeader(Loc) || SM.isInExternCSystemHeader(Loc))
+        return true;
+    
+    return SM.getFilename(Loc).startswith("/usr");
+}
+
+
+void IncludeRefactorer::run(clang::SourceLocation IncludingLoc, 
+                            const clang::Decl *Decl)
+{
+    if (isInSystemLibraryHeader(IncludingLoc))
+        return;
+    
+    auto &SM = _CompilerInstance->getSourceManager();
+    auto IncludedLoc = Decl->getLocStart();
+    
+    if (SM.isWrittenInSameFile(IncludingLoc, IncludedLoc))
+        return;
+    
+    removeUsedIncludes(IncludingLoc, IncludedLoc);
+}
+
+
 void IncludeRefactorer::removeUsedIncludes(clang::SourceLocation IncludingLoc,
                                            clang::SourceLocation IncludedLoc)
 {
@@ -326,7 +331,36 @@ void IncludeRefactorer::removeUsedIncludes(unsigned int IncludingUID,
     
     auto &SM = _CompilerInstance->getSourceManager();
     
+    /* 
+     * I don't know how to feel about this one but here it goes.
+     * 
+     * 'clang::SourceManager::getFileID()' will fail for a macro source 
+     * location.
+     * Given the C source:
+     *      #include <stdbool.h>
+     * 
+     *      bool f();
+     * 
+     * The start location of the function declaration will be the macro
+     * source location of 'bool' (because 'bool' is a macro in C) which would
+     * be inside the header "stdbool.h"!
+     * This if statement basically removes the <Spelling=...> from the
+     * source location so that 'clang::SourceManager::getFileID()' function 
+     * will not fail.
+     * 
+     * E.g. given the location
+     *      file_0.h:33:1 <Spelling=stdbool.h:31:14>
+     * this would make the location
+     *      file_0.h:33:1
+     */
+    if (IncludedLoc.isMacroID())
+        IncludedLoc = SM.getExpansionRange(IncludedLoc).first;
+    
     while (IncludedLoc.isValid() && !_IncludeMap.empty()) {
+//         IncludedLoc.dump(SM);
+//         llvm::errs() << "\n";
+//         
+//         
         unsigned int IncludedUID;
         bool Ok;
         
