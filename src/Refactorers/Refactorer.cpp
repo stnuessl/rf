@@ -29,7 +29,6 @@ Refactorer::Refactorer()
     : _CompilerInstance(nullptr),
       _ASTContext(nullptr),
       _ReplSet(nullptr),
-      _DupCount(0),
       _Verbose(false),
       _Force(false)
 {
@@ -73,11 +72,6 @@ void Refactorer::setForce(bool Value)
 bool Refactorer::force() const
 {
     return _Force;
-}
-
-unsigned int Refactorer::duplicationCount() const
-{
-    return _DupCount;
 }
 
 void Refactorer::beforeSourceFileAction(llvm::StringRef File)
@@ -213,6 +207,4 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
         Loc.dump(SM);
         llvm::errs() << " --> \"" << ReplText << "\"\n";
     }
-    
-    _DupCount += !Ok;
 }

@@ -52,8 +52,6 @@ public:
     void setForce(bool Value);
     bool force() const;
     
-    unsigned int duplicationCount() const;
-
     virtual void beforeSourceFileAction(llvm::StringRef File);
     virtual void afterSourceFileAction();
     
@@ -90,7 +88,6 @@ protected:
     clang::CompilerInstance *_CompilerInstance;
     clang::ASTContext *_ASTContext;
     clang::tooling::Replacements *_ReplSet;
-    unsigned int _DupCount;
     bool _Verbose;
     bool _Force;
 };

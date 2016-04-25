@@ -128,8 +128,8 @@ static llvm::cl::opt<bool> SanitizeIncludes(
     llvm::cl::init(false)
 );
 
-static llvm::cl::opt<std::string> CompDBPath(
-    "comp-db",
+static llvm::cl::opt<std::string> CompileCommandsPath(
+    "commands",
     llvm::cl::desc(
         "Specify the <path> to the compilation database\n"
         "(\"compile_commands.json\") for the project.\n"
@@ -165,17 +165,6 @@ static llvm::cl::opt<bool> Force(
         "Disable safety checks and apply replacements even if they may\n"
         "break the code. No replacements are done if \"--dry-run\"\n"
         "is passed along this option."
-    ),
-    llvm::cl::cat(FlagOptions),
-    llvm::cl::init(false)
-);
-
-static llvm::cl::opt<bool> DupCount (
-    "duplication-count",
-    llvm::cl::desc(
-        "Report the number of duplicated source locations for which\n"
-        "replacements where found. This may help identifying problems\n"
-        "with rf's refactoring algorithm."
     ),
     llvm::cl::cat(FlagOptions),
     llvm::cl::init(false)
@@ -249,7 +238,7 @@ int main(int argc, const char **argv)
 #endif
     
     auto ErrMsg = std::string();
-    auto CompilationDB = makeCompilationDatabase(CompDBPath, ErrMsg);
+    auto CompilationDB = makeCompilationDatabase(CompileCommandsPath, ErrMsg);
     if (!CompilationDB) {
         std::cerr << "** ERROR: " << ErrMsg << std::endl;
         std::exit(EXIT_FAILURE);
@@ -307,14 +296,6 @@ int main(int argc, const char **argv)
         std::cerr << "** Info: no code replacements to make - done\n";
         std::exit(EXIT_SUCCESS);
     } 
-    
-    /* TODO: This one is really bad if multiple refactorers are used */
-    if (DupCount) {
-        for (auto &Refactorer : RefactorerVec) {
-            auto Count = Refactorer->duplicationCount();
-            std::cerr << "Duplication count: " << Count << "\n";
-        }
-    }
     
     if (!DryRun) {
         IntrusiveRefCntPtr<DiagnosticOptions> Opts = new DiagnosticOptions();
