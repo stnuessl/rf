@@ -48,6 +48,7 @@
 
 static llvm::cl::OptionCategory RefactoringOptions("Code refactoring options");
 static llvm::cl::OptionCategory FlagOptions("Flags");
+
 static llvm::cl::extrahelp HelpText(
     "\n!! Commit your source code to a version control system before "
     "refactoring it !!\n\n"
@@ -104,7 +105,7 @@ static llvm::cl::list<std::string> MacroVec(
 );
 
 static llvm::cl::list<std::string> InputFiles(
-    llvm::cl::desc("[File01 [File02 [...]]]"),
+    llvm::cl::desc("[<file> ...]"),
     llvm::cl::Positional,
     llvm::cl::ZeroOrMore,
     llvm::cl::PositionalEatsArgs
@@ -227,7 +228,7 @@ int main(int argc, const char **argv)
 {
     using namespace clang;
     using namespace clang::tooling;
-    
+
     llvm::cl::ParseCommandLineOptions(argc, argv);
     
 #ifdef __unix__
