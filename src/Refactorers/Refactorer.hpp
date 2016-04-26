@@ -27,7 +27,6 @@
 #include <clang/Lex/PPCallbacks.h>
 #include <clang/Tooling/Refactoring.h>
 
-
 /* 
  * Inheriting from PPCallbacks saves a lot of ugly boilerplate code.
  * Those PPCallbacks function are not directly called from the clang
@@ -92,6 +91,6 @@ protected:
     bool _Force;
 };
 
-typedef std::vector<std::unique_ptr<Refactorer>> RefactorerVector;
+typedef std::vector<std::unique_ptr<Refactorer>> Refactorers;
 
 #endif /* _REFACTORER_HPP_ */

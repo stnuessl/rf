@@ -30,7 +30,7 @@
 class RefactoringASTVisitor 
     : public clang::RecursiveASTVisitor<RefactoringASTVisitor> {
 public:
-    void setRefactorers(RefactorerVector *Vec);
+    void setRefactorers(Refactorers *Refactorers);
     void setASTContext(clang::ASTContext &ASTContext);
     
     bool VisitCXXConstructorDecl(clang::CXXConstructorDecl *Decl);
@@ -55,7 +55,7 @@ public:
     bool VisitTypeLoc(clang::TypeLoc &TypeLoc);
     
 private:
-    RefactorerVector *_Refactorers;
+    Refactorers *_Refactorers;
 };
 
 #endif /* _REFACTORINGASTVISITOR_HPP_ */

@@ -30,7 +30,7 @@
 #include <PPCallbackDispatcher.hpp>
 
 
-void RefactoringAction::setRefactorers(RefactorerVector *Refactorers)
+void RefactoringAction::setRefactorers(Refactorers *Refactorers)
 {
     _Refactorers = Refactorers;
 }
@@ -71,7 +71,7 @@ RefactoringAction::CreateASTConsumer(clang::CompilerInstance &CI,
     return std::move(Consumer);
 }
 
-void RefactoringActionFactory::setRefactorers(RefactorerVector *Refactorers)
+void RefactoringActionFactory::setRefactorers(Refactorers *Refactorers)
 {
     _Refactorers = Refactorers;
 }

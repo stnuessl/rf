@@ -18,12 +18,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <utility>
-
 #include <clang/Tooling/Refactoring.h>
-#include <Refactorers/Refactorer.hpp>
 
+#include <Refactorers/Refactorer.hpp>
 
 Refactorer::Refactorer()
     : _CompilerInstance(nullptr),

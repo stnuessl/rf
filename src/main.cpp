@@ -36,12 +36,13 @@
 
 #include <llvm/Support/CommandLine.h>
 
-#include <Refactorers/TagRefactorer.hpp>
 #include <Refactorers/FunctionRefactorer.hpp>
 #include <Refactorers/IncludeRefactorer.hpp>
-#include <Refactorers/NamespaceRefactorer.hpp>
-#include <Refactorers/VariableRefactorer.hpp>
 #include <Refactorers/MacroRefactorer.hpp>
+#include <Refactorers/NamespaceRefactorer.hpp>
+#include <Refactorers/TagRefactorer.hpp>
+#include <Refactorers/VariableRefactorer.hpp>
+
 #include <util/memory.hpp>
 
 #include <RefactoringActionFactory.hpp>
@@ -198,29 +199,27 @@ makeCompilationDatabase(const std::string &Path, std::string &ErrMsg)
 }
 
 template<typename T> 
-static void addRefactorers(RefactorerVector &Refactorers,
-                           const std::vector<std::string> &ArgVec, 
-                           clang::tooling::Replacements *Repls)
+static void addNameRefactorers(Refactorers &Refactorers, 
+                               const std::vector<std::string> &ArgVec)
 {
     for (const auto &Str : ArgVec) {
         auto Pos = Str.find('=');
         if (Pos == std::string::npos) {
-            std::cerr << "** ERROR: invalid argument '" << Str << "' - have a "
-                      << "look at the help message" << std::endl;
+            std::cerr << "** ERROR: invalid argument \"" << Str << "\" - "
+                      << "argument syntax is \"Victim=Replacement\"\n";
             std::exit(EXIT_FAILURE);
         }
         
         auto VictimName = Str.substr(0, Pos);
         auto ReplName = Str.substr(Pos + sizeof(char));
-
-        auto Refactorer = std::make_unique<T>();
-        Refactorer->setReplacements(Repls);
-        Refactorer->setVictimQualifier(std::move(VictimName));
-        Refactorer->setReplacementQualifier(std::move(ReplName));
-        Refactorer->setVerbose(Verbose);
-        Refactorer->setForce(Force);
         
-        Refactorers.push_back(std::move(Refactorer));
+        if (VictimName != ReplName) {
+            auto Refactorer = std::make_unique<T>();
+            Refactorer->setVictimQualifier(std::move(VictimName));
+            Refactorer->setReplacementQualifier(std::move(ReplName));
+        
+            Refactorers.push_back(std::move(Refactorer));
+        }
     }
 }
 
@@ -256,33 +255,35 @@ int main(int argc, const char **argv)
         
         std::exit((err == 0) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
-        
-    auto Tool = RefactoringTool(*CompilationDB, SourceFiles);
-    auto Repls = &Tool.getReplacements();
+
+    auto Refactorers = ::Refactorers();
     
-    auto RefactorerVec = RefactorerVector();
-    
-    addRefactorers<TagRefactorer>(RefactorerVec, TagVec, Repls);
-    addRefactorers<FunctionRefactorer>(RefactorerVec, FunctionVec, Repls);
-    addRefactorers<NamespaceRefactorer>(RefactorerVec, NamespaceVec, Repls);
-    addRefactorers<VariableRefactorer>(RefactorerVec, VarVec, Repls);
-    addRefactorers<MacroRefactorer>(RefactorerVec, MacroVec, Repls);
+    addNameRefactorers<FunctionRefactorer>(Refactorers, FunctionVec);
+    addNameRefactorers<MacroRefactorer>(Refactorers, MacroVec);
+    addNameRefactorers<NamespaceRefactorer>(Refactorers, NamespaceVec);
+    addNameRefactorers<TagRefactorer>(Refactorers, TagVec);
+    addNameRefactorers<VariableRefactorer>(Refactorers, VarVec);
     
     if (SanitizeIncludes) {
         auto Refactorer = std::make_unique<IncludeRefactorer>();
+        Refactorers.push_back(std::move(Refactorer));
+    }
+    
+    auto Tool = RefactoringTool(*CompilationDB, SourceFiles);
+    auto Repls = &Tool.getReplacements();
+    
+    for (const auto &Refactorer : Refactorers) {
         Refactorer->setReplacements(Repls);
         Refactorer->setVerbose(Verbose);
         Refactorer->setForce(Force);
-        
-        RefactorerVec.push_back(std::move(Refactorer));
     }
 
-    if (!RefactorerVec.empty()) {
+    if (!Refactorers.empty()) {
         auto Factory = std::make_unique<RefactoringActionFactory>();
-        Factory->setRefactorers(&RefactorerVec);
+        Factory->setRefactorers(&Refactorers);
         
         int err = Tool.run(Factory.get());
-        if (err != 0) {
+        if (err) {
             std::cerr << "** ERROR: error(s) generated while refactoring\n";
             
             if (!Force) {
@@ -293,12 +294,12 @@ int main(int argc, const char **argv)
         }
     }
     
-    if (Tool.getReplacements().empty()) {
-        std::cerr << "** Info: no code replacements to make - done\n";
-        std::exit(EXIT_SUCCESS);
-    } 
-    
     if (!DryRun) {
+        if (Tool.getReplacements().empty()) {
+            std::cerr << "** Info: no code replacements to make - done\n";
+            exit(EXIT_SUCCESS);
+        } 
+        
         IntrusiveRefCntPtr<DiagnosticOptions> Opts = new DiagnosticOptions();
         IntrusiveRefCntPtr<DiagnosticIDs> Id = new DiagnosticIDs();
         

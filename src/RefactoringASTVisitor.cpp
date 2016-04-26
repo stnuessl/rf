@@ -21,9 +21,9 @@
 #include <RefactoringASTVisitor.hpp>
 
 
-void RefactoringASTVisitor::setRefactorers(RefactorerVector *Vec)
+void RefactoringASTVisitor::setRefactorers(Refactorers *Refactorers)
 {
-    _Refactorers = Vec;
+    _Refactorers = Refactorers;
 }
 
 void RefactoringASTVisitor::setASTContext(clang::ASTContext &ASTContext)

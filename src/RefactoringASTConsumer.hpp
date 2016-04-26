@@ -28,7 +28,7 @@
 
 class RefactoringASTConsumer : public clang::ASTConsumer {
 public:
-    void setRefactorers(RefactorerVector *Vec);
+    void setRefactorers(Refactorers *Refactorers);
     
     virtual void HandleTranslationUnit(clang::ASTContext &ASTContext) override;
 private:
