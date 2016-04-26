@@ -41,9 +41,9 @@ my code resulting in me going manually through the sources and fixing stuff
 which should not be broken. That is the reason why I want to try to build a
 reliable refactoring tool which just works. By avoiding any graphical user 
 interface this program may help other developers experiencing similiar issues
-with their IDE or editor. This also enables the user the specify more than
-one entity to be refactored at the same time which can't be usually be done
-with refactoring tools provided by IDEs.
+with their IDE or editor. Also, this enables the user the specify 
+multiple entities for refactoring while running only a single tool invocation.
+This usually can't be done with refactoring tools provided by most IDEs.
 
 ## Advantages
 
@@ -166,12 +166,21 @@ This section describes the installation process for rf.
 
 ### Dependencies
 
-* g++/clang++ supporting at least C++11
-* make
-* git
+__rf__ has only two real dependencies:
+
 * [llvm](http://llvm.org/) and [clang](http://clang.llvm.org/) 3.7.1
 
+However, since you have to install and compile the program from source you will 
+need some other tools too.
+
+* g++ / clang++ supporting at least C++11
+* make
+* git
+
 #### Arch Linux
+
+The above listed dependencies can be installed with the following _pacman_
+invocation:
 
 ```
     # pacman -Syu llvm clang gcc make git
@@ -179,11 +188,25 @@ This section describes the installation process for rf.
 
 ### Compiling
 
+First you need to download the source code from this repository and 
+change to the project directory. Run:
 ```
     $ git clone https://github.com/stnuessl/rf
     $ cd rf/
+```
+After that you need to compile the source code. This can be done with:
+```
     $ make
-    $ su -c 'make install'
+```
+If you want to compile the program using _clang++_ change the command to
+```
+    $ make CXX=clang++
+```
+
+The last command installs the __bash-completion__ and the __rf__ binary on your
+system:
+```
+    $ make install
 ```
 
 ## Usage
