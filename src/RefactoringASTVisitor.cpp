@@ -21,7 +21,7 @@
 #include <RefactoringASTVisitor.hpp>
 
 
-void RefactoringASTVisitor::setRefactorers(RefactorerVector *Vec)
+void RefactoringASTVisitor::setRefactorers(Refactorers *Vec)
 {
     _Refactorers = Vec;
 }
