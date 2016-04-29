@@ -39,9 +39,13 @@ public:
     NameRefactorer();
     
     void setVictimQualifier(const std::string &Victim);
-    void setVictimQualifier(const std::string &Victim, unsigned int Line);
+    void setVictimQualifier(const std::string &Victim, 
+                            unsigned int Line,
+                            unsigned int Column = 0);
     void setVictimQualifier(std::string &&Victim);
-    void setVictimQualifier(std::string &&Victim, unsigned int Line);
+    void setVictimQualifier(std::string &&Victim, 
+                            unsigned int Line,
+                            unsigned int Column = 0);
     const std::string &victimQualifier() const;
     
     void setReplacementQualifier(const std::string &Repl);
@@ -55,17 +59,18 @@ protected:
     
     void addReplacement(clang::SourceLocation Loc);
 private:
-    bool isVictimLine(const clang::SourceLocation Loc);
-    
+    bool isVictimLocation(const clang::SourceLocation Loc);
+
     const std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
     
     std::string _Victim;
     std::string _ReplName;
     std::string _Buffer;
-    clang::SourceLocation _LineLoc;
+    clang::SourceLocation _VictimLoc;
     
     std::size_t _ReplSize;
     unsigned int _Line;
+    unsigned int _Column;
 };
 
 #endif /* _NAMEREFACTORER_HPP_ */

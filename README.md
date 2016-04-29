@@ -12,7 +12,6 @@ rf is a command-line tool capable of refactoring C and C++ source code.
         * [What's supported right now?](https://github.com/stnuessl/rf#whats-supported-right-now)
         * [What might be supported in the future?](https://github.com/stnuessl/rf#what-might-be-supported-in-the-future)
         * [What is not supported?](https://github.com/stnuessl/rf#what-is-not-supported)
-            * [Overshadowing declarations on the same line](https://github.com/stnuessl/rf#overshadowing-declarations-on-the-same-line)
             * [Copy constructor of a templated record with elaborated type specifier](https://github.com/stnuessl/rf#copy-constructor-of-a-templated-record-with-elaborated-type-specifier)
             * [Non self-contained macros](https://github.com/stnuessl/rf#non-self-contained-macros)
     * [Installation](https://github.com/stnuessl/rf#installation)
@@ -30,9 +29,11 @@ rf is a command-line tool capable of refactoring C and C++ source code.
             * [Inherited functions](https://github.com/stnuessl/rf#inherited-functions)
             * [Overridden functions](https://github.com/stnuessl/rf#overridden-functions)
             * [Overlapping qualifiers](https://github.com/stnuessl/rf#overlapping-qualifiers)
+            * [Overshadowing declarations](https://github.com/stnuessl/rf#overshadowing-declarations)
         * [Creating a Compilation Database using CMake](https://github.com/stnuessl/rf#creating-a-compilation-database-using-cmake)
         * [Creating a Compilation Database using Make](https://github.com/stnuessl/rf#creating-a-compilation-database-using-make)
     * [Bugs and Bug Reports](https://github.com/stnuessl/rf#bugs-and-bug-reports)
+
 
 ## Motivation
 
@@ -77,31 +78,11 @@ anonymous namespaces.
 ### What might be supported in the future?
 
 * Supporting anonymous namespaces
-* Adding a column specifier for victim qualifiers
 
 ### What is not supported?
 
 This section describes some of the known scenarios where __rf__ will fail
 to correctly refactor the source code. 
-
-#### Overshadowing declarations on the same line
-
-Constructs where a scoped variable overshadows another variable and both
-corresponding declarations happen on the __same__ line, e.g:
-
-```cpp
-{ int a = 0; if (...) { int a = 1; function(a); } }
-```
-
-If the declarations take place on different lines you can specifiy the line
-number of the declaration you want to be refactored:
-
-```
-    $ rf --variable MyFunction::MyVar::42=MyNewVar
-```
-
-The problm above could easily be fixed with an optional column specification. 
-This may be added in the future.
 
 #### Copy constructor of a templated record with elaborated type specifier
 
@@ -490,6 +471,38 @@ The resulting program is shown immediatley after the invoked __rf__ command.
 1 |     void f(int value) { }
 2 |     void f(double val) { }
 3 |     int main() { f(0); f(0.0); }
+```
+
+#### Overshadowing declarations
+
+The previous example showed how one can deal with the same qualified names
+on different lines of code. This example demonstrates how to deal with
+this if the qualified names where on the same line of code.
+
+
+Given the following line of code.
+
+```cpp
+243 |    int i = 0; if (<expr>) { int i = 42; f(i); }
+             ^    ^    ^    ^    ^    ^    ^    ^
+     ...     5    10   15   20   25   30   35   40          <--- Column Numbers
+```
+there are three possbile ways to refactor this (surrounding qualifiers are 
+omitted):
+
+* __$ tq --variable i=ii__
+```cpp
+243 |    int ii = 0; if (<expr>) { int ii = 42; f(ii); }
+```
+
+* __ $ tq --variable i::243:5=ii__
+```cpp
+243 |    int ii = 0; if (<expr>) { int i = 42; f(i); }
+```
+
+* __ $ tq --variable i::243:30=ii__
+```cpp
+243 |    int i = 0; if (<expr>) { int ii = 42; f(ii); }
 ```
 
 ### Creating a Compilation Database using CMake

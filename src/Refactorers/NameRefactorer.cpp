@@ -58,7 +58,7 @@ NameRefactorer::NameRefactorer()
       _Victim(),
       _ReplName(),
       _Buffer(),
-      _LineLoc(),
+      _VictimLoc(),
       _ReplSize(0),
       _Line(0)
       
@@ -74,49 +74,67 @@ void NameRefactorer::setVictimQualifier(const std::string &Victim)
 }
 
 void NameRefactorer::setVictimQualifier(const std::string &Victim, 
-                                        unsigned int Line)
+                                        unsigned int Line,
+                                        unsigned int Column)
 {
     auto Copy = Victim;
     
-    setVictimQualifier(std::move(Copy), Line);
+    setVictimQualifier(std::move(Copy), Line, Column);
 }
 
 void NameRefactorer::setVictimQualifier(std::string &&Victim)
 {
-    unsigned int Line = 0;
     
-    /* Check if 'Str' is a fully qualified name */
-    auto Pos = Victim.rfind("::");
-    if (Pos != std::string::npos) {
-        auto It = Victim.begin() + Pos + sizeof("::") - 1;
-        auto End = Victim.end();
-        
-        auto Pred = [](const char c) { return !!std::isdigit(c); };
-        
-        /* Does the last qualifier specify a line number ? */
-        if (std::all_of(It, End, Pred)) {
-            /* 
-             * std::stoi() is just dumb, it really should work on 
-             * string iterators 
-             */
-            while (It != End)
-                Line = Line * 10 + *It++ - '0';
-            
-            if (!Line) {
-                llvm::errs() << "** ERROR: invalid line number in \""
-                             << Victim << "\" - aborting...\n";
-                std::exit(EXIT_FAILURE);
-            }
-            
-            Victim.erase(Pos);
-        }
+    unsigned int Line = 0;
+    unsigned int Column = 0;
+    
+    auto Index = Victim.rfind("::");
+    if (Index == std::string::npos) {
+        setVictimQualifier(std::move(Victim), Line, Column);
+        return;
     }
     
-    setVictimQualifier(std::move(Victim), Line);
+    auto Begin = Victim.begin() + Index + sizeof("::") - 1;
+    auto It = Begin;
+    auto End = Victim.end();
+    
+    if (It == End) {
+        llvm::errs() << "** ERROR: invalid qualifer \"" << Victim << "\"\n";
+        std::exit(EXIT_FAILURE);
+    }
+    
+    if (It != End && (!!std::isalpha(*It) || *It == '_')) {
+        setVictimQualifier(std::move(Victim), Line, Column);
+        return;
+    }
+    
+    while (It != End && !!std::isdigit(*It))
+        Line = Line * 10 + *It++ - '0';
+    
+    bool NeedsCol = It != End;
+    if (NeedsCol && *It++ != ':') {
+        llvm::errs() << "** ERROR: invalid location qualifer \""
+                     << std::string(Begin, End) << "\"\n";
+        std::exit(EXIT_FAILURE);
+    }
+    
+    while (It != End && !!std::isdigit(*It))
+        Column = Column * 10 + *It++ - '0';
+    
+    if (It != End || !Line || (NeedsCol && !Column)) {
+        llvm::errs() << "** ERROR: invalid location qualifer \""
+                     << std::string(Begin, End) << "\"\n";
+        std::exit(EXIT_FAILURE);
+    }
+    
+    Victim.erase(Index);
+    
+    setVictimQualifier(std::move(Victim), Line, Column);
 }
 
 void NameRefactorer::setVictimQualifier(std::string &&Victim,
-                                        unsigned int Line)
+                                        unsigned int Line,
+                                        unsigned int Column)
 {
     /*
      * When refactoring a name it must be specified like
@@ -135,6 +153,7 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
         _ReplSize -= Pos + sizeof("::") - 1;
     
     _Line = Line;
+    _Column = Column;
 }
 
 const std::string &NameRefactorer::victimQualifier() const
@@ -176,7 +195,7 @@ bool NameRefactorer::isVictim(const clang::NamedDecl *NamedDecl)
     if (_Victim != qualifiedName(NamedDecl))
         return false;
     
-    return !_Line || isVictimLine(NamedDecl->getLocation());
+    return !_Line || isVictimLocation(NamedDecl->getLocation());
 }
 
 bool NameRefactorer::isVictim(const clang::Token &MacroName, 
@@ -185,7 +204,7 @@ bool NameRefactorer::isVictim(const clang::Token &MacroName,
     if (_Victim != MacroName.getIdentifierInfo()->getName())
         return false;
     
-    return !_Line || isVictimLine(MacroInfo->getDefinitionLoc());
+    return !_Line || isVictimLocation(MacroInfo->getDefinitionLoc());
 }
 
 void NameRefactorer::addReplacement(clang::SourceLocation Loc)
@@ -193,10 +212,13 @@ void NameRefactorer::addReplacement(clang::SourceLocation Loc)
     Refactorer::addReplacement(Loc, _ReplSize, _ReplName);
 }
 
-bool NameRefactorer::isVictimLine(const clang::SourceLocation Loc)
+bool NameRefactorer::isVictimLocation(const clang::SourceLocation Loc)
 {
-    if (_LineLoc.isValid())
-        return _LineLoc == Loc;
+    if (!_Line)
+        return true;
+    
+    if (_VictimLoc.isValid())
+        return _VictimLoc == Loc;
     
     auto &SM = _CompilerInstance->getSourceManager();
     bool Invalid;
@@ -208,12 +230,22 @@ bool NameRefactorer::isVictimLine(const clang::SourceLocation Loc)
         std::exit(EXIT_FAILURE);
     }
     
-    auto Equal = _Line == Line;
-    if (Equal)
-        _LineLoc = Loc;
+    if (_Line != Line)
+        return false;
     
-    return Equal;
+    if (!_Column)
+        return true;
+    
+    auto Column = SM.getSpellingColumnNumber(Loc, &Invalid);
+    if (Invalid) {
+        llvm::errs() << "** ERROR: failed to retrieve column number for "
+                     << "declaration \"" << _Victim << "\"\n";
+        std::exit(EXIT_FAILURE);
+    }
+    
+    return _Column == Column;
 }
+
 
 const std::string &
 NameRefactorer::qualifiedName(const clang::NamedDecl *NamedDecl)
