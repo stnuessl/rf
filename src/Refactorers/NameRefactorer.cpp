@@ -22,6 +22,76 @@
 
 #include <Refactorers/NameRefactorer.hpp>
 
+
+template <typename Iter>
+static bool isNumber(Iter Begin, Iter End)
+{
+    return std::all_of(Begin, End, [](char c) { return !!std::isdigit(c); });
+}
+
+template <typename Iter>
+static bool isValidLocation(Iter Begin, Iter End)
+{
+    auto It = std::find(Begin, End, ':');
+    if (It == End)
+        return isNumber(Begin, End);
+    
+    return isNumber(Begin, It) && isNumber(It + 1, End);
+}
+
+template <typename Iter>
+static bool isValidName(Iter Begin, Iter End)
+{
+    if (Begin == End || (!std::isalpha(*Begin) && *Begin != '_'))
+        return false;
+    
+    for (auto It = ++Begin; It != End; ++It) {
+        if (!std::isalnum(*It) && *It != '_')
+            return false;
+    }
+    
+    return true;
+}
+
+template <typename Iter>
+static bool isValidQualifierEnd(Iter Begin, Iter End)
+{
+    if (Begin == End)
+        return false;
+    
+    if (End[-1] == '*')
+        --End;
+    
+    if (!!std::isalpha(*Begin) || *Begin == '_')
+        return isValidName(Begin, End);
+    
+    if (!!std::isdigit(*Begin))
+        return isValidLocation(Begin, End);
+    
+    return false;
+}
+
+#if 0
+static bool isValidVictimQualifier(const std::string &Qualifier)
+{
+    auto Begin = Qualifier.begin();
+    auto End = Qualifier.end();
+    
+    while (Begin != End) {
+        auto It = std::search_n(Begin, End, 2, ':');
+        if (It == End)
+            return isValidQualifierEnd(Begin, End);
+        
+        if (!isValidName(Begin, It))
+            return false;
+        
+        Begin = It + 2;
+    }
+    
+    return false;
+}
+#endif
+
 static void rCopy(std::string &Str, const clang::StringRef &Ref)
 {
     auto n = Ref.size();
@@ -30,27 +100,18 @@ static void rCopy(std::string &Str, const clang::StringRef &Ref)
         Str += Ref[n];
 }
 
-static void exitIfInvalidName(const std::string &Str)
+static bool isEqual(const std::string &S1, const std::string &S2)
 {
-    auto it = Str.begin();
-    auto end = Str.end();
+    return S1 == S2;
+}
+
+static bool isPrefixEqual(const std::string &S1, const std::string &S2)
+{
+    auto Size1 = S1.size();
+    auto Size2 = S2.size();
+    auto N = std::min(Size1, Size2);
     
-    if (it == end)
-        goto fail;
-    
-    if (!std::isalpha(*it) && *it != '_')
-        goto fail;
-    
-    while (++it != end) {
-        if (!std::isalnum(*it) && *it != '_')
-            goto fail;
-    }
-    
-    return;
-    
-fail:
-    llvm::errs() << "** ERROR: invalid name \"" << Str << "\" - aborting...\n"; 
-    std::exit(EXIT_FAILURE);
+    return std::equal(S1.begin(), S1.begin() + N, S2.begin());
 }
 
 NameRefactorer::NameRefactorer()
@@ -60,7 +121,8 @@ NameRefactorer::NameRefactorer()
       _Buffer(),
       _VictimLoc(),
       _ReplSize(0),
-      _Line(0)
+      _Line(0),
+      _IsEqualFunc(&isEqual)
       
 {
     _Buffer.reserve(1024);
@@ -73,87 +135,48 @@ void NameRefactorer::setVictimQualifier(const std::string &Victim)
     setVictimQualifier(std::move(Copy));
 }
 
-void NameRefactorer::setVictimQualifier(const std::string &Victim, 
-                                        unsigned int Line,
-                                        unsigned int Column)
-{
-    auto Copy = Victim;
-    
-    setVictimQualifier(std::move(Copy), Line, Column);
-}
-
 void NameRefactorer::setVictimQualifier(std::string &&Victim)
 {
-    
-    unsigned int Line = 0;
-    unsigned int Column = 0;
-    
-    auto Index = Victim.rfind("::");
-    if (Index == std::string::npos) {
-        setVictimQualifier(std::move(Victim), Line, Column);
-        return;
-    }
-    
-    auto Begin = Victim.begin() + Index + sizeof("::") - 1;
-    auto It = Begin;
+    auto Begin = Victim.begin();
     auto End = Victim.end();
     
-    if (It == End) {
-        llvm::errs() << "** ERROR: invalid qualifer \"" << Victim << "\"\n";
-        std::exit(EXIT_FAILURE);
+    while (Begin != End) {
+        auto It = std::search_n(Begin, End, 2, ':');
+        if (It == End) {
+            /*
+             * Thats the last part of the qualifier name.
+             * It can be a variable name, a pattern (e.g. "name*"), or
+             * a source location (e.g. 31:5).
+             */
+            setVictimQualifier(std::move(Victim), Begin, End);
+            return;
+        }
+        
+        /*
+         * Given a qualified name like:
+         *      namespace::namespace::class::variable
+         *      ^(1)       ^(2)       ^(3)
+         * 
+         * Check that the positions (1),(2) and (3) are valid 
+         * qualifiers in C / C++
+         */
+        if (!isValidName(Begin, It)) {
+            llvm::errs() << "** ERROR: invalid qualifer section \""
+                         << std::string(Begin, It) << "\" in \""
+                         << Victim << "\"\n";
+            std::exit(EXIT_FAILURE);
+        }
+        
+        /* 
+         * We have to set '_Replsize' here in case the last section is a
+         * source location specifier
+         */
+        _ReplSize = std::distance(Begin, It);
+        Begin = It + 2;
     }
     
-    if (It != End && (!!std::isalpha(*It) || *It == '_')) {
-        setVictimQualifier(std::move(Victim), Line, Column);
-        return;
-    }
-    
-    while (It != End && !!std::isdigit(*It))
-        Line = Line * 10 + *It++ - '0';
-    
-    bool NeedsCol = It != End;
-    if (NeedsCol && *It++ != ':') {
-        llvm::errs() << "** ERROR: invalid location qualifer \""
-                     << std::string(Begin, End) << "\"\n";
-        std::exit(EXIT_FAILURE);
-    }
-    
-    while (It != End && !!std::isdigit(*It))
-        Column = Column * 10 + *It++ - '0';
-    
-    if (It != End || !Line || (NeedsCol && !Column)) {
-        llvm::errs() << "** ERROR: invalid location qualifer \""
-                     << std::string(Begin, End) << "\"\n";
-        std::exit(EXIT_FAILURE);
-    }
-    
-    Victim.erase(Index);
-    
-    setVictimQualifier(std::move(Victim), Line, Column);
-}
-
-void NameRefactorer::setVictimQualifier(std::string &&Victim,
-                                        unsigned int Line,
-                                        unsigned int Column)
-{
-    /*
-     * When refactoring a name it must be specified like
-     * "namespace::name". However, not the full qualified name needs
-     * a replacement but the last part of the qualifier (here: "name").
-     * Thus we need to know the size of that part.
-     * '_ReplSize' can be thought of as something like
-     *      sizeof("namespace::name") - sizeof("namespace::")
-     */
-    
-    _Victim = std::move(Victim);
-    _ReplSize = _Victim.size();
-    
-    auto Pos = _Victim.rfind("::");
-    if (Pos != std::string::npos)
-        _ReplSize -= Pos + sizeof("::") - 1;
-    
-    _Line = Line;
-    _Column = Column;
+    llvm::errs() << "** ERROR: invalid victim qualifer \"" << Victim << "\"\n";
+    std::exit(EXIT_FAILURE);
 }
 
 const std::string &NameRefactorer::victimQualifier() const
@@ -174,25 +197,29 @@ void NameRefactorer::setReplacementQualifier(std::string &&Repl)
      * Convert "::namespace::class" to just "class" as the namespace is implicit
      * specified by the '_Victim' string.
      */
-    
+
     _ReplName = std::move(Repl);
     
     auto Pos = _ReplName.rfind("::");
     if (Pos != std::string::npos)
         _ReplName.erase(0, Pos + sizeof("::") - 1);
     
-    if (!_Force)
-        exitIfInvalidName(_ReplName);
+    if (!_Force && !isValidName(_ReplName.begin(), _ReplName.end())) {
+        llvm::errs() << "** ERROR: invalid replacement name \"" 
+                     << _ReplName << "\"\n"
+                     << "** INFO: override with \"--force\"\n";
+        std::exit(EXIT_FAILURE);
+    }
 }
 
-const std::string NameRefactorer::replacementQualifier() const
+const std::string &NameRefactorer::replacementQualifier() const
 {
     return _ReplName;
 }
 
 bool NameRefactorer::isVictim(const clang::NamedDecl *NamedDecl)
 {
-    if (_Victim != qualifiedName(NamedDecl))
+    if (!_IsEqualFunc(_Victim, qualifiedName(NamedDecl)))
         return false;
     
     return !_Line || isVictimLocation(NamedDecl->getLocation());
@@ -201,9 +228,9 @@ bool NameRefactorer::isVictim(const clang::NamedDecl *NamedDecl)
 bool NameRefactorer::isVictim(const clang::Token &MacroName, 
                               const clang::MacroInfo *MacroInfo)
 {
-    if (_Victim != MacroName.getIdentifierInfo()->getName())
+    if (!_IsEqualFunc(_Victim, MacroName.getIdentifierInfo()->getName()))
         return false;
-    
+
     return !_Line || isVictimLocation(MacroInfo->getDefinitionLoc());
 }
 
@@ -211,6 +238,114 @@ void NameRefactorer::addReplacement(clang::SourceLocation Loc)
 {
     Refactorer::addReplacement(Loc, _ReplSize, _ReplName);
 }
+
+void NameRefactorer::setVictimQualifier(std::string &&Victim, 
+                                        std::string::iterator Begin, 
+                                        std::string::iterator End)
+{
+    if (Begin == End) {
+        llvm::errs() << "** ERROR: no last section in victim qualifier \""
+                     << Victim << "\"\n";
+        std::exit(EXIT_FAILURE);
+    }
+    
+    auto It = Begin;
+    if (!!std::isalpha(*It) || *It == '_') {
+        /* 
+         * Here the last section has to be a name or a pattern, e.g.
+         *      namespace::class::member_variable
+         *      namespace::class::member*
+         */
+        auto Last = (End[-1] == '*') ? End - 1 : End;
+        
+        if (!isValidName(It, Last)) {
+            llvm::errs() << "** ERROR: invalid last section \"" 
+                         << std::string(Begin, End) << "\" in \"" 
+                         << Victim << "\"\n";
+            std::exit(EXIT_FAILURE);
+        }
+        
+        if (Last < End) {
+            Victim.erase(Last);
+            _IsEqualFunc = &isPrefixEqual;
+        }
+        
+        _ReplSize = std::distance(Begin, Last);
+        _Victim = std::move(Victim);
+        _Line = 0;
+        _Column = 0;
+        
+        return;
+    } else if (!!std::isdigit(*It)) {
+        /* Here the last sectio specifies a source location */
+        unsigned int Line = 0;
+        unsigned int Column = 0;
+        
+        while (It != End && std::isdigit(*It))
+            Line = Line * 10 + *It++ - '0';
+        
+        auto ExpectingColumn = It != End;
+        if (ExpectingColumn && *It++ != ':') {
+            llvm::errs() << "** ERROR: invalid source location delimiter \""
+                         << It[-1] << "\" in \"" << Victim << "\"\n";
+            std::exit(EXIT_FAILURE);
+        }
+        
+        while (It != End && std::isdigit(*It))
+            Column = Column * 10 + *It++ - '0';
+        
+        if (It != End) {
+            llvm::errs() << "** ERROR: invalid remaining char sequence \""
+                         << std::string(It, End) << "\" in \"" << Victim 
+                         << "\"\n";
+            std::exit(EXIT_FAILURE);
+        }
+        
+        if (!Line) {
+            llvm::errs() << "** ERROR: invalid line number \"0\" in \""
+                         << Victim << "\"\n";
+            std::exit(EXIT_FAILURE);
+        }
+        
+        if (ExpectingColumn && !Column) {
+            llvm::errs() << "** ERROR: invalid column number \"0\" in \""
+                         << Victim << "\"\n";
+            std::exit(EXIT_FAILURE);
+        }
+        
+        Victim.erase(Begin, End);
+        
+        /* 
+         * Given a victim qualifier like:
+         *      namespace::class::32:1
+         *                        ^(1)
+         * 
+         * The above 'erase()' removed "32:1" leaving:
+         *      namespace::class::
+         * 
+         * Remove the trailing '::'
+         */
+        Victim.pop_back();
+        Victim.pop_back();
+        
+        _Victim = std::move(Victim);
+        
+        /* 
+         * '_ReplSize' must have been set in the public 
+         * 'setVictimQualifier()' function
+         */
+        _Line = Line;
+        _Column = Column;
+        _IsEqualFunc = &isEqual;
+        
+        return;
+    }
+    
+    llvm::errs() << "** ERROR: invalid last victim qualifier section \""
+                 << std::string(Begin, End) << "\" in \"" << Victim << "\"\n";
+    std::exit(EXIT_FAILURE);
+}
+
 
 bool NameRefactorer::isVictimLocation(const clang::SourceLocation Loc)
 {

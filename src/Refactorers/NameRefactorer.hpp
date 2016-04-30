@@ -21,6 +21,7 @@
 #ifndef _NAMEREFACTORER_HPP_
 #define _NAMEREFACTORER_HPP_
 
+#include <functional>
 
 #include <clang/Lex/MacroInfo.h>
 
@@ -39,18 +40,12 @@ public:
     NameRefactorer();
     
     void setVictimQualifier(const std::string &Victim);
-    void setVictimQualifier(const std::string &Victim, 
-                            unsigned int Line,
-                            unsigned int Column = 0);
     void setVictimQualifier(std::string &&Victim);
-    void setVictimQualifier(std::string &&Victim, 
-                            unsigned int Line,
-                            unsigned int Column = 0);
     const std::string &victimQualifier() const;
     
     void setReplacementQualifier(const std::string &Repl);
     void setReplacementQualifier(std::string &&Repl);
-    const std::string replacementQualifier() const;
+    const std::string &replacementQualifier() const;
     
 protected:
     bool isVictim(const clang::NamedDecl *NamedDecl);
@@ -59,6 +54,10 @@ protected:
     
     void addReplacement(clang::SourceLocation Loc);
 private:
+    void setVictimQualifier(std::string &&Victim, 
+                            std::string::iterator Begin,
+                            std::string::iterator End);
+    
     bool isVictimLocation(const clang::SourceLocation Loc);
 
     const std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
@@ -71,6 +70,8 @@ private:
     std::size_t _ReplSize;
     unsigned int _Line;
     unsigned int _Column;
+    
+    std::function<bool(const std::string &, const std::string &)> _IsEqualFunc;
 };
 
 #endif /* _NAMEREFACTORER_HPP_ */
