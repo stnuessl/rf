@@ -54,6 +54,9 @@ protected:
     
     void addReplacement(clang::SourceLocation Loc);
 private:
+    bool isEqualToVictim(const std::string &Name) const;
+    bool isEqualToVictimPrefix(const std::string &Name) const;
+    
     void setVictimQualifier(std::string &&Victim, 
                             std::string::iterator Begin,
                             std::string::iterator End);
@@ -70,8 +73,9 @@ private:
     std::size_t _ReplSize;
     unsigned int _Line;
     unsigned int _Column;
-    
-    std::function<bool(const std::string &, const std::string &)> _IsEqualFunc;
+   
+    std::function<bool(const NameRefactorer &, const std::string &)> 
+    _IsEqualFunc;
 };
 
 #endif /* _NAMEREFACTORER_HPP_ */

@@ -100,20 +100,6 @@ static void rCopy(std::string &Str, const clang::StringRef &Ref)
         Str += Ref[n];
 }
 
-static bool isEqual(const std::string &S1, const std::string &S2)
-{
-    return S1 == S2;
-}
-
-static bool isPrefixEqual(const std::string &S1, const std::string &S2)
-{
-    auto Size1 = S1.size();
-    auto Size2 = S2.size();
-    auto N = std::min(Size1, Size2);
-    
-    return std::equal(S1.begin(), S1.begin() + N, S2.begin());
-}
-
 NameRefactorer::NameRefactorer()
     : Refactorer(),
       _Victim(),
@@ -122,8 +108,7 @@ NameRefactorer::NameRefactorer()
       _VictimLoc(),
       _ReplSize(0),
       _Line(0),
-      _IsEqualFunc(&isEqual)
-      
+      _IsEqualFunc(std::mem_fn(&NameRefactorer::isEqualToVictim))
 {
     _Buffer.reserve(1024);
 }
@@ -219,7 +204,7 @@ const std::string &NameRefactorer::replacementQualifier() const
 
 bool NameRefactorer::isVictim(const clang::NamedDecl *NamedDecl)
 {
-    if (!_IsEqualFunc(_Victim, qualifiedName(NamedDecl)))
+    if (!_IsEqualFunc(*this, qualifiedName(NamedDecl)))
         return false;
     
     return !_Line || isVictimLocation(NamedDecl->getLocation());
@@ -228,7 +213,7 @@ bool NameRefactorer::isVictim(const clang::NamedDecl *NamedDecl)
 bool NameRefactorer::isVictim(const clang::Token &MacroName, 
                               const clang::MacroInfo *MacroInfo)
 {
-    if (!_IsEqualFunc(_Victim, MacroName.getIdentifierInfo()->getName()))
+    if (!_IsEqualFunc(*this, MacroName.getIdentifierInfo()->getName()))
         return false;
 
     return !_Line || isVictimLocation(MacroInfo->getDefinitionLoc());
@@ -238,6 +223,20 @@ void NameRefactorer::addReplacement(clang::SourceLocation Loc)
 {
     Refactorer::addReplacement(Loc, _ReplSize, _ReplName);
 }
+
+bool NameRefactorer::isEqualToVictim(const std::string &Name) const
+{
+    return _Victim == Name;
+}
+
+bool NameRefactorer::isEqualToVictimPrefix(const std::string &Name) const
+{
+    if (Name.size() < _Victim.size())
+        return false;
+    
+    return std::equal(_Victim.begin(), _Victim.end(), Name.begin());
+}
+
 
 void NameRefactorer::setVictimQualifier(std::string &&Victim, 
                                         std::string::iterator Begin, 
@@ -267,7 +266,7 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
         
         if (Last < End) {
             Victim.erase(Last);
-            _IsEqualFunc = &isPrefixEqual;
+            _IsEqualFunc = std::mem_fn(&NameRefactorer::isEqualToVictimPrefix);
         }
         
         _ReplSize = std::distance(Begin, Last);
@@ -336,7 +335,7 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
          */
         _Line = Line;
         _Column = Column;
-        _IsEqualFunc = &isEqual;
+        _IsEqualFunc = std::mem_fn(&NameRefactorer::isEqualToVictim);
         
         return;
     }
