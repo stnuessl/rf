@@ -43,14 +43,6 @@ static clang::SourceLocation getLastTypeLocation(const clang::TypeLoc &TypeLoc)
     return Loc;
 }
 
-void TagRefactorer::visitEnumConstantDecl(const clang::EnumConstantDecl *Decl)
-{
-    if (!isVictim(Decl))
-        return;
-    
-    addReplacement(Decl->getLocation());
-}
-
 void TagRefactorer::visitEnumDecl(const clang::EnumDecl *Decl)
 {
     if (!isVictim(Decl))
@@ -83,29 +75,6 @@ void TagRefactorer::visitTypedefNameDecl(const clang::TypedefNameDecl *Decl)
     
     addReplacement(Decl->getLocation());
 }
-
-
-void TagRefactorer::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
-{
-    /* This handles enum constants, e.g.:
-     *      enum a { a };
-     *      int main() { auto a = a::a; };
-     *                         (1)^  ^(2)
-     * EnumConstantDecl's are not considered to be TagDecl's in clang.
-     * rf however won't differentiate between them in the hope to create
-     * a better user experience as this saves an extra commandline flag.
-     *
-     * 'Expr->getLocStart()' retrieves the incorrect position (1)
-     * 'Expr->getLocation()' retrieves the correct position (2)
-     */
-    
-    auto Decl = Expr->getDecl();
-    if (!clang::dyn_cast<clang::EnumConstantDecl>(Decl) || !isVictim(Decl))
-        return;
-    
-    addReplacement(Expr->getLocation());
-}
-
 
 void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
 {

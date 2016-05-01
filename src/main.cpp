@@ -36,6 +36,7 @@
 
 #include <llvm/Support/CommandLine.h>
 
+#include <Refactorers/EnumConstantRefactorer.hpp>
 #include <Refactorers/FunctionRefactorer.hpp>
 #include <Refactorers/IncludeRefactorer.hpp>
 #include <Refactorers/MacroRefactorer.hpp>
@@ -55,10 +56,10 @@ static llvm::cl::extrahelp HelpText(
     "refactoring it !!\n\n"
 );
 
-static llvm::cl::list<std::string> TagVec(
-    "tag", 
+static llvm::cl::list<std::string> EnumConstantVec(
+    "enum-constant",
     llvm::cl::desc(
-        "Refactor an enumeration, structure, or class."
+        "Refactor an enumeration constant."
     ),
     llvm::cl::value_desc("victim=repl"),
     llvm::cl::CommaSeparated,
@@ -103,6 +104,16 @@ static llvm::cl::list<std::string> MacroVec(
     llvm::cl::value_desc("victim=repl"),
     llvm::cl::CommaSeparated,
     llvm::cl::cat(RefactoringOptions)       
+);
+
+static llvm::cl::list<std::string> TagVec(
+    "tag",
+    llvm::cl::desc(
+        "Refactor an enumeration, structure, or class."
+    ),
+    llvm::cl::value_desc("victim=repl"),
+    llvm::cl::CommaSeparated,
+    llvm::cl::cat(RefactoringOptions)
 );
 
 static llvm::cl::list<std::string> InputFiles(
@@ -258,6 +269,7 @@ int main(int argc, const char **argv)
 
     auto Refactorers = ::Refactorers();
     
+    addNameRefactorers<EnumConstantRefactorer>(Refactorers, EnumConstantVec);
     addNameRefactorers<FunctionRefactorer>(Refactorers, FunctionVec);
     addNameRefactorers<MacroRefactorer>(Refactorers, MacroVec);
     addNameRefactorers<NamespaceRefactorer>(Refactorers, NamespaceVec);

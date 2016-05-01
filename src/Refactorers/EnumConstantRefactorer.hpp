@@ -18,22 +18,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TAGREFACTORER_HPP_
-#define _TAGREFACTORER_HPP_
+#ifndef _ENUMCONSTANTREFACTORER_HPP_
+#define _ENUMCONSTANTREFACTORER_HPP_
 
 #include <Refactorers/NameRefactorer.hpp>
 
-class TagRefactorer : public NameRefactorer {
+class EnumConstantRefactorer : public NameRefactorer {
 public:
-    virtual void visitEnumDecl(const clang::EnumDecl *Decl) override;
     virtual void 
-    visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl) override;
-    
-    virtual void visitRecordDecl(const clang::RecordDecl *Decl) override;
-    virtual void 
-    visitTypedefNameDecl(const clang::TypedefNameDecl *Decl) override;
-    
-    virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc) override;
+    visitEnumConstantDecl(const clang::EnumConstantDecl *Decl) override;
+    virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr) override;
 };
 
-#endif /* _TAGREFACTORER_HPP_ */
+#endif /* _ENUMCONSTANTREFACTORER_HPP_ */

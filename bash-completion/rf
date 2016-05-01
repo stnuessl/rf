@@ -25,7 +25,8 @@ _rf()
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="--allow-root 
+    opts="--allow-root
+          --enum-constant
           --commands 
           --dry-run
           --force 
