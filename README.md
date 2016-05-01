@@ -3,36 +3,37 @@
 rf is a command-line tool capable of refactoring C and C++ source code.
 
 # Overview
-* [rf - refactoring for C and C++](https://github.com/stnuessl/rf#rf---refactoring-for-c-and-c)
-* [Overview](https://github.com/stnuessl/rf#overview)
-    * [Motivation](https://github.com/stnuessl/rf#motivation)
-    * [Advantages](https://github.com/stnuessl/rf#advantages)
-    * [Disadvantages](https://github.com/stnuessl/rf#disadvantages)
-    * [Project Status](https://github.com/stnuessl/rf#project-status)
-        * [What's supported right now?](https://github.com/stnuessl/rf#whats-supported-right-now)
-        * [What might be supported in the future?](https://github.com/stnuessl/rf#what-might-be-supported-in-the-future)
-        * [What is not supported?](https://github.com/stnuessl/rf#what-is-not-supported)
-            * [Copy constructor of a templated record with elaborated type specifier](https://github.com/stnuessl/rf#copy-constructor-of-a-templated-record-with-elaborated-type-specifier)
-            * [Non self-contained macros](https://github.com/stnuessl/rf#non-self-contained-macros)
-    * [Installation](https://github.com/stnuessl/rf#installation)
-        * [Dependencies](https://github.com/stnuessl/rf#dependencies)
-            * [Arch Linux](https://github.com/stnuessl/rf#arch-linux)
-        * [Compiling](https://github.com/stnuessl/rf#compiling)
-    * [Usage](https://github.com/stnuessl/rf#usage)
-        * [Attention](https://github.com/stnuessl/rf#attention)
-        * [Setting up rf for a project](https://github.com/stnuessl/rf#setting-up-rf-for-a-project)
-        * [Refactoring rf's own source code](https://github.com/stnuessl/rf#refactoring-rfs-own-source-code)
-            * [Refactoring Tags](https://github.com/stnuessl/rf#refactoring-tags)
-            * [Refactoring Functions](https://github.com/stnuessl/rf#refactoring-functions)
-            * [Refactoring Variables](https://github.com/stnuessl/rf#refactoring-variables)
-        * [Further Refactoring examples](https://github.com/stnuessl/rf#further-refactoring-examples)
-            * [Inherited functions](https://github.com/stnuessl/rf#inherited-functions)
-            * [Overridden functions](https://github.com/stnuessl/rf#overridden-functions)
-            * [Overlapping qualifiers](https://github.com/stnuessl/rf#overlapping-qualifiers)
-            * [Overshadowing declarations](https://github.com/stnuessl/rf#overshadowing-declarations)
-        * [Creating a Compilation Database using CMake](https://github.com/stnuessl/rf#creating-a-compilation-database-using-cmake)
-        * [Creating a Compilation Database using Make](https://github.com/stnuessl/rf#creating-a-compilation-database-using-make)
-    * [Bugs and Bug Reports](https://github.com/stnuessl/rf#bugs-and-bug-reports)
+* [rf - refactoring for C and C++](README.md#rf---refactoring-for-c-and-c)
+* [Overview](README.md#overview)
+    * [Motivation](README.md#motivation)                                                                                                                                                                                                     
+    * [Advantages](README.md#advantages)                                                                                                                                                                                                     
+    * [Disadvantages](README.md#disadvantages)                                                                                                                                                                                               
+    * [Project Status](README.md#project-status)                                                                                                                                                                                             
+        * [What's supported right now?](README.md#whats-supported-right-now)                                                                                                                                                                 
+        * [What might be supported in the future?](README.md#what-might-be-supported-in-the-future)                                                                                                                                          
+        * [What is not supported?](README.md#what-is-not-supported)                                                                                                                                                                          
+            * [Copy constructor of a templated record with elaborated type specifier](README.md#copy-constructor-of-a-templated-record-with-elaborated-type-specifier)                                                                       
+            * [Non self-contained macros](README.md#non-self-contained-macros)                                                                                                                                                               
+    * [Installation](README.md#installation)                                                                                                                                                                                                 
+        * [Dependencies](README.md#dependencies)                                                                                                                                                                                             
+            * [Arch Linux](README.md#arch-linux)                                                                                                                                                                                             
+        * [Compiling](README.md#compiling)                                                                                                                                                                                                   
+    * [Usage](README.md#usage)                                                                                                                                                                                                               
+        * [Attention](README.md#attention)                                                                                                                                                                                                   
+        * [Setting up rf for a project](README.md#setting-up-rf-for-a-project)                                                                                                                                                               
+        * [Refactoring rf's own source code](README.md#refactoring-rfs-own-source-code)                                                                                                                                                      
+            * [Refactoring Tags](README.md#refactoring-tags)                                                                                                                                                                                 
+            * [Refactoring Functions](README.md#refactoring-functions)                                                                                                                                                                       
+            * [Refactoring Variables](README.md#refactoring-variables)
+        * [Further Refactoring examples](README.md#further-refactoring-examples)
+            * [Inherited functions](README.md#inherited-functions)
+            * [Overridden functions](README.md#overridden-functions)
+            * [Overlapping qualifiers](README.md#overlapping-qualifiers)
+            * [Overshadowing declarations](README.md#overshadowing-declarations)
+            * [Common prefixes](README.md#common-prefixes)
+        * [Creating a Compilation Database using CMake](README.md#creating-a-compilation-database-using-cmake)
+        * [Creating a Compilation Database using Make](README.md#creating-a-compilation-database-using-make)
+    * [Bugs and Bug Reports](README.md#bugs-and-bug-reports)
 
 
 ## Motivation
@@ -503,6 +504,36 @@ omitted):
 * __ $ tq --variable i::243:30=ii__
 ```cpp
 243 |    int i = 0; if (<expr>) { int ii = 42; f(ii); }
+```
+
+#### Common prefixes
+
+In C code the following is a common pattern:
+```cpp
+    struct a {};
+    void a_init(struct a *a);
+    void a_run(struct a *a);
+    void a_destroy(struct a *a);
+```
+If you want to refactor the struct _a_ it only makes sense to also refactor the
+functions to adapt to the change. This can easily be done by 
+running:
+
+```
+    $ rf --tag a=b --function a*=b
+```
+This command uses the '*' character to signal __rf__ that one does not care what
+follows after the '_a_' prefix in a function, effectively refactoring all '_a_'
+prefixes to '_b_' prefixes. Prefix refactoring works with any mode 
+(tag, function, variable, etc.) available in __rf__.
+
+With that said, the above command will produce the following piece of code:
+
+```cpp
+    struct b {};
+    void b_init(struct b *a);
+    void b_run(struct b *a);
+    void b_destroy(struct b *a);
 ```
 
 ### Creating a Compilation Database using CMake
