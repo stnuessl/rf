@@ -45,6 +45,7 @@
 #include <Refactorers/VariableRefactorer.hpp>
 
 #include <util/memory.hpp>
+#include <util/CommandLine.hpp>
 
 #include <RefactoringActionFactory.hpp>
 
@@ -209,28 +210,35 @@ makeCompilationDatabase(const std::string &Path, std::string &ErrMsg)
     return CompilationDatabase::autoDetectFromDirectory(WorkDir, ErrMsg);
 }
 
+
 template<typename T> 
-static void addNameRefactorers(Refactorers &Refactorers, 
-                               const std::vector<std::string> &ArgVec)
+static void add(Refactorers &Refactorers, 
+                const std::vector<std::string> &ArgVec,
+                clang::tooling::Replacements *Repls)
 {
-    for (const auto &Str : ArgVec) {
-        auto Pos = Str.find('=');
-        if (Pos == std::string::npos) {
-            std::cerr << "** ERROR: invalid argument \"" << Str << "\" - "
-                      << "argument syntax is \"Victim=Replacement\"\n";
+    for (const auto &Arg : ArgVec) {
+        auto Index = Arg.find('=');
+        if (Index == std::string::npos) {
+            std::cerr << cl::Error() 
+                      << "invalid argument \"" << Arg << "\" - argument syntax "
+                      << "is \"Victim=Replacement\"\n";
             std::exit(EXIT_FAILURE);
         }
         
-        auto VictimName = Str.substr(0, Pos);
-        auto ReplName = Str.substr(Pos + sizeof(char));
+        auto Victim = Arg.substr(0, Index);
+        auto Repl = Arg.substr(Index + 1);
         
-        if (VictimName != ReplName) {
-            auto Refactorer = std::make_unique<T>();
-            Refactorer->setVictimQualifier(std::move(VictimName));
-            Refactorer->setReplacementQualifier(std::move(ReplName));
+        auto Refactorer = std::make_unique<T>();
+        Refactorer->setReplacements(Repls);
+        Refactorer->setVerbose(Verbose);
+        Refactorer->setForce(Force);
         
-            Refactorers.push_back(std::move(Refactorer));
+        if (Victim != Repl) {
+            Refactorer->setVictimQualifier(std::move(Victim));
+            Refactorer->setReplacementQualifier(std::move(Repl));
         }
+        
+        Refactorers.push_back(std::move(Refactorer));
     }
 }
 
@@ -243,7 +251,8 @@ int main(int argc, const char **argv)
     
 #ifdef __unix__
     if (!AllowRoot && getuid() == 0) {
-        std::cerr << "** ERROR: running on root privileges - aborting...\n";
+        std::cerr << cl::Error() 
+                  << "running on root privileges - aborting...\n";
         std::exit(EXIT_FAILURE);
     }
 #endif
@@ -251,7 +260,7 @@ int main(int argc, const char **argv)
     auto ErrMsg = std::string();
     auto CompilationDB = makeCompilationDatabase(CompileCommandsPath, ErrMsg);
     if (!CompilationDB) {
-        std::cerr << "** ERROR: " << ErrMsg << std::endl;
+        std::cerr << cl::Error() << ErrMsg << "\n";
         std::exit(EXIT_FAILURE);
     }
 
@@ -266,28 +275,26 @@ int main(int argc, const char **argv)
         
         std::exit((err == 0) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
-
+    
     auto Refactorers = ::Refactorers();
-    
-    addNameRefactorers<EnumConstantRefactorer>(Refactorers, EnumConstantVec);
-    addNameRefactorers<FunctionRefactorer>(Refactorers, FunctionVec);
-    addNameRefactorers<MacroRefactorer>(Refactorers, MacroVec);
-    addNameRefactorers<NamespaceRefactorer>(Refactorers, NamespaceVec);
-    addNameRefactorers<TagRefactorer>(Refactorers, TagVec);
-    addNameRefactorers<VariableRefactorer>(Refactorers, VarVec);
-    
-    if (SanitizeIncludes) {
-        auto Refactorer = std::make_unique<IncludeRefactorer>();
-        Refactorers.push_back(std::move(Refactorer));
-    }
     
     auto Tool = RefactoringTool(*CompilationDB, SourceFiles);
     auto Repls = &Tool.getReplacements();
     
-    for (const auto &Refactorer : Refactorers) {
+    add<EnumConstantRefactorer>(Refactorers, EnumConstantVec, Repls);
+    add<FunctionRefactorer>(Refactorers, FunctionVec, Repls);
+    add<MacroRefactorer>(Refactorers, MacroVec, Repls);
+    add<NamespaceRefactorer>(Refactorers, NamespaceVec, Repls);
+    add<TagRefactorer>(Refactorers, TagVec, Repls);
+    add<VariableRefactorer>(Refactorers, VarVec, Repls);
+    
+    if (SanitizeIncludes) {
+        auto Refactorer = std::make_unique<IncludeRefactorer>();
         Refactorer->setReplacements(Repls);
         Refactorer->setVerbose(Verbose);
         Refactorer->setForce(Force);
+        
+        Refactorers.push_back(std::move(Refactorer));
     }
 
     if (!Refactorers.empty()) {
@@ -296,11 +303,11 @@ int main(int argc, const char **argv)
         
         int err = Tool.run(Factory.get());
         if (err) {
-            std::cerr << "** ERROR: error(s) generated while refactoring\n";
+            std::cerr << cl::Error() 
+                      << "found syntax error(s) while refactoring\n";
             
             if (!Force) {
-                std::cerr << "** INFO: use \"--force\" if you still want to "
-                          << "apply replacements\n";
+                std::cerr << cl::Info() << "use \"--force\" to override\n";
                 std::exit(EXIT_FAILURE);
             }
         }
@@ -308,9 +315,9 @@ int main(int argc, const char **argv)
     
     if (!DryRun) {
         if (Tool.getReplacements().empty()) {
-            std::cerr << "** Info: no code replacements to make - done\n";
+            std::cerr << cl::Info() << "no replacements found - done\n";
             exit(EXIT_SUCCESS);
-        } 
+        }
         
         IntrusiveRefCntPtr<DiagnosticOptions> Opts = new DiagnosticOptions();
         IntrusiveRefCntPtr<DiagnosticIDs> Id = new DiagnosticIDs();
@@ -323,13 +330,13 @@ int main(int argc, const char **argv)
         
         bool ok = Tool.applyAllReplacements(Rewriter);
         if (!ok) {
-            std::cerr << "** ERROR: failed to apply all code replacements\n";
+            std::cerr << cl::Error() << "failed to apply all replacements\n";
             std::exit(EXIT_FAILURE);
         }
         
         bool err = Rewriter.overwriteChangedFiles();
         if (err) {
-            std::cerr << "** ERROR: failed to save changes to disk\n";
+            std::cerr << cl::Error() << "failed to save changes to disk\n";
             std::exit(EXIT_FAILURE);
         }
     }
