@@ -22,6 +22,7 @@
 
 #include <Refactorers/NameRefactorer.hpp>
 
+#include <util/CommandLine.hpp>
 
 template <typename Iter>
 static bool isNumber(Iter Begin, Iter End)
@@ -146,9 +147,11 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim)
          * qualifiers in C / C++
          */
         if (!isValidName(Begin, It)) {
-            llvm::errs() << "** ERROR: invalid qualifer section \""
-                         << std::string(Begin, It) << "\" in \""
+            llvm::errs() << cl::Error() 
+                         << "invalid qualifier section \"" 
+                         << std::string(Begin, It) << "\" in \"" 
                          << Victim << "\"\n";
+                         
             std::exit(EXIT_FAILURE);
         }
         
@@ -160,7 +163,9 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim)
         Begin = It + 2;
     }
     
-    llvm::errs() << "** ERROR: invalid victim qualifer \"" << Victim << "\"\n";
+    llvm::errs() << cl::Error() 
+                 << "invalid victim qualifier \"" << Victim << "\"\n";
+
     std::exit(EXIT_FAILURE);
 }
 
@@ -190,9 +195,10 @@ void NameRefactorer::setReplacementQualifier(std::string &&Repl)
         _ReplName.erase(0, Pos + sizeof("::") - 1);
     
     if (!_Force && !isValidName(_ReplName.begin(), _ReplName.end())) {
-        llvm::errs() << "** ERROR: invalid replacement name \"" 
-                     << _ReplName << "\"\n"
-                     << "** INFO: override with \"--force\"\n";
+        llvm::errs() << cl::Error() 
+                     << "invalid replacement \"" << _ReplName << "\"\n"
+                     << cl::Info() 
+                     << "override with \"--force\"\n";
         std::exit(EXIT_FAILURE);
     }
 }
@@ -243,7 +249,7 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
                                         std::string::iterator End)
 {
     if (Begin == End) {
-        llvm::errs() << "** ERROR: no last section in victim qualifier \""
+        llvm::errs() << cl::Error() << "no last section in victim qualifier \""
                      << Victim << "\"\n";
         std::exit(EXIT_FAILURE);
     }
@@ -258,9 +264,9 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
         auto Last = (End[-1] == '*') ? End - 1 : End;
         
         if (!isValidName(It, Last)) {
-            llvm::errs() << "** ERROR: invalid last section \"" 
-                         << std::string(Begin, End) << "\" in \"" 
-                         << Victim << "\"\n";
+            llvm::errs() << cl::Error() 
+                         << "invalid last section \"" << std::string(Begin, End)
+                         << "\" in \"" << Victim << "\"\n";
             std::exit(EXIT_FAILURE);
         }
         
@@ -285,8 +291,9 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
         
         auto ExpectingColumn = It != End;
         if (ExpectingColumn && *It++ != ':') {
-            llvm::errs() << "** ERROR: invalid source location delimiter \""
-                         << It[-1] << "\" in \"" << Victim << "\"\n";
+            llvm::errs() << cl::Error() 
+                         << "invalid source location delimiter \"" << It[-1] 
+                         << "\" in \"" << Victim << "\"\n";
             std::exit(EXIT_FAILURE);
         }
         
@@ -294,21 +301,24 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
             Column = Column * 10 + *It++ - '0';
         
         if (It != End) {
-            llvm::errs() << "** ERROR: invalid remaining char sequence \""
+            llvm::errs() << cl::Error()
+                         << "invalid remaining char sequence \"" 
                          << std::string(It, End) << "\" in \"" << Victim 
                          << "\"\n";
             std::exit(EXIT_FAILURE);
         }
         
         if (!Line) {
-            llvm::errs() << "** ERROR: invalid line number \"0\" in \""
-                         << Victim << "\"\n";
+            llvm::errs() << cl::Error()
+                         << "invalid line number \"0\" in \"" << Victim 
+                         << "\"\n";
             std::exit(EXIT_FAILURE);
         }
         
         if (ExpectingColumn && !Column) {
-            llvm::errs() << "** ERROR: invalid column number \"0\" in \""
-                         << Victim << "\"\n";
+            llvm::errs() << cl::Error() 
+                         << "invalid column number \"0\" in \"" << Victim 
+                         << "\"\n";
             std::exit(EXIT_FAILURE);
         }
         
@@ -340,7 +350,8 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
         return;
     }
     
-    llvm::errs() << "** ERROR: invalid last victim qualifier section \""
+    llvm::errs() << cl::Error() 
+                 << "invalid last victim qualifier section \"" 
                  << std::string(Begin, End) << "\" in \"" << Victim << "\"\n";
     std::exit(EXIT_FAILURE);
 }
@@ -359,8 +370,9 @@ bool NameRefactorer::isVictimLocation(const clang::SourceLocation Loc)
     
     auto Line = SM.getSpellingLineNumber(Loc, &Invalid);
     if (Invalid) {
-        llvm::errs() << "** ERROR: failed to retrieve line number for "
-                     << "declaration \"" << _Victim << "\"\n";
+        llvm::errs() << cl::Error()
+                     << "failed to retrieve line number for declaration \"" 
+                     << _Victim << "\"\n";
         std::exit(EXIT_FAILURE);
     }
     
@@ -372,8 +384,9 @@ bool NameRefactorer::isVictimLocation(const clang::SourceLocation Loc)
     
     auto Column = SM.getSpellingColumnNumber(Loc, &Invalid);
     if (Invalid) {
-        llvm::errs() << "** ERROR: failed to retrieve column number for "
-                     << "declaration \"" << _Victim << "\"\n";
+        llvm::errs() << cl::Error() 
+                     << "failed to retrieve column number for declaration \"" 
+                     << _Victim << "\"\n";
         std::exit(EXIT_FAILURE);
     }
     

@@ -20,6 +20,8 @@
 
 #include <Refactorers/FunctionRefactorer.hpp>
 
+#include <util/CommandLine.hpp>
+
 void FunctionRefactorer::visitCallExpr(const clang::CallExpr *Expr)
 {
     /*
@@ -73,10 +75,12 @@ bool FunctionRefactorer::isVictim(const clang::FunctionDecl *Decl)
         auto Begin = MethodDecl->begin_overridden_methods();
         auto QualifiedName = (*Begin)->getQualifiedNameAsString();
         
-        llvm::errs() << "** ERROR: refactoring overriding class method \""
+        llvm::errs() << cl::Error() 
+                     << "refactoring overriding class method \""
                      << victimQualifier() << "\" - aborting\n"
-                     << "** INFO: consider refactoring \"" << QualifiedName
-                     << "\" instead or use the \"--force\" option\n";
+                     << cl::Info()
+                     << "consider refactoring \"" << QualifiedName
+                     << "\" instead or override with \"--force\"\n";
         
         std::exit(EXIT_FAILURE);
     }
