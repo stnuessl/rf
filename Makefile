@@ -254,7 +254,7 @@ COLOR_FINISHED	:= $(BOLD_GREEN)
 print 		= @printf "$(1)$(2)$(DEFAULT_COLOR)\n"
 md5sum 		= $$(md5sum $(1) | cut -f1 -d " ")
 
-all: $(TARGET)
+all: $(TARGET) compile-commands
 
 $(TARGET): $(OBJS)
 	$(call print,$(COLOR_LINKING),Linking [ $@ ])
@@ -273,8 +273,8 @@ $(OBJS): | $(DIRS)
 $(DIRS):
 	mkdir -p $(DIRS)
 
-compile_commands.json: $(SRC)
-	@python utils/compdb.py 					\
+compile-commands: $(SRC)
+	@python utils/make-jcdb.py 					\
 	  -s $(SRC) 							\
 	  -c "$(CXX) -c $(filter-out $@ -M%,$(CPPFLAGS)) $(CXXFLAGS)"	\
 	  -d $$(pwd) 							\
@@ -290,5 +290,5 @@ install: $(TARGET) $(SHELL_COMPL)
 uninstall:
 	rm -f $(INSTALL_DIR)$(BIN) $(SHELL_COMPL_DIR)$(notdir $(SHELL_COMPL))
 
-.PHONY: all clean install uninstall
+.PHONY: all compile-commands clean install uninstall
 .SILENT: clean $(DIRS)

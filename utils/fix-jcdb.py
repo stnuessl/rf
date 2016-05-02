@@ -20,8 +20,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-''' Add a compiler flag to the commands in a compilation database '''
-
 import argparse
 import json
 import sys
