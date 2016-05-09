@@ -60,8 +60,9 @@ This usually can't be done with refactoring tools provided by most IDEs.
 
 ## Project Status
 
-The project is in development and not much more than a simple prototype.
-I don't expect it the produce a correct program after refactoring.
+Most of the features I wanted are implemented and are working quite well 
+(maybe except for the _--sanitize-includes_ option). Feel free to grab __rf__
+and try it out yourself.
 
 ### What's supported right now?
 
@@ -72,13 +73,6 @@ I don't expect it the produce a correct program after refactoring.
 * Renaming typedefs
 * Renaming macros
 * Removing unused include directives
-
-However, in all cases the corresponding entity should __NOT__ lie in
-anonymous namespaces.
-
-### What might be supported in the future?
-
-* Supporting anonymous namespaces
 
 ### What is not supported?
 
