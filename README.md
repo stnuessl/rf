@@ -490,12 +490,12 @@ omitted):
 243 |    int ii = 0; if (<expr>) { int ii = 42; f(ii); }
 ```
 
-* __ $ tq --variable i::243:5=ii__
+* __$ tq --variable i::243:5=ii__
 ```cpp
 243 |    int ii = 0; if (<expr>) { int i = 42; f(i); }
 ```
 
-* __ $ tq --variable i::243:30=ii__
+* __$ tq --variable i::243:30=ii__
 ```cpp
 243 |    int i = 0; if (<expr>) { int ii = 42; f(ii); }
 ```
