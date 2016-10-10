@@ -278,7 +278,7 @@ int main(int argc, const char **argv)
     
     auto Refactorers = ::Refactorers();
     
-    auto Tool = RefactoringTool(*CompilationDB, SourceFiles);
+    RefactoringTool Tool(*CompilationDB, SourceFiles);
     auto Repls = &Tool.getReplacements();
     
     add<EnumConstantRefactorer>(Refactorers, EnumConstantVec, Repls);
