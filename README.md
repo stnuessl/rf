@@ -144,7 +144,7 @@ This section describes the installation process for rf.
 
 __rf__ has only two real dependencies:
 
-* [llvm](http://llvm.org/) and [clang](http://clang.llvm.org/) 3.7.1
+* [llvm](http://llvm.org/) and [clang](http://clang.llvm.org/) 3.9.0
 
 However, since you have to install and compile the program from source you will 
 need some other tools too.
@@ -565,7 +565,7 @@ which the provided command fails to refactor.
 [{
     "file": "main.cpp",
     "directory": "/path/to/dir/",
-    "command": "g++ -std=c++11 -o test -I/usr/lib/clang/3.7.1/include /path/to/dir/main.cpp"
+    "command": "g++ -std=c++11 -o test -I/usr/lib/clang/3.9.0/include /path/to/dir/main.cpp"
 }]
 ```
 

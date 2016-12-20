@@ -137,24 +137,25 @@ PKGCONF		:= \
 #
 LIBS		:= \
 		-Wl,--start-group					\
-		-lclangFrontendTool 					\
-		-lclangFrontend 					\
-		-lclangDriver 						\
-		-lclangSerialization 					\
-		-lclangParse 						\
-		-lclangSema 						\
-		-lclangStaticAnalyzerFrontend 				\
-		-lclangStaticAnalyzerCheckers				\
-		-lclangStaticAnalyzerCore 				\
 		-lclangAnalysis 					\
 		-lclangARCMigrate 					\
+		-lclangAST 						\
+		-lclangASTMatchers					\
+		-lclangBasic						\
+		-lclangDriver 						\
+		-lclangEdit 						\
+		-lclangFormat						\
+		-lclangFrontend 					\
+		-lclangFrontendTool 					\
+		-lclangLex 						\
+		-lclangParse 						\
 		-lclangRewrite						\
 		-lclangRewriteFrontend 					\
-		-lclangEdit 						\
-		-lclangASTMatchers					\
-		-lclangAST 						\
-		-lclangLex 						\
-		-lclangBasic						\
+		-lclangSema 						\
+		-lclangSerialization 					\
+		-lclangStaticAnalyzerCheckers				\
+		-lclangStaticAnalyzerFrontend 				\
+		-lclangStaticAnalyzerCore 				\
 		-lclangTooling						\
 		-lclangToolingCore					\
 		-Wl,--end-group						\
