@@ -52,6 +52,7 @@
 static llvm::cl::OptionCategory RefactoringOptions("Code refactoring options");
 static llvm::cl::OptionCategory FlagOptions("Flags");
 
+/* clang-format off */
 static llvm::cl::extrahelp HelpText(
     "\n!! Commit your source code to a version control system before "
     "refactoring it !!\n\n"
@@ -194,6 +195,8 @@ static llvm::cl::opt<bool> AllowRoot(
     llvm::cl::init(false)
 );
 #endif
+
+/* clang-format on */
 
 static std::unique_ptr<clang::tooling::CompilationDatabase> 
 makeCompilationDatabase(const std::string &Path, std::string &ErrMsg)
