@@ -72,27 +72,6 @@ static bool isValidQualifierEnd(Iter Begin, Iter End)
     return false;
 }
 
-#if 0
-static bool isValidVictimQualifier(const std::string &Qualifier)
-{
-    auto Begin = Qualifier.begin();
-    auto End = Qualifier.end();
-    
-    while (Begin != End) {
-        auto It = std::search_n(Begin, End, 2, ':');
-        if (It == End)
-            return isValidQualifierEnd(Begin, End);
-        
-        if (!isValidName(Begin, It))
-            return false;
-        
-        Begin = It + 2;
-    }
-    
-    return false;
-}
-#endif
-
 static void rCopy(std::string &Str, const clang::StringRef &Ref)
 {
     auto n = Ref.size();
