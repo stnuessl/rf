@@ -10,7 +10,6 @@ rf is a command-line tool capable of refactoring C and C++ source code.
     * [Disadvantages](README.md#disadvantages)
     * [Project Status](README.md#project-status)
         * [What's supported right now?](README.md#whats-supported-right-now)
-        * [What might be supported in the future?](README.md#what-might-be-supported-in-the-future)
         * [What is not supported?](README.md#what-is-not-supported)
             * [Copy constructor of a templated record with elaborated type specifier](README.md#copy-constructor-of-a-templated-record-with-elaborated-type-specifier)
             * [Non self-contained macros](README.md#non-self-contained-macros)
