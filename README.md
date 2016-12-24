@@ -196,7 +196,7 @@ and the bash completion will suggest all available options.
 
 ### Attention
 
-Before invoking __rf__ make absolutley sure that the new name does not conflict
+Before invoking __rf__ make absolutely sure that the new name does not conflict
 with an already existing one. The refactoring will succeed but the resulting
 program won't compile or its behaviour may have been altered. 
 E.g. consider the following program:
