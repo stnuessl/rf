@@ -319,7 +319,7 @@ int main(int argc, const char **argv)
     if (!DryRun) {
         if (Tool.getReplacements().empty()) {
             std::cerr << cl::Info() << "no replacements found - done\n";
-            exit(EXIT_SUCCESS);
+            std::exit(EXIT_SUCCESS);
         }
         
         IntrusiveRefCntPtr<DiagnosticOptions> Opts = new DiagnosticOptions();
