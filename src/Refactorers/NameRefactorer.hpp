@@ -75,7 +75,7 @@ private:
     unsigned int _Column;
    
     std::function<bool(const NameRefactorer &, const std::string &)> 
-    _IsEqualFunc;
+        _IsEqualFunc;
 };
 
 #endif /* _NAMEREFACTORER_HPP_ */

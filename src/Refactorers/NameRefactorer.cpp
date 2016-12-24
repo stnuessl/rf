@@ -130,9 +130,9 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim)
         auto It = std::search_n(Begin, End, 2, ':');
         if (It == End) {
             /*
-             * Thats the last part of the qualifier name.
-             * It can be a variable name, a pattern (e.g. "name*"), or
-             * a source location (e.g. 31:5).
+             * That's the last part of the qualifier name.
+             * It can be a variable name (e.g. "name"), 
+             * a pattern (e.g. "name*"), or * a source location (e.g. 31:5).
              */
             setVictimQualifier(std::move(Victim), Begin, End);
             return;
@@ -156,8 +156,8 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim)
         }
         
         /* 
-         * We have to set '_Replsize' here in case the last section is a
-         * source location specifier
+         * We have to set / update '_Replsize' here in case the last 
+         * section is a * source location specifier
          */
         _ReplSize = std::distance(Begin, It);
         Begin = It + 2;
@@ -256,7 +256,7 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
     
     auto It = Begin;
     if (!!std::isalpha(*It) || *It == '_') {
-        /* 
+        /*
          * Here the last section has to be a name or a pattern, e.g.
          *      namespace::class::member_variable
          *      namespace::class::member*
@@ -269,20 +269,27 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
                          << "\" in \"" << Victim << "\"\n";
             std::exit(EXIT_FAILURE);
         }
-        
-        if (Last < End) {
-            Victim.erase(Last);
-            _IsEqualFunc = std::mem_fn(&NameRefactorer::isEqualToVictimPrefix);
-        }
-        
+
         _ReplSize = std::distance(Begin, Last);
         _Victim = std::move(Victim);
         _Line = 0;
         _Column = 0;
+        _IsEqualFunc = std::mem_fn(&NameRefactorer::isEqualToVictim);
+        
+        if (Last < End) {
+            /*
+             * Pattern detected, transform
+             *      "namespace::class::member*" to
+             *      "namespace::class::member"
+             * and update '_IsEqualFunc'.
+             */
+            _Victim.pop_back();
+            _IsEqualFunc = std::mem_fn(&NameRefactorer::isEqualToVictimPrefix);
+        }
         
         return;
     } else if (!!std::isdigit(*It)) {
-        /* Here the last sectio specifies a source location */
+        /* Here the last section specifies a source location, e.g. "285:9" */
         unsigned int Line = 0;
         unsigned int Column = 0;
         
