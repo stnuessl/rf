@@ -50,7 +50,7 @@
 #include <RefactoringActionFactory.hpp>
 
 static llvm::cl::OptionCategory RefactoringOptions("Code refactoring options");
-static llvm::cl::OptionCategory FlagOptions("Flags");
+static llvm::cl::OptionCategory ProgramSetupOptions("Program setup options");
 
 /* clang-format off */
 static llvm::cl::extrahelp HelpText(
@@ -151,7 +151,8 @@ static llvm::cl::opt<std::string> CompileCommandsPath(
         "If not specified rf will automatically search all\n"
         "parent directories for such a file."
     ),
-    llvm::cl::value_desc("path")
+    llvm::cl::value_desc("path"),
+    llvm::cl::cat(ProgramSetupOptions)
 );
 
 static llvm::cl::opt<bool> DryRun(
@@ -160,7 +161,7 @@ static llvm::cl::opt<bool> DryRun(
         "Do not make any changes at all.\n"
         "Useful for debugging, especially when used with \"--verbose\"."
     ),
-    llvm::cl::cat(FlagOptions),
+    llvm::cl::cat(ProgramSetupOptions),
     llvm::cl::init(false)
 );
 
@@ -170,7 +171,7 @@ static llvm::cl::opt<bool> Verbose(
         "Increase verbosity:\n"
         "Print a line for each replacement to be made."
     ),
-    llvm::cl::cat(FlagOptions),
+    llvm::cl::cat(ProgramSetupOptions),
     llvm::cl::init(false)
 );
 
@@ -181,7 +182,7 @@ static llvm::cl::opt<bool> Force(
         "break the code. No replacements are done if \"--dry-run\"\n"
         "is passed along this option."
     ),
-    llvm::cl::cat(FlagOptions),
+    llvm::cl::cat(ProgramSetupOptions),
     llvm::cl::init(false)
 );
 
@@ -191,7 +192,7 @@ static llvm::cl::opt<bool> AllowRoot(
     llvm::cl::desc(
         "Allow this application to run with root privileges.\n"
     ),
-    llvm::cl::cat(FlagOptions),
+    llvm::cl::cat(ProgramSetupOptions),
     llvm::cl::init(false)
 );
 #endif
@@ -249,6 +250,13 @@ int main(int argc, const char **argv)
 {
     using namespace clang;
     using namespace clang::tooling;
+    
+    auto OptionCategories = llvm::ArrayRef<llvm::cl::OptionCategory *>({ 
+        &RefactoringOptions, 
+        &ProgramSetupOptions,
+    });
+    
+    llvm::cl::HideUnrelatedOptions(OptionCategories);
 
     llvm::cl::ParseCommandLineOptions(argc, argv);
     
