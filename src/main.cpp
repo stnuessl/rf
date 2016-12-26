@@ -131,6 +131,7 @@ static llvm::cl::opt<bool> SyntaxOnly(
         "Perform a syntax check and exit.\n"
         "No changes are made even if replacements were specified."
     ),
+    llvm::cl::cat(ProgramSetupOptions),
     llvm::cl::init(false)
 );
 
@@ -246,6 +247,20 @@ static void add(Refactorers &Refactorers,
     }
 }
 
+#define RF_VERSION_MAJOR "1"
+#define RF_VERSION_MINOR "0"
+#define RF_VERSION_PATCH "0"
+#define RF_VERSION_INFO                                                        \
+    RF_VERSION_MAJOR "." RF_VERSION_MINOR "." RF_VERSION_PATCH
+
+#define RF_HOMEPAGE_URL "https://github.com/stnuessl/rf"
+
+#define RF_LICENSE_INFO                                                        \
+    "License GPLv3+: GNU GPL version 3 or later "                              \
+    "<http://www.gnu.org/licenses/gpl.html>\n"                                 \
+    "This is free software: you are free to change and redistribute it.\n"     \
+    "There is NO WARRANTY, to the extent permitted by law.\n"
+
 int main(int argc, const char **argv) 
 {
     using namespace clang;
@@ -257,7 +272,13 @@ int main(int argc, const char **argv)
     });
     
     llvm::cl::HideUnrelatedOptions(OptionCategories);
-
+    
+    const auto print_version = []() {
+        std::cout << "rf version: " << RF_VERSION_INFO << " - " 
+                  << RF_HOMEPAGE_URL << "\n" << RF_LICENSE_INFO << "\n";
+    };
+    
+    llvm::cl::SetVersionPrinter(print_version);
     llvm::cl::ParseCommandLineOptions(argc, argv);
     
 #ifdef __unix__

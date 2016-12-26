@@ -138,7 +138,6 @@ PKGCONF		:= \
 LIBS		:= \
 		-Wl,--start-group					\
 		-lclangAnalysis 					\
-		-lclangARCMigrate 					\
 		-lclangAST 						\
 		-lclangASTMatchers					\
 		-lclangBasic						\
@@ -153,14 +152,15 @@ LIBS		:= \
 		-lclangRewriteFrontend 					\
 		-lclangSema 						\
 		-lclangSerialization 					\
-		-lclangStaticAnalyzerCheckers				\
-		-lclangStaticAnalyzerFrontend 				\
-		-lclangStaticAnalyzerCore 				\
 		-lclangTooling						\
 		-lclangToolingCore					\
 		-Wl,--end-group						\
 		$(shell llvm-config --libs)				\
 		$(shell llvm-config --system-libs)			\
+# 		-lclangARCMigrate 					\
+# 		-lclangStaticAnalyzerCheckers				\
+# 		-lclangStaticAnalyzerFrontend 				\
+# 		-lclangStaticAnalyzerCore 				\
 # 		-lclangCodeGen						\
 # 		-lclangDynamicASTMatchers				\
 
