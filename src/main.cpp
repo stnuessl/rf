@@ -111,7 +111,7 @@ static llvm::cl::list<std::string> MacroVec(
 static llvm::cl::list<std::string> TagVec(
     "tag",
     llvm::cl::desc(
-        "Refactor an enumeration, structure, or class."
+        "Refactor a class, enumeration, structure, or type alias."
     ),
     llvm::cl::value_desc("victim=repl"),
     llvm::cl::CommaSeparated,

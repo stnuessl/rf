@@ -65,13 +65,15 @@ and try it out yourself.
 
 ### What's supported right now?
 
-* Renaming tags, e.g. structs, classes, enums and enum constants
-* Renaming functions including class methods
-* Renaming variables and class variables
-* Renaming namespaces
-* Renaming typedefs
-* Renaming macros
-* Removing unused include directives
+__rf__ can refactor the following things:
+
+* classes, enums, structs and type aliases
+* functions and class methods
+* variables and class variables
+* enum constants
+* namespaces
+* typedefs
+* macros
 
 ### What is not supported?
 
