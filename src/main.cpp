@@ -225,25 +225,24 @@ static void add(Refactorers &Refactorers,
         auto Index = Arg.find('=');
         if (Index == std::string::npos) {
             std::cerr << cl::Error() 
-                      << "invalid argument \"" << Arg << "\" - argument syntax "
-                      << "is \"Victim=Replacement\"\n";
+                      << "invalid argument \"" << Arg 
+                      << "\" - argument syntax is \"Victim=Replacement\"\n";
             std::exit(EXIT_FAILURE);
         }
         
         auto Victim = Arg.substr(0, Index);
         auto Repl = Arg.substr(Index + 1);
         
-        auto Refactorer = std::make_unique<T>();
-        Refactorer->setReplacements(Repls);
-        Refactorer->setVerbose(Verbose);
-        Refactorer->setForce(Force);
-        
         if (Victim != Repl) {
+            auto Refactorer = std::make_unique<T>();
+            Refactorer->setReplacements(Repls);
+            Refactorer->setVerbose(Verbose);
+            Refactorer->setForce(Force);
             Refactorer->setVictimQualifier(std::move(Victim));
             Refactorer->setReplacementQualifier(std::move(Repl));
+            
+            Refactorers.push_back(std::move(Refactorer));
         }
-        
-        Refactorers.push_back(std::move(Refactorer));
     }
 }
 
@@ -274,7 +273,7 @@ int main(int argc, const char **argv)
     llvm::cl::HideUnrelatedOptions(OptionCategories);
     
     const auto print_version = []() {
-        std::cout << "rf version: " << RF_VERSION_INFO << " - " 
+        std::cout << "rf version: " << RF_VERSION_INFO << " - "
                   << RF_HOMEPAGE_URL << "\n" << RF_LICENSE_INFO << "\n";
     };
     
