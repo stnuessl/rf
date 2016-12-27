@@ -72,7 +72,6 @@ __rf__ can refactor the following things:
 * variables and class variables
 * enum constants
 * namespaces
-* typedefs
 * macros
 
 ### What is not supported?
