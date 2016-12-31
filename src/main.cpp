@@ -278,7 +278,17 @@ int main(int argc, const char **argv)
     };
     
     llvm::cl::SetVersionPrinter(print_version);
+    
     llvm::cl::ParseCommandLineOptions(argc, argv);
+    
+    /* 
+     * Seems like 'ParseCommandLineOptions' has to be called before
+     * running this. Otherwise 'PrintHelpMessage' will cause a
+     * segmentation fault.
+     * Also, 'PrintHelpMessage' will terminate the program.
+     */
+    if (argc <= 1)
+        llvm::cl::PrintHelpMessage(false, true);
     
 #ifdef __unix__
     if (!AllowRoot && getuid() == 0) {
