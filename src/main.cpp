@@ -366,8 +366,9 @@ int main(int argc, const char **argv)
         TextDiagnosticPrinter Printer(llvm::errs(), &*Opts);
         DiagnosticsEngine Diagnostics(Id, &*Opts, &Printer, false);
         SourceManager SM(Diagnostics, Tool.getFiles());
+        LangOptions LangOpts;
         
-        Rewriter Rewriter(SM, LangOptions());
+        Rewriter Rewriter(SM, LangOpts);
         
         bool ok = Tool.applyAllReplacements(Rewriter);
         if (!ok) {
