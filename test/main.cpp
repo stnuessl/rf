@@ -63,6 +63,15 @@ bool f(const b<T> &lhs, const b<U> &rhs) { return lhs == rhs; };
 template <typename T> struct c;
 template <typename T> struct c<const b<T>> {};
 
+namespace d {
+    int x = 0;
+    
+namespace d {
+    int x = 0;
+    
+}
+}
+
 int main(void)
 {
     b<struct n::a> v;
@@ -86,6 +95,9 @@ int main(void)
 #define M 1000
     f(b<decltype(M)>(), b<decltype(N)>());
 #undef M
+    
+    d::x = 42;
+    d::d::x = 42;
     
     return 0;
 }
