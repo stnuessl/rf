@@ -20,8 +20,8 @@
 
 #include <Refactorers/VariableRefactorer.hpp>
 
-void VariableRefactorer::
-visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl)
+void VariableRefactorer::visitCXXConstructorDecl(
+    const clang::CXXConstructorDecl *Decl)
 {
     /* Handle field declarations initialized in an initializer list */
     if (!Decl->hasBody())

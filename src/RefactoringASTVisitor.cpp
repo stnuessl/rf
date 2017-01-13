@@ -65,6 +65,14 @@ bool RefactoringASTVisitor::VisitCXXRecordDecl(clang::CXXRecordDecl *Decl)
     return true;
 }
 
+bool RefactoringASTVisitor::VisitDecl(clang::Decl *Decl)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->visitDecl(Decl);
+    
+    return true;
+}
+
 bool RefactoringASTVisitor::VisitEnumConstantDecl(clang::EnumConstantDecl *Decl)
 {
     for (auto &Refactorer : *_Refactorers)
@@ -148,6 +156,14 @@ bool RefactoringASTVisitor::VisitVarDecl(clang::VarDecl *Decl)
     return true;
 }
 
+bool RefactoringASTVisitor::VisitExpr(clang::Expr *Expr)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->visitExpr(Expr);
+    
+    return true;
+}
+
 bool RefactoringASTVisitor::VisitCallExpr(clang::CallExpr *Expr)
 {
     for (auto &Refactorer : *_Refactorers)
@@ -179,4 +195,3 @@ bool RefactoringASTVisitor::VisitTypeLoc(clang::TypeLoc &TypeLoc)
     
     return true;
 }
-

@@ -101,6 +101,11 @@ void Refactorer::visitCXXRecordDecl(const clang::CXXRecordDecl *Decl)
     (void) Decl;
 }
 
+void Refactorer::visitDecl(const clang::Decl *Decl)
+{
+    (void) Decl;
+}
+
 void Refactorer::visitEnumConstantDecl(const clang::EnumConstantDecl *Decl)
 {
     (void) Decl;
@@ -150,6 +155,11 @@ Refactorer::visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl)
 void Refactorer::visitVarDecl(const clang::VarDecl *Decl)
 {
     (void) Decl;
+}
+
+void Refactorer::visitExpr(const clang::Expr *Expr)
+{
+    (void) Expr;
 }
 
 void Refactorer::visitCallExpr(const clang::CallExpr *Expr)

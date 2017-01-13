@@ -37,6 +37,7 @@ public:
     bool VisitCXXDestructorDecl(clang::CXXDestructorDecl *Decl);
     bool VisitCXXMethodDecl(clang::CXXMethodDecl *Decl);
     bool VisitCXXRecordDecl(clang::CXXRecordDecl *Decl);
+    bool VisitDecl(clang::Decl *Decl);
     bool VisitEnumConstantDecl(clang::EnumConstantDecl *Decl);
     bool VisitEnumDecl(clang::EnumDecl *Decl);
     bool VisitFieldDecl(clang::FieldDecl *Decl);
@@ -48,6 +49,7 @@ public:
     bool VisitUsingDirectiveDecl(clang::UsingDirectiveDecl *Decl);
     bool VisitVarDecl(clang::VarDecl *Decl);
     
+    bool VisitExpr(clang::Expr *Expr);
     bool VisitCallExpr(clang::CallExpr *Expr);
     bool VisitDeclRefExpr(clang::DeclRefExpr *Expr);
     bool VisitMemberExpr(clang::MemberExpr *Expr);
