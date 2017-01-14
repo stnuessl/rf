@@ -63,10 +63,10 @@ bool f(const b<T> &lhs, const b<U> &rhs) { return lhs == rhs; };
 template <typename T> struct c;
 template <typename T> struct c<const b<T>> {};
 
-namespace d {
+namespace p {
     int x = 0;
     
-namespace d {
+namespace p {
     int x = 0;
     
 }
@@ -78,10 +78,14 @@ int main(void)
     b<struct b<int>> u;
     
     struct n::a a1 = n::a();
-    n::a a2 = n::a(a0);
     
-    using namespace n;
-    a a3 = a(a());
+    n::a a2 = n::a(a0);
+    using n::a;
+    a a3;
+    
+    namespace o = n;
+    using namespace o;
+    a a4 = a(a());
     
     b<int> b1;
     struct b<double> b2;
@@ -96,8 +100,12 @@ int main(void)
     f(b<decltype(M)>(), b<decltype(N)>());
 #undef M
     
-    d::x = 42;
-    d::d::x = 42;
+    p::x = 42;
+    p::p::x = 42;
+    
+    namespace qq = p::p;
+    using qq::x;
+    x = 0;
     
     return 0;
 }
