@@ -72,14 +72,6 @@ static bool isValidQualifierEnd(Iter Begin, Iter End)
     return false;
 }
 
-static void rCopy(std::string &Str, const clang::StringRef &Ref)
-{
-    auto n = Ref.size();
-    
-    while (n--)
-        Str += Ref[n];
-}
-
 NameRefactorer::NameRefactorer()
     : Refactorer(),
       _Victim(),
@@ -351,10 +343,11 @@ bool NameRefactorer::isVictimLocation(const clang::SourceLocation Loc)
     if (_VictimLoc.isValid())
         return _VictimLoc == Loc;
     
-    auto &SM = _CompilerInstance->getSourceManager();
+    const auto &SM = _CompilerInstance->getSourceManager();
+    auto FullLoc = clang::FullSourceLoc(Loc, SM);
     bool Invalid;
     
-    auto Line = SM.getSpellingLineNumber(Loc, &Invalid);
+    auto Line = FullLoc.getSpellingLineNumber(&Invalid);
     if (Invalid) {
         llvm::errs() << cl::Error()
                      << "failed to retrieve line number for declaration \"" 
@@ -368,7 +361,7 @@ bool NameRefactorer::isVictimLocation(const clang::SourceLocation Loc)
     if (!_Column)
         return true;
     
-    auto Column = SM.getSpellingColumnNumber(Loc, &Invalid);
+    auto Column = FullLoc.getSpellingColumnNumber(&Invalid);
     if (Invalid) {
         llvm::errs() << cl::Error() 
                      << "failed to retrieve column number for declaration \"" 
@@ -394,16 +387,18 @@ NameRefactorer::qualifiedName(const clang::NamedDecl *NamedDecl)
      */
     
     _Buffer.clear();
+    auto dest = std::back_inserter(_Buffer);
+    auto Name = NamedDecl->getName();
     
-    rCopy(_Buffer, NamedDecl->getName());
+    std::reverse_copy(Name.begin(), Name.end(), dest);
     _Buffer += "::";
     
     auto Context = NamedDecl->getDeclContext();
-    
     while (Context) {
         NamedDecl = clang::dyn_cast<clang::NamedDecl>(Context);
         if (NamedDecl) {
-            rCopy(_Buffer, NamedDecl->getName());
+            Name = NamedDecl->getName();
+            std::reverse_copy(Name.begin(), Name.end(), dest);
             _Buffer += "::";
         }
         

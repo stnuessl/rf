@@ -22,6 +22,17 @@
 
 #include <util/CommandLine.hpp>
 
+static bool overrides(const clang::CXXMethodDecl *Decl)
+{
+    return !!Decl->size_overridden_methods();
+}
+
+static bool overrides(const clang::FunctionDecl *Decl)
+{
+    auto MethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(Decl);
+    return (MethodDecl) ? overrides(MethodDecl) : false;
+}
+
 void FunctionRefactorer::visitCallExpr(const clang::CallExpr *Expr)
 {
     /*
@@ -33,7 +44,7 @@ void FunctionRefactorer::visitCallExpr(const clang::CallExpr *Expr)
     if (!FuncDecl)
         return;
     
-    if (isVictim(FuncDecl) || overridesVictim(FuncDecl))
+    if (isVictim(FuncDecl))
         addReplacement(Expr->getCallee()->getExprLoc());
 }
 
@@ -54,22 +65,28 @@ void FunctionRefactorer::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
     if (!FuncDecl)
         return;
     
-    if (isVictim(FuncDecl) || overridesVictim(FuncDecl))
+    if (isVictim(FuncDecl))
         addReplacement(Expr->getNameInfo().getLoc());
 }
 
 void FunctionRefactorer::visitFunctionDecl(const clang::FunctionDecl *Decl)
 {
-    if (isVictim(Decl) || overridesVictim(Decl))
+    if (isVictim(Decl))
         addReplacement(Decl->getLocation());
 }
 
 bool FunctionRefactorer::isVictim(const clang::FunctionDecl *Decl)
 {
-    if (!NameRefactorer::isVictim(Decl))
-        return false;
+    /* 
+     * We need to roll our own 'isVictim()' function here as we need to
+     * automatically detect derived and overridden methods to change
+     * them accordingly. Also, we want to avoid refactoring if the current 
+     * function is a victim and overrides another function as this may alter
+     * the behaviour of the program.
+     */
     
-    if (overrides(Decl) && !_Force) {
+    bool isVictimDecl = NameRefactorer::isVictim(Decl);
+    if (isVictimDecl && overrides(Decl) && !_Force) {
         auto MethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(Decl);
         
         auto Begin = MethodDecl->begin_overridden_methods();
@@ -85,37 +102,46 @@ bool FunctionRefactorer::isVictim(const clang::FunctionDecl *Decl)
         std::exit(EXIT_FAILURE);
     }
     
-    return true;
+    /*
+     * Basically, if '_Force' is true the user can refactor methods which
+     * override another function. In this case we don't want to refactor
+     * methods further down the class hierarchy.
+     */
+    return isVictimDecl || (!_Force && overridesVictim(Decl));
 }
 
 bool FunctionRefactorer::overridesVictim(const clang::CXXMethodDecl *Decl)
 {
+    /* 
+     * Check if 'Decl' is the victim. If not walk up the (possible) class 
+     * hierarchy and check each overridden method if it is the  victim.
+     * This is needed to ensure that all cases like in the following 
+     * example are detected properly.
+     * 
+     *      class a { virtual void run() {} };
+     *                             ^(1)
+     *      class b : public a { virtual void run() override {} };
+     *                                        ^(2)
+     *      class c : public b { virtual void run() override {} };
+     *                                        ^(3)
+     *      ...
+     *      
+     * Command: $ rf --function a::run=process
+     */
+    
     auto Begin = Decl->begin_overridden_methods();
     auto End = Decl->end_overridden_methods();
+
+    const auto isVictimFunc = [this](const clang::CXXMethodDecl *Decl) {
+        return this->isVictim(Decl) || this->overridesVictim(Decl);
+    };
     
-    for (auto It = Begin; It != End; ++It) {
-        if (isVictim(*It))
-            return true;
-    }
-    
-    return false;
+    return std::any_of(Begin, End, isVictimFunc);
 }
 
 bool FunctionRefactorer::overridesVictim(const clang::FunctionDecl *Decl)
 {
     auto MethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(Decl);
     return (MethodDecl) ? overridesVictim(MethodDecl) : false;
-}
-
-
-bool FunctionRefactorer::overrides(const clang::CXXMethodDecl *Decl)
-{
-    return !!Decl->size_overridden_methods();
-}
-
-bool FunctionRefactorer::overrides(const clang::FunctionDecl *Decl)
-{
-    auto MethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(Decl);
-    return (MethodDecl) ? overrides(MethodDecl) : false;
 }
 

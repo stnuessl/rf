@@ -28,13 +28,11 @@ public:
     virtual void visitCallExpr(const clang::CallExpr *Expr) override;
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr) override;
     virtual void visitFunctionDecl(const clang::FunctionDecl *Decl) override;
+
 private:
     bool isVictim(const clang::FunctionDecl *Decl);
     bool overridesVictim(const clang::CXXMethodDecl *Decl);
     bool overridesVictim(const clang::FunctionDecl *Decl);
-    
-    static bool overrides(const clang::CXXMethodDecl *Decl);
-    static bool overrides(const clang::FunctionDecl *Decl);
 };
 
 
