@@ -30,32 +30,53 @@
 class PPCallbackDispatcher : public clang::PPCallbacks {
 public:
     void setRefactorers(Refactorers *Refactorers);
-    
-    virtual void InclusionDirective(clang::SourceLocation LocBegin, 
-                                    const clang::Token &Token, 
-                                    llvm::StringRef FileName, 
-                                    bool isAngled, 
-                                    clang::CharSourceRange NameRange, 
-                                    const clang::FileEntry* File, 
-                                    llvm::StringRef SearchPath, 
-                                    llvm::StringRef RelativePath, 
-                                    const clang::Module* Module) override;
-                            
+
+    virtual void InclusionDirective(clang::SourceLocation LocBegin,
+                                    const clang::Token &Token,
+                                    llvm::StringRef FileName,
+                                    bool isAngled,
+                                    clang::CharSourceRange NameRange,
+                                    const clang::FileEntry *File,
+                                    llvm::StringRef SearchPath,
+                                    llvm::StringRef RelativePath,
+                                    const clang::Module *Module) override;
+
     virtual void FileSkipped(const clang::FileEntry &SkippedFile,
                              const clang::Token &FileNameToken,
                              clang::SrcMgr::CharacteristicKind Kind) override;
-    
+
     virtual void MacroExpands(const clang::Token &Token,
                               const clang::MacroDefinition &MacroDef,
                               clang::SourceRange Range,
                               const clang::MacroArgs *Args) override;
-                              
-    virtual void MacroDefined(const clang::Token &MacroName, 
+
+    virtual void MacroDefined(const clang::Token &MacroName,
                               const clang::MacroDirective *MD) override;
-    
-    virtual void MacroUndefined(const clang::Token &MacroName, 
+
+    virtual void MacroUndefined(const clang::Token &MacroName,
                                 const clang::MacroDefinition &MD) override;
     
+    virtual void Defined(const clang::Token &MacroNameTok, 
+                         const clang::MacroDefinition &MD, 
+                         clang::SourceRange Range) override;
+
+    virtual void If(clang::SourceLocation Loc, 
+                    clang::SourceRange ConditionRange,
+                    clang::PPCallbacks::ConditionValueKind ValueKind) override;
+    
+    virtual void Elif(clang::SourceLocation Loc, 
+                      clang::SourceRange ConditionRange, 
+                      clang::PPCallbacks::ConditionValueKind Kind, 
+                      clang::SourceLocation IfLoc) override;
+
+    virtual void Ifdef(clang::SourceLocation Loc,
+                       const clang::Token &MacroNameTok,
+                       const clang::MacroDefinition &MD) override;
+
+    virtual void Ifndef(clang::SourceLocation Loc,
+                        const clang::Token &MacroNameTok,
+                        const clang::MacroDefinition &MD) override;
+
 private:
     Refactorers *_Refactorers;
 };

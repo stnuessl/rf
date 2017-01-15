@@ -74,3 +74,44 @@ void PPCallbackDispatcher::MacroUndefined(const clang::Token &MacroName,
         Refactorer->MacroUndefined(MacroName, MD);
 }
 
+void PPCallbackDispatcher::Defined(const clang::Token &MacroNameTok, 
+                                   const clang::MacroDefinition &MD, 
+                                   clang::SourceRange Range)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->Defined(MacroNameTok, MD, Range);
+}
+
+
+void PPCallbackDispatcher::If(clang::SourceLocation Loc, 
+                              clang::SourceRange ConditionRange, 
+                              clang::PPCallbacks::ConditionValueKind ValueKind)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->If(Loc, ConditionRange, ValueKind);
+}
+
+void PPCallbackDispatcher::Elif(clang::SourceLocation Loc, 
+                                clang::SourceRange ConditionRange, 
+                                clang::PPCallbacks::ConditionValueKind Kind, 
+                                clang::SourceLocation IfLoc)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->Elif(Loc, ConditionRange, Kind, IfLoc);
+}
+
+void PPCallbackDispatcher::Ifdef(clang::SourceLocation Loc, 
+                                 const clang::Token &MacroNameTok, 
+                                 const clang::MacroDefinition &MD)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->Ifdef(Loc, MacroNameTok, MD);
+}
+
+void PPCallbackDispatcher::Ifndef(clang::SourceLocation Loc, 
+                                  const clang::Token &MacroNameTok, 
+                                  const clang::MacroDefinition &MD)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->Ifndef(Loc, MacroNameTok, MD);
+}

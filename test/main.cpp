@@ -19,7 +19,11 @@
  */
 
 #define M 100
-#define N (M)
+#if defined(M)
+    #define N (M)
+#else
+    #define N 100
+#endif
 
 namespace n {
 struct a {
@@ -90,7 +94,9 @@ int main(void)
     b<int> b1;
     struct b<double> b2;
     
+#ifdef M
     (void) f(b1, b2);
+#endif
     
     typedef b<n::a> ba;
     ba ba0 = ba();

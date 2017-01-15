@@ -39,11 +39,25 @@ public:
     
     virtual void MacroUndefined(const clang::Token &MacroName, 
                                 const clang::MacroDefinition &MD) override;
+    
+    virtual void Defined(const clang::Token &MacroName, 
+                         const clang::MacroDefinition &MD, 
+                         clang::SourceRange Range) override;
+        
+    virtual void Ifdef(clang::SourceLocation Loc, 
+                       const clang::Token &MacroName, 
+                       const clang::MacroDefinition &MD) override;
+    
+    virtual void Ifndef(clang::SourceLocation Loc, 
+                        const clang::Token &MacroName, 
+                        const clang::MacroDefinition &MD) override;
                                 
 private:
+    void process(const clang::Token &MacroName, 
+                 const clang::MacroDefinition &MD);
+    
     bool isVictim(const clang::Token &MacroName, 
                   const clang::MacroDefinition &MD);
-    
     bool isVictim(const clang::Token &MacroName, 
                   const clang::MacroDirective *MD);
 };
