@@ -42,11 +42,13 @@ public:
     bool VisitEnumDecl(clang::EnumDecl *Decl);
     bool VisitFieldDecl(clang::FieldDecl *Decl);
     bool VisitFunctionDecl(clang::FunctionDecl *Decl);
+    bool VisitNamespaceAliasDecl(clang::NamespaceAliasDecl *Decl);
     bool VisitNamespaceDecl(clang::NamespaceDecl *Decl);
     bool VisitRecordDecl(clang::RecordDecl *Decl);
     bool VisitTypedefNameDecl(clang::TypedefNameDecl *Decl);
     bool VisitUsingDecl(clang::UsingDecl *Decl);
     bool VisitUsingDirectiveDecl(clang::UsingDirectiveDecl *Decl);
+    bool VisitUsingShadowDecl(clang::UsingShadowDecl *Decl);
     bool VisitVarDecl(clang::VarDecl *Decl);
     
     bool VisitExpr(clang::Expr *Expr);

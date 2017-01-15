@@ -28,13 +28,15 @@ MD5BIN=$(md5sum main | cut -f1 -d " ");
 rf --tag n::a=aa,b=bb,c=cc,main::ba=baba                \
     --function f=ff                                     \
     --macro M=MM                                        \
-    --namespace n=m; 
+    --namespace n=nn,p=pp,p::p=pp,main::o=oo            \
+    --variable p::p::x=xx;
 rf --syntax-only;
 g++ -Wall -std=c++11 -o main main.cpp
-rf --tag m::aa=a,bb=b,cc=c,main::baba=ba                \
+rf --tag nn::aa=a,bb=b,cc=c,main::baba=ba               \
     --function ff=f                                     \
     --macro MM=M                                        \
-    --namespace m=n; 
+    --namespace nn=n,pp=p,pp::pp=p,main::oo=o           \
+    --variable pp::pp::xx=x;
 rf --syntax-only;
 
 if [ "$MD5FILE" != "$(md5sum main.cpp | cut -f1 -d " ")" ]; then

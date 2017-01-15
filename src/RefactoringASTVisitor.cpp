@@ -106,6 +106,15 @@ bool RefactoringASTVisitor::VisitFunctionDecl(clang::FunctionDecl *Decl)
     return true;
 }
 
+bool 
+RefactoringASTVisitor::VisitNamespaceAliasDecl(clang::NamespaceAliasDecl *Decl)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->visitNamespaceAliasDecl(Decl);
+    
+    return true;
+}
+
 bool RefactoringASTVisitor::VisitNamespaceDecl(clang::NamespaceDecl *Decl)
 {
     for (auto &Refactorer : *_Refactorers)
@@ -147,6 +156,15 @@ RefactoringASTVisitor::VisitUsingDirectiveDecl(clang::UsingDirectiveDecl *Decl)
     
     return true;
 }
+
+bool RefactoringASTVisitor::VisitUsingShadowDecl(clang::UsingShadowDecl *Decl)
+{
+    for (auto &Refactorer : *_Refactorers)
+        Refactorer->visitUsingShadowDecl(Decl);
+    
+    return true;
+}
+
 
 bool RefactoringASTVisitor::VisitVarDecl(clang::VarDecl *Decl)
 {

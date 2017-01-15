@@ -26,12 +26,12 @@
 class TagRefactorer : public NameRefactorer {
 public:
     virtual void visitEnumDecl(const clang::EnumDecl *Decl) override;
-    virtual void 
-    visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl) override;
-    
+    virtual void visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl) 
+        override;
     virtual void visitRecordDecl(const clang::RecordDecl *Decl) override;
-    virtual void 
-    visitTypedefNameDecl(const clang::TypedefNameDecl *Decl) override;
+    virtual void visitTypedefNameDecl(const clang::TypedefNameDecl *Decl) 
+        override;
+    virtual void visitUsingDecl(const clang::UsingDecl *Decl) override;
     
     virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc) override;
 };

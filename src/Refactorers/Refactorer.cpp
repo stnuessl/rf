@@ -126,6 +126,11 @@ void Refactorer::visitFunctionDecl(const clang::FunctionDecl *Decl)
     (void) Decl;
 }
 
+void Refactorer::visitNamespaceAliasDecl(const clang::NamespaceAliasDecl *Decl)
+{
+    (void) Decl;
+}
+
 void Refactorer::visitNamespaceDecl(const clang::NamespaceDecl *Decl)
 {
     (void) Decl;
@@ -148,6 +153,11 @@ void Refactorer::visitUsingDecl(const clang::UsingDecl *Decl)
 
 void 
 Refactorer::visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl)
+{
+    (void) Decl;
+}
+
+void Refactorer::visitUsingShadowDecl(const clang::UsingShadowDecl *Decl)
 {
     (void) Decl;
 }

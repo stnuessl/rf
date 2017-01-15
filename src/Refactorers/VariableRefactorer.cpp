@@ -20,6 +20,7 @@
 
 #include <Refactorers/VariableRefactorer.hpp>
 
+
 void VariableRefactorer::visitCXXConstructorDecl(
     const clang::CXXConstructorDecl *Decl)
 {
@@ -35,6 +36,30 @@ void VariableRefactorer::visitCXXConstructorDecl(
             continue;
         
         addReplacement(Init->getSourceLocation());
+    }
+}
+
+void VariableRefactorer::visitUsingDecl(const clang::UsingDecl *Decl)
+{
+    /*
+     * This function handles the following case:
+     *      namespace n { int x; }
+     * 
+     *      void f() { using n::x; x = 0; }
+     *                          ^(1)
+     * 
+     * The 'using n::x' creates a 'UsingShadowDecl' which references a
+     * possible 'VarDecl'.
+     */
+    
+    for (const auto &SDecl : Decl->shadows()) {
+        auto NamedDecl = SDecl->getUnderlyingDecl();
+        auto VarDecl = clang::dyn_cast<clang::VarDecl>(NamedDecl);
+        
+        if (VarDecl && isVictim(VarDecl)) {
+            addReplacement(Decl->getLocation());
+            break;
+        }
     }
 }
 
@@ -70,4 +95,3 @@ void VariableRefactorer::visitMemberExpr(const clang::MemberExpr *Expr)
     
     addReplacement(Expr->getMemberLoc());
 }
-

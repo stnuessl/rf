@@ -28,6 +28,7 @@ public:
     virtual void visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl) 
         override;
     
+    virtual void visitUsingDecl(const clang::UsingDecl *Decl) override;
     virtual void visitFieldDecl(const clang::FieldDecl *Decl) override;
     virtual void visitVarDecl(const clang::VarDecl *Decl) override;
     

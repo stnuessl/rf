@@ -248,7 +248,7 @@ static void add(Refactorers &Refactorers,
 
 #define RF_VERSION_MAJOR "1"
 #define RF_VERSION_MINOR "0"
-#define RF_VERSION_PATCH "0"
+#define RF_VERSION_PATCH "1"
 #define RF_VERSION_INFO                                                        \
     RF_VERSION_MAJOR "." RF_VERSION_MINOR "." RF_VERSION_PATCH
 

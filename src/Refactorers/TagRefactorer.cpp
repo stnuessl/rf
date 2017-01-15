@@ -76,6 +76,26 @@ void TagRefactorer::visitTypedefNameDecl(const clang::TypedefNameDecl *Decl)
     addReplacement(Decl->getLocation());
 }
 
+void TagRefactorer::visitUsingDecl(const clang::UsingDecl *Decl)
+{
+    /* 
+     * This handles using declarations like:
+     *      namespace n { struct s {}; }
+     *      
+     *      void f() { using n::s; s var; }
+     *                          ^(1)
+     */
+    for (const auto &UsingShadowDecl : Decl->shadows()) {
+        auto NamedDecl = UsingShadowDecl->getUnderlyingDecl();
+        auto TagDecl = clang::dyn_cast<clang::TagDecl>(NamedDecl);
+        
+        if (TagDecl && isVictim(TagDecl)) {
+            addReplacement(Decl->getLocation());
+            break;
+        }
+    }
+}
+
 void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
 {
     auto Type = TypeLoc.getType();
