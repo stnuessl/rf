@@ -139,7 +139,6 @@ LIBS		:= \
 		-Wl,--start-group					\
 		-lclangAnalysis 					\
 		-lclangAST 						\
-		-lclangASTMatchers					\
 		-lclangBasic						\
 		-lclangDriver 						\
 		-lclangEdit 						\
@@ -157,6 +156,7 @@ LIBS		:= \
 		-Wl,--end-group						\
 		$(shell llvm-config --libs)				\
 		$(shell llvm-config --system-libs)			\
+# 		-lclangASTMatchers					\
 # 		-lclangARCMigrate 					\
 # 		-lclangStaticAnalyzerCheckers				\
 # 		-lclangStaticAnalyzerFrontend 				\
