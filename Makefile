@@ -274,12 +274,16 @@ $(OBJS): | $(DIRS)
 $(DIRS):
 	mkdir -p $(DIRS)
 
+#
+# A part of $(CPPFLAGS) is dependent on the target ("$@") and therefore
+# not valid within this rule. mk-jcdb.py will clean up those flags and
+# if applicable their arguments.
+#
 compile-commands: $(SRC)
-	@python utils/make-jcdb.py 					\
-	  -s $(SRC) 							\
-	  -c "$(CXX) -c $(filter-out $@ -M%,$(CPPFLAGS)) $(CXXFLAGS)"	\
-	  -d $$(pwd) 							\
-	  --pretty > compile_commands.json
+	@python utils/make-jcdb.py					\
+		--command "$(CXX) -c $(CPPFLAGS) $(CXXFLAGS)"		\
+		--discard-dependency-generation				\
+		-- $(SRC) > compile_commands.json
 
 clean:
 	rm -rf $(TARGET) $(DIRS) compile_commands.json
