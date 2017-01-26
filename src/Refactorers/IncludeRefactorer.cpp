@@ -70,7 +70,7 @@ void IncludeRefactorer::FileSkipped(const clang::FileEntry &SkippedFile,
     /*
      * Remove Source Locations which cannot possible achieve a hit
      * in the Vistitor code below since they were included twice
-     * (only the first include will be hitted).
+     * (only the first include will be hit).
      */
     (void) Kind;
     
@@ -357,10 +357,6 @@ void IncludeRefactorer::removeUsedIncludes(unsigned int IncludingUID,
         IncludedLoc = SM.getExpansionRange(IncludedLoc).first;
     
     while (IncludedLoc.isValid() && !_IncludeMap.empty()) {
-//         IncludedLoc.dump(SM);
-//         llvm::errs() << "\n";
-//         
-//         
         unsigned int IncludedUID;
         bool Ok;
         
@@ -408,6 +404,7 @@ void IncludeRefactorer::addReplacement(const clang::SourceRange Range)
     auto BeginInfo = SM.getDecomposedLoc(Begin);
     auto EndInfo = SM.getDecomposedLoc(Range.getEnd());
     
+    /* Safety check: FileID's have to be equal */
     if (BeginInfo.first != EndInfo.first)
         return;
     
