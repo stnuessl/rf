@@ -20,6 +20,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+python ../utils/make-jcdb.py                            \
+            --command "g++ -std=c++11 -o main"          \
+            --raw                                       \
+            -- "main.cpp"                               \
+            > compile_commands.json;
+
 MD5FILE=$(md5sum main.cpp | cut -f1 -d " ");
 g++ -Wall -std=c++11 -o main main.cpp;
 MD5BIN=$(md5sum main | cut -f1 -d " ");

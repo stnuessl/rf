@@ -282,7 +282,9 @@ $(DIRS):
 compile-commands: $(SRC)
 	@python utils/make-jcdb.py					\
 		--command "$(CXX) -c $(CPPFLAGS) $(CXXFLAGS)"		\
-		--discard-dependency-generation				\
+		--add-clang-include					\
+		--add Wno-unknown-warning-option			\
+		--discard MMD "MF $(patsubst %.o,%.d,$@)" "MT $@"	\
 		-- $(SRC) > compile_commands.json
 
 clean:

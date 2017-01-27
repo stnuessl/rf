@@ -43,56 +43,28 @@ def process_command(args):
         return args.command
     
     arg_list = args.command.split(' ')
-        
-    # Filter empty entries
-    arg_list = filter(lambda x: x != '', arg_list)
     
     # Remove duplicates
     seen = set()
     arg_list = [x for x in arg_list if not (x in seen or seen.add(x))]
     
-    #
-    # Add '-Wno-unknown-warning-option' to avoid the clang output:
-    #       warning: unknown warning option '-Wno-maybe-uninitialized'; 
-    #       did you mean '-Wno-uninitialized'? [-Wunknown-warning-option]
-    # which clutters the output as it is printed for each translation unit
-    #
-    arg_list.append('-Wno-unknown-warning-option')
-    
     # Add clang include path
-    arg_list.append('-I{}'.format(clang_include_directory()))
-    
-    def prepend_dashes(l):
-        return list(map(lambda x: '-{}'.format(x), l))
-    
-    # Add additional passed flags 
-    if args.add != None:
-        arg_list = arg_list + prepend_dashes(args.add)
-
-    # Remove passed flags
-    if args.discard != None:
-        discard = prepend_dashes(args.discard)
-        arg_list = filter(lambda x: x not in discard, arg_list)
+    if args.add_clang_include:
+        arg_list.append('-I{}'.format(clang_include_directory()))
     
     # Create one big string again
     command = ' '.join(arg_list)
-
-    if args.discard_dependency_generation:
-        '''
-        Remove dependency output flags:
-            This are commands I found:
-                -M -MD -MF -MG -MM -MMD -MP -MQ -MT
-            However, these commands have an additional argument:
-                -MF -MQ -MT
-        '''
-        pattern = r'-M([DGP]|M?D?|[FQT]\s+[^\s]*)\b\s*'
-        command = re.sub(pattern, '', command)
+    
+    # Add and remove additional passed flags 
+    if args.add != None:
+        add_list = list(map(lambda x: '-{}'.format(x), args.add));
+        command = command + ' ' + ' '.join(add_list)
+    
+    if args.discard != None:
+        discard_list = list(map(lambda x: '-{}'.format(x), args.discard))
         
-    if args.discard_optimization_levels:
-        command = re.sub(r'-O([0-3]|s|g|fast)?\b\s*', '', command)
-        
-    if args.discard_debugging_levels:
-        command = re.sub(r'-g([0-3]|gdb)?\b\s*', '', command)
+        for x in discard_list:
+            command = command.replace(x, '')
     
     # Remove remove consecutive spaces
     return re.sub(r' +', ' ', command)
@@ -123,27 +95,20 @@ def main():
                         action='store_true',
                         help=('Do use the raw input to create the compilation '
                         'database. By default this tool tries to sanitize the '
-                        'commands so they work on a system where clang is not '
-                        'the default compiler. Ignores all other command '
-                        'changing flags.'))
-    parser.add_argument('--discard-dependency-generation',
-                        default=False,
-                        action='store_true',
-                        help=('Discards dependency generation arguments '
-                              '(-M, -MT, etc.) from the compilation command'))
-    parser.add_argument('--discard-optimization-levels',
-                        default=False,
-                        action='store_true',
-                        help=('Discards optimization levels, like e.g. -O2.'))
-    parser.add_argument('--discard-debugging-levels',
-                        default=False,
-                        action='store_true',
-                        help=('Discards debugging levels, like e.g. -g3.'))
+                        'commands. Ignores all other command changing flags '
+                        '(e.g. --add / --discard).'))
     parser.add_argument('--add',
                         metavar='<flag>',
                         nargs='+',
                         help=('Add additional compilation flags to the compile '
                         'command. Omit leading dashes.'))
+    parser.add_argument('--add-clang-include',
+                        default=False,
+                        action='store_true',
+                        help=('Add an include directive to the compilation '
+                              'command so the clang frontend will find its '
+                              'builtin header files on systems where clang is '
+                              'not the default compiler.'))
     parser.add_argument('--discard',
                         metavar='<flag>',
                         nargs='+',
