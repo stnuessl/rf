@@ -2,6 +2,7 @@
 # The MIT License (MIT)
 #
 # Copyright (c) <2015> Steffen Nüssle
+# Copyright (c) <2016> Steffen Nüssle
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -44,11 +45,12 @@ endif
 SHELL_COMPL	:= ./bash-completion/rf
 SHELL_COMPL_DIR := /usr/share/bash-completion/completions/
 
-
 #
 # Specify all source files. The paths should be relative to this file.
 #
+# SRC 		:= $(shell find ./ -iname "*.c")
 SRC 		:= $(shell find ./src/ -iname "*.cpp")
+# SRC 		:= $(shell find ./ -iname "*.c" -o -iname "*.cpp")
 
 ifndef SRC
 $(error No source files specified)
@@ -105,8 +107,12 @@ INSTALL_DIR	:= /usr/local/bin/
 # a list of all inhabited directories. 'AUX' is used to prevent file paths
 # like build/objs/./srcdir/
 #
-AUX		:= $(patsubst ./%,%,$(SRC))
-OBJS		:= $(addprefix $(BUILDDIR)/, $(patsubst %.cpp, %.o, $(AUX)))
+AUX		:= $(patsubst ./%, %, $(SRC))
+C_SRC		:= $(filter %.c, $(AUX))
+CXX_SRC		:= $(filter %.cpp, $(AUX))
+C_OBJS		:= $(addprefix $(BUILDDIR)/, $(patsubst %.c, %.o, $(C_SRC)))
+CXX_OBJS	:= $(addprefix $(BUILDDIR)/, $(patsubst %.cpp, %.o, $(CXX_SRC)))
+OBJS		:= $(C_OBJS) $(CXX_OBJS)
 DEPS		:= $(patsubst %.o, %.d, $(OBJS))
 DIRS		:= $(BUILDDIR) $(sort $(dir $(OBJS)))
 
@@ -114,23 +120,19 @@ DIRS		:= $(BUILDDIR) $(sort $(dir $(OBJS)))
 # Add additional preprocessor definitions
 #
 DEFS		:= \
-#		-D_GNU_SOURCE						\
-#		-DNDEBUG						\
+
 
 #
 # Add additional include paths
 #
 INCLUDE		:= \
- 		-I./src							\
+		-I./src							\
 
 #
 # Add used libraries which are configurable with pkg-config
 #
 PKGCONF		:= \
-# 		gstreamer-1.0						\
-# 		gstreamer-pbutils-1.0					\
-# 		libcurl							\
-# 		libxml-2.0						\
+
 
 #
 # Set non-pkg-configurable libraries flags 
@@ -156,16 +158,11 @@ LIBS		:= \
 		-Wl,--end-group						\
 		$(shell llvm-config --libs)				\
 		$(shell llvm-config --system-libs)			\
-# 		-lclangASTMatchers					\
-# 		-lclangARCMigrate 					\
-# 		-lclangStaticAnalyzerCheckers				\
-# 		-lclangStaticAnalyzerFrontend 				\
-# 		-lclangStaticAnalyzerCore 				\
-# 		-lclangCodeGen						\
-# 		-lclangDynamicASTMatchers				\
 
 #
 # Set linker flags, here: 'rpath' for libraries in non-standard directories
+# If '-shared' is specified: '-fpic' or '-fPIC' should be set here 
+# as in the CFLAGS / CXXFLAGS
 #
 LDFLAGS		:= \
 		$(shell llvm-config --ldflags)
@@ -179,38 +176,19 @@ CPPFLAGS	= \
 		-MMD							\
 		-MF $(patsubst %.o,%.d,$@) 				\
 		-MT $@ 							\
-		$(shell llvm-config --cppflags)
 
 #
-# Set additional compiler flags
+# Set compiler flags that you want to be present for every make invocation.
+# Specific flags for release and debug builds can be added later on
+# with target-specific variable values.
 #
 CFLAGS  	:= \
-		-std=c11 						\
-		-Wall							\
-		-Wextra 						\
-		-Werror 						\
-		-Wpedantic						\
-# 		-O2 							\
-# 		-g3							\
-# 		-fno-omit-frame-pointer 				\
-#		-fpic							\
-#		-shared							\
+
 
 CXXFLAGS	:= \
 		-fno-rtti						\
 		$(shell llvm-config --cxxflags)				\
-# 		-std=c++14						\
-# 		-Wall							\
-# 		-Wextra 						\
-# 		-Werror 						\
-# 		-Wpedantic						\
-# 		-Weffc++						\
-# 		-O2 							\
-# 		-g3							\
-# 		-fno-omit-frame-pointer 				\
-#		-fpic							\
-#		-shared							\
-		
+
 #
 # Check if specified pkg-config libraries are available and abort
 # if they are not.
@@ -255,16 +233,49 @@ COLOR_FINISHED	:= $(BOLD_GREEN)
 print 		= @printf "$(1)$(2)$(DEFAULT_COLOR)\n"
 md5sum 		= $$(md5sum $(1) | cut -f1 -d " ")
 
-all: $(TARGET) compile-commands
+
+all: release
+
+#
+# Note that if "-flto" is specified you may want to pass the optimization
+# flags used for compiling to the linker (as done below).
+#
+# Also, if you want to use:
+#	-ffunction-sections
+#	-fdata-sections
+#
+# and the linker option
+#	-Wl,--gc-sections
+#
+# This would be the sane place to do so as it may interfere with debugging.
+#
+
+release: CFLAGS 	+= -flto
+release: CXXFLAGS 	+= -flto
+release: LDFLAGS 	+= -O3 -flto -Wl,--gc-sections
+release: $(TARGET) compile-commands
+
+debug: CFLAGS		+= -Og -g2
+debug: CXXFLAGS 	+= -Og -g2
+debug: $(TARGET) compile-commands
+
+syntax-check: CFLAGS 	+= -fsyntax-only
+syntax-check: CXXFLAGS 	+= -fsyntax-only
+syntax-check: $(OBJS)
 
 $(TARGET): $(OBJS)
 	$(call print,$(COLOR_LINKING),Linking [ $@ ])
+# 	$(SUPP)$(CC) -o $@ $^ $(LDFLAGS) $(LDLIBS)
 	$(SUPP)$(CXX) -o $@ $^ $(LDFLAGS) $(LDLIBS)
 	$(call print,$(COLOR_FINISHED),Built target [ $@ ]: $(call md5sum,$@))
 	
 
 -include $(DEPS)
 
+# $(BUILDDIR)/%.o: %.c
+# 	$(call print,$(COLOR_COMPILING),Building: $@)
+# 	$(SUPP)$(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $<
+	
 $(BUILDDIR)/%.o: %.cpp
 	$(call print,$(COLOR_COMPILING),Building: $@)
 	$(SUPP)$(CXX) -c -o $@ $(CPPFLAGS) $(CXXFLAGS) $<
@@ -297,5 +308,5 @@ install: $(TARGET) $(SHELL_COMPL)
 uninstall:
 	rm -f $(INSTALL_DIR)$(BIN) $(SHELL_COMPL_DIR)$(notdir $(SHELL_COMPL))
 
-.PHONY: all compile-commands clean install uninstall
+.PHONY: all release debug syntax-check compile-commands clean install uninstall
 .SILENT: clean $(DIRS)
