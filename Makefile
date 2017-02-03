@@ -117,12 +117,6 @@ DEPS		:= $(patsubst %.o, %.d, $(OBJS))
 DIRS		:= $(BUILDDIR) $(sort $(dir $(OBJS)))
 
 #
-# Add additional preprocessor definitions
-#
-DEFS		:= \
-
-
-#
 # Add additional include paths
 #
 INCLUDE		:= \
@@ -171,7 +165,6 @@ LDLIBS		:= $(LIBS)
 
 
 CPPFLAGS	= \
-		$(DEFS)							\
 		$(INCLUDE)						\
 		-MMD							\
 		-MF $(patsubst %.o,%.d,$@) 				\
@@ -250,16 +243,17 @@ all: release
 # This would be the sane place to do so as it may interfere with debugging.
 #
 
-release: CFLAGS 	+= -flto
+# release: CPPFLAGS	+= -DNDEBUG
+# release: CFLAGS 	+= -flto
 release: CXXFLAGS 	+= -flto
 release: LDFLAGS 	+= -O3 -flto -Wl,--gc-sections
 release: $(TARGET) compile-commands
 
-debug: CFLAGS		+= -Og -g2
+# debug: CFLAGS		+= -Og -g2
 debug: CXXFLAGS 	+= -Og -g2
 debug: $(TARGET) compile-commands
 
-syntax-check: CFLAGS 	+= -fsyntax-only
+# syntax-check: CFLAGS 	+= -fsyntax-only
 syntax-check: CXXFLAGS 	+= -fsyntax-only
 syntax-check: $(OBJS)
 
