@@ -222,7 +222,11 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
     
     auto Ok = _ReplSet->insert(std::move(Repl)).second;
     if (_Verbose && Ok) {
-        Loc.dump(SM);
-        llvm::errs() << " -- \"" << ReplText << "\"\n";
+        auto File = SM.getFilename(Loc);
+        auto Line = SM.getSpellingLineNumber(Loc);
+        auto Column = SM.getSpellingColumnNumber(Loc);
+        
+        llvm::outs() << "\"" << ReplText << "\" -- " 
+                     << File << ":" << Line << ":" << Column << "\n";
     }
 }

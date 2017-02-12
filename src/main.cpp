@@ -35,6 +35,7 @@
 #include <clang/Tooling/Tooling.h>
 
 #include <llvm/Support/CommandLine.h>
+#include <llvm/Support/YAMLTraits.h>
 
 #include <Refactorers/EnumConstantRefactorer.hpp>
 #include <Refactorers/FunctionRefactorer.hpp>
@@ -44,8 +45,9 @@
 #include <Refactorers/TagRefactorer.hpp>
 #include <Refactorers/VariableRefactorer.hpp>
 
-#include <util/memory.hpp>
 #include <util/CommandLine.hpp>
+#include <util/memory.hpp>
+#include <util/string.hpp>
 
 #include <RefactoringActionFactory.hpp>
 
@@ -176,6 +178,24 @@ static llvm::cl::opt<bool> Verbose(
     llvm::cl::init(false)
 );
 
+static llvm::cl::opt<bool> WriteYAML(
+    "write-yaml",
+    llvm::cl::desc(
+        "Write replacements in YAML format to stdout."
+    ),
+    llvm::cl::cat(ProgramSetupOptions),
+    llvm::cl::init(false)
+);
+
+static llvm::cl::opt<bool> Interactive(
+    "interactive",
+    llvm::cl::desc(
+        "Prompt before applying all replacements."
+    ),
+    llvm::cl::cat(ProgramSetupOptions),
+    llvm::cl::init(false)
+);
+
 static llvm::cl::opt<bool> Force(
     "force",
     llvm::cl::desc(
@@ -219,8 +239,10 @@ makeCompilationDatabase(const std::string &Path, std::string &ErrMsg)
 template<typename T> 
 static void add(Refactorers &Refactorers, 
                 const std::vector<std::string> &ArgVec,
-                clang::tooling::Replacements *Repls)
+                clang::tooling::RefactoringTool *Tool)
 {
+    auto Replacements = &Tool->getReplacements();
+    
     for (const auto &Arg : ArgVec) {
         auto Index = Arg.find('=');
         if (Index == std::string::npos) {
@@ -235,7 +257,7 @@ static void add(Refactorers &Refactorers,
         
         if (Victim != Repl) {
             auto Refactorer = std::make_unique<T>();
-            Refactorer->setReplacements(Repls);
+            Refactorer->setReplacements(Replacements);
             Refactorer->setVerbose(Verbose);
             Refactorer->setForce(Force);
             Refactorer->setVictimQualifier(std::move(Victim));
@@ -244,6 +266,32 @@ static void add(Refactorers &Refactorers,
             Refactorers.push_back(std::move(Refactorer));
         }
     }
+}
+
+LLVM_YAML_IS_SEQUENCE_VECTOR(clang::tooling::Replacement)
+
+namespace llvm {
+namespace yaml {
+    
+template <>
+struct MappingTraits<clang::tooling::Replacement> {
+    static void mapping(IO &IO, clang::tooling::Replacement &Repl)
+    {
+        auto File = Repl.getFilePath().str();
+        auto Offset = Repl.getOffset();
+        auto Length = Repl.getLength();
+        auto Text = Repl.getReplacementText().str();
+        
+        IO.mapRequired("File", File);
+        IO.mapRequired("Offset", Offset);
+        IO.mapRequired("Length", Length);
+        IO.mapRequired("Text", Text);
+        
+        Repl = clang::tooling::Replacement(File, Offset, Length, Text);
+    }
+};
+
+}
 }
 
 #define RF_VERSION_MAJOR "1"
@@ -273,8 +321,8 @@ int main(int argc, const char **argv)
     llvm::cl::HideUnrelatedOptions(OptionCategories);
     
     const auto print_version = []() {
-        std::cout << "rf version: " << RF_VERSION_INFO << " - "
-                  << RF_HOMEPAGE_URL << "\n" << RF_LICENSE_INFO << "\n";
+        llvm::outs() << "rf version: " << RF_VERSION_INFO << " - "
+                     << RF_HOMEPAGE_URL << "\n" << RF_LICENSE_INFO << "\n";
     };
     
     llvm::cl::SetVersionPrinter(print_version);
@@ -292,8 +340,8 @@ int main(int argc, const char **argv)
     
 #ifdef __unix__
     if (!AllowRoot && getuid() == 0) {
-        std::cerr << cl::Error() 
-                  << "running on root privileges - aborting...\n";
+        llvm::errs() << cl::Error() 
+                     << "running on root privileges - aborting...\n";
         std::exit(EXIT_FAILURE);
     }
 #endif
@@ -301,7 +349,7 @@ int main(int argc, const char **argv)
     auto ErrMsg = std::string();
     auto CompilationDB = makeCompilationDatabase(CompileCommandsPath, ErrMsg);
     if (!CompilationDB) {
-        std::cerr << cl::Error() << ErrMsg << "\n";
+        llvm::errs() << cl::Error() << ErrMsg << "\n";
         std::exit(EXIT_FAILURE);
     }
 
@@ -320,18 +368,19 @@ int main(int argc, const char **argv)
     auto Refactorers = ::Refactorers();
     
     RefactoringTool Tool(*CompilationDB, SourceFiles);
-    auto Repls = &Tool.getReplacements();
     
-    add<EnumConstantRefactorer>(Refactorers, EnumConstantVec, Repls);
-    add<FunctionRefactorer>(Refactorers, FunctionVec, Repls);
-    add<MacroRefactorer>(Refactorers, MacroVec, Repls);
-    add<NamespaceRefactorer>(Refactorers, NamespaceVec, Repls);
-    add<TagRefactorer>(Refactorers, TagVec, Repls);
-    add<VariableRefactorer>(Refactorers, VarVec, Repls);
+    add<EnumConstantRefactorer>(Refactorers, EnumConstantVec, &Tool);
+    add<FunctionRefactorer>(Refactorers, FunctionVec, &Tool);
+    add<MacroRefactorer>(Refactorers, MacroVec, &Tool);
+    add<NamespaceRefactorer>(Refactorers, NamespaceVec, &Tool);
+    add<TagRefactorer>(Refactorers, TagVec, &Tool);
+    add<VariableRefactorer>(Refactorers, VarVec, &Tool);
     
     if (SanitizeIncludes) {
+        auto Replacements = &Tool.getReplacements();
+        
         auto Refactorer = std::make_unique<IncludeRefactorer>();
-        Refactorer->setReplacements(Repls);
+        Refactorer->setReplacements(Replacements);
         Refactorer->setVerbose(Verbose);
         Refactorer->setForce(Force);
         
@@ -344,44 +393,80 @@ int main(int argc, const char **argv)
         
         int err = Tool.run(Factory.get());
         if (err) {
-            std::cerr << cl::Error() 
-                      << "found syntax error(s) while refactoring\n";
+            llvm::errs() << cl::Error() 
+                         << "found syntax error(s) while refactoring\n";
             
             if (!Force) {
-                std::cerr << cl::Info() << "use \"--force\" to override\n";
+                llvm::errs() << cl::Info() << "use \"--force\" to override\n";
                 std::exit(EXIT_FAILURE);
             }
         }
     }
     
-    if (!DryRun) {
-        if (Tool.getReplacements().empty()) {
-            std::cerr << cl::Info() << "no replacements found - done\n";
+    if (Tool.getReplacements().empty()) {
+        llvm::errs() << cl::Info() << "no replacements found - done\n";
+        std::exit(EXIT_SUCCESS);
+    }
+        
+    if (WriteYAML) {
+        llvm::yaml::Output YAMLOut(llvm::outs());
+        
+        auto Repls = Tool.getReplacements();
+        auto Begin = Repls.begin();
+        auto End = Repls.end();
+        auto ReplVec = std::vector<clang::tooling::Replacement>(Begin, End);
+        
+        YAMLOut << ReplVec;
+    }
+
+    if (DryRun)
+        std::exit(EXIT_SUCCESS);
+    
+    if (Interactive && llvm::outs().is_displayed()) {
+        std::string Response;
+        
+        llvm::outs().changeColor(llvm::raw_ostream::WHITE, true);
+        llvm::outs() << ":: Apply all replacements? [y/N]: ";
+        llvm::outs().resetColor();
+        
+        std::getline(std::cin, Response);
+        
+        util::string::trim(Response);
+        util::string::to_lower(Response);
+        
+        if (Response.empty() || Response[0] == 'n' || Response == "no")
             std::exit(EXIT_SUCCESS);
-        }
         
-        IntrusiveRefCntPtr<DiagnosticOptions> Opts = new DiagnosticOptions();
-        IntrusiveRefCntPtr<DiagnosticIDs> Id = new DiagnosticIDs();
-        
-        TextDiagnosticPrinter Printer(llvm::errs(), &*Opts);
-        DiagnosticsEngine Diagnostics(Id, &*Opts, &Printer, false);
-        SourceManager SM(Diagnostics, Tool.getFiles());
-        LangOptions LangOpts;
-        
-        Rewriter Rewriter(SM, LangOpts);
-        
-        bool ok = Tool.applyAllReplacements(Rewriter);
-        if (!ok) {
-            std::cerr << cl::Error() << "failed to apply all replacements\n";
-            std::exit(EXIT_FAILURE);
-        }
-        
-        bool err = Rewriter.overwriteChangedFiles();
-        if (err) {
-            std::cerr << cl::Error() << "failed to save changes to disk\n";
+        if (Response[0] != 'y' && Response != "yes") {
+            llvm::errs() << cl::Error() 
+                         << "invalid input \"" << Response << "\" - " 
+                         << "discarding all replacements\n";
+                         
             std::exit(EXIT_FAILURE);
         }
     }
         
+    IntrusiveRefCntPtr<DiagnosticOptions> Opts = new DiagnosticOptions();
+    IntrusiveRefCntPtr<DiagnosticIDs> Id = new DiagnosticIDs();
+    
+    TextDiagnosticPrinter Printer(llvm::errs(), &*Opts);
+    DiagnosticsEngine Diagnostics(Id, &*Opts, &Printer, false);
+    SourceManager SM(Diagnostics, Tool.getFiles());
+    LangOptions LangOpts;
+    
+    Rewriter Rewriter(SM, LangOpts);
+    
+    bool ok = Tool.applyAllReplacements(Rewriter);
+    if (!ok) {
+        std::cerr << cl::Error() << "failed to apply all replacements\n";
+        std::exit(EXIT_FAILURE);
+    }
+    
+    bool err = Rewriter.overwriteChangedFiles();
+    if (err) {
+        std::cerr << cl::Error() << "failed to save changes to disk\n";
+        std::exit(EXIT_FAILURE);
+    }
+
     return EXIT_SUCCESS;
 }
