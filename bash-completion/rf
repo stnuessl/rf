@@ -26,25 +26,25 @@ _rf()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
     opts="--allow-root
-          --enum-constant
           --commands 
           --dry-run
-          --export-replacements
+          --enum-constant
+          --export
           --force 
-          --function
           --from-file
+          --function
           --help
-          --import-replacements
+          --import
           --interactive
           --macro
           --namespace 
           --sanitize-includes
           --syntax-only
-          --tag 
+          --tag
           --variable
           --verbose
           --version
-          --yaml-template"
+          --to-yaml"
 
     case "${cur}" in 
         -*)

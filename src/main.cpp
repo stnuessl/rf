@@ -60,92 +60,16 @@ static llvm::cl::extrahelp HelpText(
     "refactoring it !!\n\n"
 );
 
-static llvm::cl::list<std::string> EnumConstantArgs(
-    "enum-constant",
+#ifdef __unix__
+static llvm::cl::opt<bool> AllowRoot(
+    "allow-root",
     llvm::cl::desc(
-        "Refactor an enumeration constant."
-    ),
-    llvm::cl::value_desc("victim=repl"),
-    llvm::cl::CommaSeparated,
-    llvm::cl::cat(RefactoringOptions)
-);
-
-static llvm::cl::list<std::string> FunctionArgs(
-    "function",
-    llvm::cl::desc(
-        "Refactor a function or class method name."
-    ),
-    llvm::cl::value_desc("victim=repl"),
-    llvm::cl::CommaSeparated,
-    llvm::cl::cat(RefactoringOptions)
-);
-
-/* 'MacroArgs' is ambiguous if used in namespace 'clang' */
-static llvm::cl::list<std::string> PPMacroArgs(
-    "macro",
-    llvm::cl::desc(
-        "Refactor a preprocessor macro."
-    ),
-    llvm::cl::value_desc("victim=repl"),
-    llvm::cl::CommaSeparated,
-    llvm::cl::cat(RefactoringOptions)       
-);
-
-static llvm::cl::list<std::string> NamespaceArgs(
-    "namespace",
-    llvm::cl::desc(
-        "Refactor a namespace."
-    ),
-    llvm::cl::value_desc("victim=repl"),
-    llvm::cl::CommaSeparated,
-    llvm::cl::cat(RefactoringOptions)
-);
-
-static llvm::cl::list<std::string> TagArgs(
-    "tag",
-    llvm::cl::desc(
-        "Refactor a class, enumeration, structure, or type alias."
-    ),
-    llvm::cl::value_desc("victim=repl"),
-    llvm::cl::CommaSeparated,
-    llvm::cl::cat(RefactoringOptions)
-);
-
-static llvm::cl::list<std::string> VariableArgs(
-    "variable",
-    llvm::cl::desc(
-        "Refactor the name of a variable or class field."
-    ),
-    llvm::cl::value_desc("victim=repl"),
-    llvm::cl::CommaSeparated,
-    llvm::cl::cat(RefactoringOptions)
-);
-
-static llvm::cl::list<std::string> InputFiles(
-    llvm::cl::desc("[<file> ...]"),
-    llvm::cl::Positional,
-    llvm::cl::ZeroOrMore,
-    llvm::cl::PositionalEatsArgs
-);
-
-static llvm::cl::opt<bool> SyntaxOnly(
-    "syntax-only",
-    llvm::cl::desc(
-        "Perform a syntax check and exit.\n"
-        "No changes are made even if replacements were specified."
+        "Allow this application to run with root privileges.\n"
     ),
     llvm::cl::cat(ProgramSetupOptions),
     llvm::cl::init(false)
 );
-
-static llvm::cl::opt<bool> SanitizeIncludes(
-    "sanitize-includes",
-    llvm::cl::desc(
-        "Find unused included header files and remove them."
-    ),
-    llvm::cl::cat(RefactoringOptions),
-    llvm::cl::init(false)
-);
+#endif
 
 static llvm::cl::opt<std::string> CompileCommandsPath(
     "commands",
@@ -169,61 +93,20 @@ static llvm::cl::opt<bool> DryRun(
     llvm::cl::init(false)
 );
 
-static llvm::cl::opt<bool> Verbose(
-    "verbose",
+static llvm::cl::list<std::string> EnumConstantArgs(
+    "enum-constant",
     llvm::cl::desc(
-        "Print a line for each replacement to be made."
+        "Rename an enumeration constant."
     ),
-    llvm::cl::cat(ProgramSetupOptions),
-    llvm::cl::init(false)
+    llvm::cl::value_desc("victim=repl"),
+    llvm::cl::CommaSeparated,
+    llvm::cl::cat(RefactoringOptions)
 );
 
-static llvm::cl::opt<bool> ExportReplacements(
-    "export-replacements",
+static llvm::cl::opt<bool> Export(
+    "export",
     llvm::cl::desc(
         "Write replacements in YAML format to stdout."
-    ),
-    llvm::cl::cat(ProgramSetupOptions),
-    llvm::cl::init(false)
-);
-
-static llvm::cl::opt<std::string> ImportReplacements(
-    "import-replacements",
-    llvm::cl::desc(
-        "Read replacements in YAML format from <file>.\n"
-        "Make sure the source files were not changed since\n"
-        "the replacements were created!"
-    ),
-    llvm::cl::value_desc("file"),
-    llvm::cl::cat(ProgramSetupOptions)
-);
-
-static llvm::cl::opt<std::string> FromFile(
-    "from-file",
-    llvm::cl::desc(
-        "Read additional refactoring options from specified\n"
-        "YAML <file>. An exemplary file can be generated\n"
-        "with \"--yaml-template\"."
-    ),
-    llvm::cl::value_desc("file"),
-    llvm::cl::cat(ProgramSetupOptions)
-);
-
-static llvm::cl::opt<bool> Interactive(
-    "interactive",
-    llvm::cl::desc(
-        "Prompt before applying replacements."
-    ),
-    llvm::cl::cat(ProgramSetupOptions),
-    llvm::cl::init(false)
-);
-
-static llvm::cl::opt<bool> YAMLTemplate(
-    "yaml-template",
-    llvm::cl::desc(
-        "Print a YAML template file which can be used to specify\n"
-        "refactoring options via \"--from-yaml\". Exit the program\n"
-        "afterwards."
     ),
     llvm::cl::cat(ProgramSetupOptions),
     llvm::cl::init(false)
@@ -240,16 +123,141 @@ static llvm::cl::opt<bool> Force(
     llvm::cl::init(false)
 );
 
-#ifdef __unix__
-static llvm::cl::opt<bool> AllowRoot(
-    "allow-root",
+static llvm::cl::opt<std::string> FromFile(
+    "from-file",
     llvm::cl::desc(
-        "Allow this application to run with root privileges.\n"
+        "Read additional refactoring options from specified\n"
+        "YAML <file>. An exemplary file can be generated\n"
+        "with \"--to-yaml\"."
+    ),
+    llvm::cl::value_desc("file"),
+    llvm::cl::cat(ProgramSetupOptions)
+);
+
+static llvm::cl::list<std::string> FunctionArgs(
+    "function",
+    llvm::cl::desc(
+        "Rename a function or class method name."
+    ),
+    llvm::cl::value_desc("victim=repl"),
+    llvm::cl::CommaSeparated,
+    llvm::cl::cat(RefactoringOptions)
+);
+
+static llvm::cl::opt<std::string> Import(
+    "import",
+    llvm::cl::desc(
+        "Read replacements in YAML format from <file>.\n"
+        "Make sure the source files were not changed since\n"
+        "the replacements were created!"
+    ),
+    llvm::cl::value_desc("file"),
+    llvm::cl::cat(ProgramSetupOptions)
+);
+
+static llvm::cl::opt<bool> Interactive(
+    "interactive",
+    llvm::cl::desc(
+        "Prompt before applying replacements."
     ),
     llvm::cl::cat(ProgramSetupOptions),
     llvm::cl::init(false)
 );
-#endif
+
+/* 'MacroArgs' is ambiguous if used in namespace 'clang' */
+static llvm::cl::list<std::string> PPMacroArgs(
+    "macro",
+    llvm::cl::desc(
+        "Rename a preprocessor macro."
+    ),
+    llvm::cl::value_desc("victim=repl"),
+    llvm::cl::CommaSeparated,
+    llvm::cl::cat(RefactoringOptions)       
+);
+
+static llvm::cl::list<std::string> NamespaceArgs(
+    "namespace",
+    llvm::cl::desc(
+        "Rename a namespace."
+    ),
+    llvm::cl::value_desc("victim=repl"),
+    llvm::cl::CommaSeparated,
+    llvm::cl::cat(RefactoringOptions)
+);
+
+static llvm::cl::opt<bool> SanitizeIncludes(
+    "sanitize-includes",
+    llvm::cl::desc(
+        "Find unused included header files and remove them.\n"
+        "This feature is highly experimental and it will not\n"
+        "work in all cases."
+    ),
+    llvm::cl::cat(RefactoringOptions),
+    llvm::cl::init(false)
+);
+
+static llvm::cl::opt<bool> SyntaxOnly(
+    "syntax-only",
+    llvm::cl::desc(
+        "Perform a syntax check and exit.\n"
+        "No changes are made even if replacements were specified."
+    ),
+    llvm::cl::cat(ProgramSetupOptions),
+    llvm::cl::init(false)
+);
+
+static llvm::cl::list<std::string> TagArgs(
+    "tag",
+    llvm::cl::desc(
+        "Rename a class, enumeration, structure, or type alias."
+    ),
+    llvm::cl::value_desc("victim=repl"),
+    llvm::cl::CommaSeparated,
+    llvm::cl::cat(RefactoringOptions)
+);
+
+static llvm::cl::list<std::string> VariableArgs(
+    "variable",
+    llvm::cl::desc(
+        "Rename the name of a variable or class field."
+    ),
+    llvm::cl::value_desc("victim=repl"),
+    llvm::cl::CommaSeparated,
+    llvm::cl::cat(RefactoringOptions)
+);
+
+static llvm::cl::opt<bool> Verbose(
+    "verbose",
+    llvm::cl::desc(
+        "Print a line for each replacement to be made."
+    ),
+    llvm::cl::cat(ProgramSetupOptions),
+    llvm::cl::init(false)
+);
+
+static llvm::cl::opt<bool> ToYAML(
+    "to-yaml",
+    llvm::cl::desc(
+        "Convert specified renaming operations into YAML format\n"
+        "and print the result to stdout. The program will exit\n"
+        "afterwards.\n"
+        "This is useful to create an initial YAML file where\n"
+        "additional renaming operations can be gathered.\n"
+        "This file can be passed with \"--from-file\" to apply\n"
+        "a huge bulk of operations at once where specifying\n"
+        "every operation on the command-line would not be\n"
+        "convenient."
+    ),
+    llvm::cl::cat(ProgramSetupOptions),
+    llvm::cl::init(false)
+);
+
+static llvm::cl::list<std::string> InputFiles(
+    llvm::cl::desc("[<file> ...]"),
+    llvm::cl::Positional,
+    llvm::cl::ZeroOrMore,
+    llvm::cl::PositionalEatsArgs
+);
 
 /* clang-format on */
 
@@ -353,15 +361,15 @@ int main(int argc, const char **argv)
     }
 #endif
 
-    if (YAMLTemplate) {
+    if (ToYAML) {
         auto Args = util::RefactoringArgs();
-        Args.EnumConstants.push_back("Victim=Replacement");
-        Args.Functions.push_back("Victim=Replacement");
-        Args.Macros.push_back("Victim=Replacement");
-        Args.Namespaces.push_back("Victim=Replacement");
-        Args.Tags.push_back("Victim=Replacement");
-        Args.Variables.push_back("Victim=Replacement");
-        
+        Args.EnumConstants  = std::move(EnumConstantArgs);
+        Args.Functions      = std::move(FunctionArgs);
+        Args.Macros         = std::move(PPMacroArgs);
+        Args.Namespaces     = std::move(NamespaceArgs);
+        Args.Tags           = std::move(TagArgs);
+        Args.Variables      = std::move(VariableArgs);
+
         llvm::yaml::Output YAMLOut(llvm::outs());
         YAMLOut << Args;
         
@@ -381,8 +389,9 @@ int main(int argc, const char **argv)
     
     if (SyntaxOnly) {
         auto Action = newFrontendActionFactory<clang::SyntaxOnlyAction>();
-        
-        int err = ClangTool(*CompilationDB, SourceFiles).run(Action.get());
+
+        ClangTool Tool(*CompilationDB, SourceFiles);
+        int err = Tool.run(Action.get());
         
         std::exit((err == 0) ? EXIT_SUCCESS : EXIT_FAILURE);
     }
@@ -438,9 +447,9 @@ int main(int argc, const char **argv)
         }
     }
     
-    if (!ImportReplacements.empty()) {
+    if (!Import.empty()) {
         util::ReplacementsInfo Info;
-        util::yaml::read(ImportReplacements, Info);
+        util::yaml::read(Import, Info);
         
         auto &Replacements = Tool.getReplacements();
         
@@ -456,7 +465,7 @@ int main(int argc, const char **argv)
             if (!Ok && Iterator == Replacements.end() && !Force) {
                 llvm::errs() << util::cl::Error()
                              << "failed to load all replacements from file \""
-                             << ImportReplacements << "\"\n"
+                             << Import << "\"\n"
                              << util::cl::Info()
                              << "to continue with a subset of all the"
                              << "replacements override with \"--force\".";
@@ -470,7 +479,7 @@ int main(int argc, const char **argv)
         std::exit(EXIT_SUCCESS);
     }
         
-    if (ExportReplacements) {
+    if (Export) {
         auto &Repls = Tool.getReplacements();
         util::ReplacementsInfo Info(Repls);
         
