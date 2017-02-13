@@ -81,4 +81,4 @@ private:
     Refactorers *_Refactorers;
 };
 
-#endif /* _PPCALLBACKDISPATCHER_HPP_ */
+#endif /* RF_PPCALLBACKDISPATCHER_HPP_ */

@@ -25,8 +25,9 @@
 #include <ostream>
 #include <llvm/Support/raw_ostream.h>
 
+namespace util {
 namespace cl {
-    
+
 struct Error {
 public:
     friend std::ostream &operator<<(std::ostream &OS, const Error &Err);
@@ -47,6 +48,7 @@ public:
     friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, 
                                          const Warning &Warning);
 };
+}
 
 }
 

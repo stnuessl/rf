@@ -92,10 +92,10 @@ bool FunctionRefactorer::isVictim(const clang::FunctionDecl *Decl)
         auto Begin = MethodDecl->begin_overridden_methods();
         auto QualifiedName = (*Begin)->getQualifiedNameAsString();
         
-        llvm::errs() << cl::Error() 
+        llvm::errs() << util::cl::Error() 
                      << "refactoring overriding class method \""
                      << victimQualifier() << "\" - aborting\n"
-                     << cl::Info()
+                     << util::cl::Info()
                      << "consider refactoring \"" << QualifiedName
                      << "\" instead or override with \"--force\"\n";
         

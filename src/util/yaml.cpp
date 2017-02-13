@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016  Steffen Nüssle
+ * Copyright (C) 2017  Steffen Nüssle
  * rf - refactor
  *
  * This file is part of rf.
@@ -18,21 +18,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _REFACTORINGASTCONSUMER_HPP_
-#define _REFACTORINGASTCONSUMER_HPP_
+#include <util/yaml.hpp>
 
-#include <clang/AST/ASTConsumer.h>
+namespace util {
 
-#include <Refactorers/Refactorer.hpp>
-#include <RefactoringASTVisitor.hpp>
+ReplacementsInfo::ReplacementsInfo(clang::tooling::Replacements &Repls)
+    : Replacements(Repls.begin(), Repls.end())
+{   
+}
 
-class RefactoringASTConsumer : public clang::ASTConsumer {
-public:
-    void setRefactorers(Refactorers *Refactorers);
-    
-    virtual void HandleTranslationUnit(clang::ASTContext &ASTContext) override;
-private:
-    RefactoringASTVisitor _Visitor;
-};
-
-#endif /* RF_REFACTORINGASTCONSUMER_HPP_ */
+}

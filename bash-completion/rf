@@ -29,9 +29,13 @@ _rf()
           --enum-constant
           --commands 
           --dry-run
+          --export-replacements
           --force 
-          --function 
-          --help 
+          --function
+          --from-file
+          --help
+          --import-replacements
+          --interactive
           --macro
           --namespace 
           --sanitize-includes
@@ -39,7 +43,8 @@ _rf()
           --tag 
           --variable
           --verbose
-          --version"
+          --version
+          --yaml-template"
 
     case "${cur}" in 
         -*)

@@ -18,6 +18,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
+#include <iterator>
+#include <string>
+
 #include <util/CommandLine.hpp>
 
 #ifdef __unix__
@@ -30,6 +34,7 @@
 
 #endif
 
+namespace util {
 namespace cl {
 
 std::ostream &operator<<(std::ostream &OS, const Error &Err)
@@ -106,4 +111,5 @@ llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
     return OS;
 }
 
+}
 }

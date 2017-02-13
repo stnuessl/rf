@@ -51,4 +51,4 @@ private:
     Refactorers *_Refactorers;
 };
 
-#endif /* _REFACTORINGACTIONFACTORY_HPP_ */
+#endif /* RF_REFACTORINGACTIONFACTORY_HPP_ */
