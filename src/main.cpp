@@ -38,7 +38,6 @@
 
 #include <Refactorers/EnumConstantRefactorer.hpp>
 #include <Refactorers/FunctionRefactorer.hpp>
-#include <Refactorers/IncludeRefactorer.hpp>
 #include <Refactorers/MacroRefactorer.hpp>
 #include <Refactorers/NamespaceRefactorer.hpp>
 #include <Refactorers/TagRefactorer.hpp>
@@ -183,17 +182,6 @@ static llvm::cl::list<std::string> NamespaceArgs(
     llvm::cl::value_desc("victim=repl"),
     llvm::cl::CommaSeparated,
     llvm::cl::cat(RefactoringOptions)
-);
-
-static llvm::cl::opt<bool> SanitizeIncludes(
-    "sanitize-includes",
-    llvm::cl::desc(
-        "Find unused included header files and remove them.\n"
-        "This feature is highly experimental and it will not\n"
-        "work in all cases."
-    ),
-    llvm::cl::cat(RefactoringOptions),
-    llvm::cl::init(false)
 );
 
 static llvm::cl::opt<bool> SyntaxOnly(
@@ -417,17 +405,6 @@ int main(int argc, const char **argv)
         add<NamespaceRefactorer>(Refactorers, Args.Namespaces, Tool);
         add<TagRefactorer>(Refactorers, Args.Tags, Tool);
         add<VariableRefactorer>(Refactorers, Args.Variables, Tool);
-    }
-    
-    if (SanitizeIncludes) {
-        auto Replacements = &Tool.getReplacements();
-        
-        auto Refactorer = std::make_unique<IncludeRefactorer>();
-        Refactorer->setReplacements(Replacements);
-        Refactorer->setVerbose(Verbose);
-        Refactorer->setForce(Force);
-        
-        Refactorers.push_back(std::move(Refactorer));
     }
 
     if (!Refactorers.empty()) {

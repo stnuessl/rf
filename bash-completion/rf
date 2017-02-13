@@ -38,7 +38,6 @@ _rf()
           --interactive
           --macro
           --namespace 
-          --sanitize-includes
           --syntax-only
           --tag
           --variable
