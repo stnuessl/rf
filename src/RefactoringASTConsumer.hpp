@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _REFACTORINGASTCONSUMER_HPP_
-#define _REFACTORINGASTCONSUMER_HPP_
+#ifndef RF_REFACTORINGASTCONSUMER_HPP_
+#define RF_REFACTORINGASTCONSUMER_HPP_
 
 #include <clang/AST/ASTConsumer.h>
 
@@ -32,7 +32,7 @@ public:
     
     virtual void HandleTranslationUnit(clang::ASTContext &ASTContext) override;
 private:
-    RefactoringASTVisitor _Visitor;
+    RefactoringASTVisitor Visitor_;
 };
 
 #endif /* RF_REFACTORINGASTCONSUMER_HPP_ */

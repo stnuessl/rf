@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _PPCALLBACKDISPATCHER_HPP_
-#define _PPCALLBACKDISPATCHER_HPP_
+#ifndef RF_PPCALLBACKDISPATCHER_HPP_
+#define RF_PPCALLBACKDISPATCHER_HPP_
 
 #include <clang/Lex/MacroArgs.h>
 #include <clang/Lex/MacroInfo.h>
@@ -78,7 +78,7 @@ public:
                         const clang::MacroDefinition &MD) override;
 
 private:
-    Refactorers *_Refactorers;
+    Refactorers *Refactorers_;
 };
 
 #endif /* RF_PPCALLBACKDISPATCHER_HPP_ */

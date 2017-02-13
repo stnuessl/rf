@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _MEMORY_HPP_
-#define _MEMORY_HPP_
+#ifndef RF_MEMORY_HPP_
+#define RF_MEMORY_HPP_
 
 #if __cplusplus <= 201103L
 
@@ -37,4 +37,4 @@ std::unique_ptr<T> make_unique(Args &&...args)
 
 #endif
 
-#endif /* _MEMORY_HPP_ */
+#endif /* RF_MEMORY_HPP_ */

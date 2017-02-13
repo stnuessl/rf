@@ -60,7 +60,7 @@ void IncludeRefactorer::InclusionDirective(clang::SourceLocation LocBegin,
      */
     auto Range = clang::SourceRange(LocBegin, NameRange.getEnd());
     
-    _IncludeMap[{IncludingUID, IncludedUID}].push_back(std::move(Range));
+    IncludeMap_[{IncludingUID, IncludedUID}].push_back(std::move(Range));
 }
 
 void IncludeRefactorer::FileSkipped(const clang::FileEntry &SkippedFile, 
@@ -85,8 +85,8 @@ void IncludeRefactorer::FileSkipped(const clang::FileEntry &SkippedFile,
     
     auto IncludedUID = SkippedFile.getUID();
     
-    auto MapIt = _IncludeMap.find({IncludingUID, IncludedUID});
-    if (MapIt == _IncludeMap.end())
+    auto MapIt = IncludeMap_.find({IncludingUID, IncludedUID});
+    if (MapIt == IncludeMap_.end())
         return;
     
     auto &Vec = MapIt->second;
@@ -135,7 +135,7 @@ void IncludeRefactorer::FileSkipped(const clang::FileEntry &SkippedFile,
                 addReplacement(*It);
                 Vec.erase(It);
             } else {
-                _IncludeMap.erase(MapIt);
+                IncludeMap_.erase(MapIt);
             }
 
             break;
@@ -154,10 +154,10 @@ void IncludeRefactorer::MacroExpands(const clang::Token &Token,
     (void) Token;
     (void) Args;
     
-    if (_IncludeMap.empty())
+    if (IncludeMap_.empty())
         return;
     
-    auto &SM = _CompilerInstance->getSourceManager();
+    auto &SM = CompilerInstance_->getSourceManager();
 
     auto IncludingLoc = Range.getBegin();
     auto Info = MacroDef.getMacroInfo();
@@ -171,18 +171,18 @@ void IncludeRefactorer::MacroExpands(const clang::Token &Token,
 
 void IncludeRefactorer::afterSourceFileAction()
 {
-    for (const auto &Item : _IncludeMap) {
+    for (const auto &Item : IncludeMap_) {
         for (const auto &Range : Item.second)
             addReplacement(Range);
     }
     
     /* Get ready for next source file */
-    _IncludeMap.clear();
+    IncludeMap_.clear();
 }
 
 void IncludeRefactorer::visitCallExpr(const clang::CallExpr *Expr)
 {
-    if (_IncludeMap.empty())
+    if (IncludeMap_.empty())
         return;
     
     auto FunctionDecl = Expr->getDirectCallee();
@@ -194,7 +194,7 @@ void IncludeRefactorer::visitCallExpr(const clang::CallExpr *Expr)
 
 void IncludeRefactorer::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
 {
-    if (_IncludeMap.empty())
+    if (IncludeMap_.empty())
         return;
     
     run(Expr->getLocStart(), Expr->getDecl());
@@ -202,7 +202,7 @@ void IncludeRefactorer::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
 
 void IncludeRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
 {
-    if (_IncludeMap.empty())
+    if (IncludeMap_.empty())
         return;
     
     auto Type = TypeLoc.getType();
@@ -255,7 +255,7 @@ IncludeRefactorer::UIntPairHash::operator()(const UIntPair &Pair) const
 std::pair<unsigned int, bool> 
 IncludeRefactorer::getFileUID(clang::SourceLocation Loc) const
 {
-    auto &SM = _CompilerInstance->getSourceManager();
+    auto &SM = CompilerInstance_->getSourceManager();
     auto Pair = std::make_pair(std::numeric_limits<unsigned int>::max(), false);
     
     auto FileID = SM.getFileID(Loc);
@@ -271,7 +271,7 @@ IncludeRefactorer::getFileUID(clang::SourceLocation Loc) const
 
 bool IncludeRefactorer::isInSystemLibraryHeader(clang::SourceLocation Loc)
 {
-    auto &SM = _CompilerInstance->getSourceManager();
+    auto &SM = CompilerInstance_->getSourceManager();
     
     if (SM.isInSystemHeader(Loc) || SM.isInExternCSystemHeader(Loc))
         return true;
@@ -286,7 +286,7 @@ void IncludeRefactorer::run(clang::SourceLocation IncludingLoc,
     if (isInSystemLibraryHeader(IncludingLoc))
         return;
     
-    auto &SM = _CompilerInstance->getSourceManager();
+    auto &SM = CompilerInstance_->getSourceManager();
     auto IncludedLoc = Decl->getLocStart();
     
     if (SM.isWrittenInSameFile(IncludingLoc, IncludedLoc))
@@ -329,7 +329,7 @@ void IncludeRefactorer::removeUsedIncludes(unsigned int IncludingUID,
      * as used.
      */
     
-    auto &SM = _CompilerInstance->getSourceManager();
+    auto &SM = CompilerInstance_->getSourceManager();
     
     /* 
      * I don't know how to feel about this one but here it goes.
@@ -356,7 +356,7 @@ void IncludeRefactorer::removeUsedIncludes(unsigned int IncludingUID,
     if (IncludedLoc.isMacroID())
         IncludedLoc = SM.getExpansionRange(IncludedLoc).first;
     
-    while (IncludedLoc.isValid() && !_IncludeMap.empty()) {
+    while (IncludedLoc.isValid() && !IncludeMap_.empty()) {
         unsigned int IncludedUID;
         bool Ok;
         
@@ -365,7 +365,7 @@ void IncludeRefactorer::removeUsedIncludes(unsigned int IncludingUID,
             if (IncludedUID == IncludingUID)
                 return;
             
-            _IncludeMap.erase({IncludingUID, IncludedUID});
+            IncludeMap_.erase({IncludingUID, IncludedUID});
         }
         
         /* 
@@ -398,7 +398,7 @@ bool IncludeRefactorer::isHeaderFile(const StringRef &FileName) const
 
 void IncludeRefactorer::addReplacement(const clang::SourceRange Range)
 {
-    auto &SM = _CompilerInstance->getSourceManager();
+    auto &SM = CompilerInstance_->getSourceManager();
     
     auto Begin = Range.getBegin();
     auto BeginInfo = SM.getDecomposedLoc(Begin);

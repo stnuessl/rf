@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _REFACTORINGASTVISITOR_HPP_
-#define _REFACTORINGASTVISITOR_HPP_
+#ifndef RF_REFACTORINGASTIVISITOR_HPP_
+#define RF_REFACTORINGASTIVISITOR_HPP_
 
 #include <vector>
 
@@ -59,7 +59,7 @@ public:
     bool VisitTypeLoc(clang::TypeLoc &TypeLoc);
     
 private:
-    Refactorers *_Refactorers;
+    Refactorers *Refactorers_;
 };
 
 #endif /* RF_REFACTORINGASTVISITOR_HPP_ */

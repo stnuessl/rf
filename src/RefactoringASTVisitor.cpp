@@ -22,19 +22,19 @@
 
 void RefactoringASTVisitor::setRefactorers(Refactorers *Refactorers)
 {
-    _Refactorers = Refactorers;
+    Refactorers_ = Refactorers;
 }
 
 void RefactoringASTVisitor::setASTContext(clang::ASTContext &ASTContext)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->setASTContext(&ASTContext);
 }
 
 bool 
 RefactoringASTVisitor::VisitCXXConstructorDecl(clang::CXXConstructorDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitCXXConstructorDecl(Decl);
     
     return true;
@@ -43,7 +43,7 @@ RefactoringASTVisitor::VisitCXXConstructorDecl(clang::CXXConstructorDecl *Decl)
 bool 
 RefactoringASTVisitor::VisitCXXDestructorDecl(clang::CXXDestructorDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitCXXDestructorDecl(Decl);
     
     return true;
@@ -51,7 +51,7 @@ RefactoringASTVisitor::VisitCXXDestructorDecl(clang::CXXDestructorDecl *Decl)
 
 bool RefactoringASTVisitor::VisitCXXMethodDecl(clang::CXXMethodDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitCXXMethodDecl(Decl);
     
     return true;
@@ -59,7 +59,7 @@ bool RefactoringASTVisitor::VisitCXXMethodDecl(clang::CXXMethodDecl *Decl)
 
 bool RefactoringASTVisitor::VisitCXXRecordDecl(clang::CXXRecordDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitCXXRecordDecl(Decl);
     
     return true;
@@ -67,7 +67,7 @@ bool RefactoringASTVisitor::VisitCXXRecordDecl(clang::CXXRecordDecl *Decl)
 
 bool RefactoringASTVisitor::VisitDecl(clang::Decl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitDecl(Decl);
     
     return true;
@@ -75,7 +75,7 @@ bool RefactoringASTVisitor::VisitDecl(clang::Decl *Decl)
 
 bool RefactoringASTVisitor::VisitEnumConstantDecl(clang::EnumConstantDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitEnumConstantDecl(Decl);
     
     return true;
@@ -84,7 +84,7 @@ bool RefactoringASTVisitor::VisitEnumConstantDecl(clang::EnumConstantDecl *Decl)
 
 bool RefactoringASTVisitor::VisitEnumDecl(clang::EnumDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitEnumDecl(Decl);
     
     return true;
@@ -92,7 +92,7 @@ bool RefactoringASTVisitor::VisitEnumDecl(clang::EnumDecl *Decl)
 
 bool RefactoringASTVisitor::VisitFieldDecl(clang::FieldDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitFieldDecl(Decl);
     
     return true;
@@ -100,7 +100,7 @@ bool RefactoringASTVisitor::VisitFieldDecl(clang::FieldDecl *Decl)
 
 bool RefactoringASTVisitor::VisitFunctionDecl(clang::FunctionDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitFunctionDecl(Decl);
     
     return true;
@@ -109,7 +109,7 @@ bool RefactoringASTVisitor::VisitFunctionDecl(clang::FunctionDecl *Decl)
 bool 
 RefactoringASTVisitor::VisitNamespaceAliasDecl(clang::NamespaceAliasDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitNamespaceAliasDecl(Decl);
     
     return true;
@@ -117,7 +117,7 @@ RefactoringASTVisitor::VisitNamespaceAliasDecl(clang::NamespaceAliasDecl *Decl)
 
 bool RefactoringASTVisitor::VisitNamespaceDecl(clang::NamespaceDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitNamespaceDecl(Decl);
     
     return true;
@@ -126,7 +126,7 @@ bool RefactoringASTVisitor::VisitNamespaceDecl(clang::NamespaceDecl *Decl)
 
 bool RefactoringASTVisitor::VisitRecordDecl(clang::RecordDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitRecordDecl(Decl);
     
     return true;
@@ -134,7 +134,7 @@ bool RefactoringASTVisitor::VisitRecordDecl(clang::RecordDecl *Decl)
 
 bool RefactoringASTVisitor::VisitTypedefNameDecl(clang::TypedefNameDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitTypedefNameDecl(Decl);
     
     return true;
@@ -142,7 +142,7 @@ bool RefactoringASTVisitor::VisitTypedefNameDecl(clang::TypedefNameDecl *Decl)
 
 bool RefactoringASTVisitor::VisitUsingDecl(clang::UsingDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitUsingDecl(Decl);
     
     return true;
@@ -151,7 +151,7 @@ bool RefactoringASTVisitor::VisitUsingDecl(clang::UsingDecl *Decl)
 bool 
 RefactoringASTVisitor::VisitUsingDirectiveDecl(clang::UsingDirectiveDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitUsingDirectiveDecl(Decl);
     
     return true;
@@ -159,7 +159,7 @@ RefactoringASTVisitor::VisitUsingDirectiveDecl(clang::UsingDirectiveDecl *Decl)
 
 bool RefactoringASTVisitor::VisitUsingShadowDecl(clang::UsingShadowDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitUsingShadowDecl(Decl);
     
     return true;
@@ -168,7 +168,7 @@ bool RefactoringASTVisitor::VisitUsingShadowDecl(clang::UsingShadowDecl *Decl)
 
 bool RefactoringASTVisitor::VisitVarDecl(clang::VarDecl *Decl)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitVarDecl(Decl);
     
     return true;
@@ -176,7 +176,7 @@ bool RefactoringASTVisitor::VisitVarDecl(clang::VarDecl *Decl)
 
 bool RefactoringASTVisitor::VisitExpr(clang::Expr *Expr)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitExpr(Expr);
     
     return true;
@@ -184,7 +184,7 @@ bool RefactoringASTVisitor::VisitExpr(clang::Expr *Expr)
 
 bool RefactoringASTVisitor::VisitCallExpr(clang::CallExpr *Expr)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitCallExpr(Expr);
     
     return true;
@@ -192,7 +192,7 @@ bool RefactoringASTVisitor::VisitCallExpr(clang::CallExpr *Expr)
 
 bool RefactoringASTVisitor::VisitDeclRefExpr(clang::DeclRefExpr *Expr)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitDeclRefExpr(Expr);
     
     return true;
@@ -200,7 +200,7 @@ bool RefactoringASTVisitor::VisitDeclRefExpr(clang::DeclRefExpr *Expr)
 
 bool RefactoringASTVisitor::VisitMemberExpr(clang::MemberExpr *Expr)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitMemberExpr(Expr);
     
     return true;
@@ -208,7 +208,7 @@ bool RefactoringASTVisitor::VisitMemberExpr(clang::MemberExpr *Expr)
 
 bool RefactoringASTVisitor::VisitTypeLoc(clang::TypeLoc &TypeLoc)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->visitTypeLoc(TypeLoc);
     
     return true;

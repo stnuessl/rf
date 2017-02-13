@@ -60,7 +60,7 @@ static llvm::cl::extrahelp HelpText(
     "refactoring it !!\n\n"
 );
 
-static llvm::cl::list<std::string> EnumConstantVec(
+static llvm::cl::list<std::string> EnumConstantArgs(
     "enum-constant",
     llvm::cl::desc(
         "Refactor an enumeration constant."
@@ -70,7 +70,7 @@ static llvm::cl::list<std::string> EnumConstantVec(
     llvm::cl::cat(RefactoringOptions)
 );
 
-static llvm::cl::list<std::string> FunctionVec(
+static llvm::cl::list<std::string> FunctionArgs(
     "function",
     llvm::cl::desc(
         "Refactor a function or class method name."
@@ -80,7 +80,8 @@ static llvm::cl::list<std::string> FunctionVec(
     llvm::cl::cat(RefactoringOptions)
 );
 
-static llvm::cl::list<std::string> MacroVec(
+/* 'MacroArgs' is ambiguous if used in namespace 'clang' */
+static llvm::cl::list<std::string> PPMacroArgs(
     "macro",
     llvm::cl::desc(
         "Refactor a preprocessor macro."
@@ -90,7 +91,7 @@ static llvm::cl::list<std::string> MacroVec(
     llvm::cl::cat(RefactoringOptions)       
 );
 
-static llvm::cl::list<std::string> NamespaceVec(
+static llvm::cl::list<std::string> NamespaceArgs(
     "namespace",
     llvm::cl::desc(
         "Refactor a namespace."
@@ -100,7 +101,7 @@ static llvm::cl::list<std::string> NamespaceVec(
     llvm::cl::cat(RefactoringOptions)
 );
 
-static llvm::cl::list<std::string> TagVec(
+static llvm::cl::list<std::string> TagArgs(
     "tag",
     llvm::cl::desc(
         "Refactor a class, enumeration, structure, or type alias."
@@ -110,7 +111,7 @@ static llvm::cl::list<std::string> TagVec(
     llvm::cl::cat(RefactoringOptions)
 );
 
-static llvm::cl::list<std::string> VarVec(
+static llvm::cl::list<std::string> VariableArgs(
     "variable",
     llvm::cl::desc(
         "Refactor the name of a variable or class field."
@@ -301,8 +302,8 @@ static void add(Refactorers &Refactorers,
 }
 
 #define RF_VERSION_MAJOR "1"
-#define RF_VERSION_MINOR "0"
-#define RF_VERSION_PATCH "1"
+#define RF_VERSION_MINOR "1"
+#define RF_VERSION_PATCH "0"
 #define RF_VERSION_INFO                                                        \
     RF_VERSION_MAJOR "." RF_VERSION_MINOR "." RF_VERSION_PATCH
 
@@ -390,12 +391,12 @@ int main(int argc, const char **argv)
     
     RefactoringTool Tool(*CompilationDB, SourceFiles);
     
-    add<EnumConstantRefactorer>(Refactorers, EnumConstantVec, Tool);
-    add<FunctionRefactorer>(Refactorers, FunctionVec, Tool);
-    add<MacroRefactorer>(Refactorers, MacroVec, Tool);
-    add<NamespaceRefactorer>(Refactorers, NamespaceVec, Tool);
-    add<TagRefactorer>(Refactorers, TagVec, Tool);
-    add<VariableRefactorer>(Refactorers, VarVec, Tool);
+    add<EnumConstantRefactorer>(Refactorers, EnumConstantArgs, Tool);
+    add<FunctionRefactorer>(Refactorers, FunctionArgs, Tool);
+    add<MacroRefactorer>(Refactorers, PPMacroArgs, Tool);
+    add<NamespaceRefactorer>(Refactorers, NamespaceArgs, Tool);
+    add<TagRefactorer>(Refactorers, TagArgs, Tool);
+    add<VariableRefactorer>(Refactorers, VariableArgs, Tool);
     
     if (!FromFile.empty()) {
         util::RefactoringArgs Args;        

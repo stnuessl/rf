@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _MACROREFACTORER_HPP_
-#define _MACROREFACTORER_HPP_
+#ifndef RF_MACROREFACTORER_HPP_
+#define RF_MACROREFACTORER_HPP_
 
 #include <clang/Lex/MacroArgs.h>
 #include <clang/Lex/MacroInfo.h>
@@ -62,4 +62,4 @@ private:
                   const clang::MacroDirective *MD);
 };
 
-#endif /* _MACROREFACTORER_HPP_ */
+#endif /* RF_MACROREFACTORER_HPP_ */

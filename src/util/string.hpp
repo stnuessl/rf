@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _STRING_HPP_
-#define _STRING_HPP_
+#ifndef RF_STRING_HPP_
+#define RF_STRING_HPP_
 
 #include <string>
 #include <algorithm>
@@ -63,4 +63,4 @@ void to_upper(std::string &str);
 }
 }
 
-#endif /* _STRING_HPP_ */
+#endif /* RF_STRING_HPP_ */

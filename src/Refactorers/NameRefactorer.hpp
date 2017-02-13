@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _NAMEREFACTORER_HPP_
-#define _NAMEREFACTORER_HPP_
+#ifndef RF_NAMEREFACTORER_HPP_
+#define RF_NAMEREFACTORER_HPP_
 
 #include <functional>
 
@@ -65,17 +65,17 @@ private:
 
     const std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
     
-    std::string _Victim;
-    std::string _ReplName;
-    std::string _Buffer;
-    clang::SourceLocation _VictimLoc;
+    std::string Victim_;
+    std::string ReplName_;
+    std::string Buffer_;
+    clang::SourceLocation VictimLoc_;
     
-    std::size_t _ReplSize;
-    unsigned int _Line;
-    unsigned int _Column;
+    std::size_t ReplSize_;
+    unsigned int Line_;
+    unsigned int Column_;
    
     std::function<bool(const NameRefactorer &, const std::string &)> 
         _IsEqualFunc;
 };
 
-#endif /* _NAMEREFACTORER_HPP_ */
+#endif /* RF_NAMEREFACTORER_HPP_ */

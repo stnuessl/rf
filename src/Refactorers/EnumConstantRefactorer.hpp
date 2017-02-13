@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _ENUMCONSTANTREFACTORER_HPP_
-#define _ENUMCONSTANTREFACTORER_HPP_
+#ifndef RF_ENUMCONSTANTREFACTORER_HPP_
+#define RF_ENUMCONSTANTREFACTORER_HPP_
 
 #include <Refactorers/NameRefactorer.hpp>
 
@@ -30,4 +30,4 @@ public:
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr) override;
 };
 
-#endif /* _ENUMCONSTANTREFACTORER_HPP_ */
+#endif /* RF_ENUMCONSTANTREFACTORER_HPP_ */

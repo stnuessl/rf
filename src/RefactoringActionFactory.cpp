@@ -32,19 +32,19 @@
 
 void RefactoringAction::setRefactorers(Refactorers *Refactorers)
 {
-    _Refactorers = Refactorers;
+    Refactorers_ = Refactorers;
 }
 
 bool RefactoringAction::BeginSourceFileAction(clang::CompilerInstance &CI, 
                                               llvm::StringRef File)
 {
-    for (auto &Refactorer : *_Refactorers) {
+    for (auto &Refactorer : *Refactorers_) {
         Refactorer->setCompilerInstance(&CI);
         Refactorer->beforeSourceFileAction(File);
     }
     
     auto Dispatcher = std::make_unique<PPCallbackDispatcher>();
-    Dispatcher->setRefactorers(_Refactorers);
+    Dispatcher->setRefactorers(Refactorers_);
         
     CI.getPreprocessor().addPPCallbacks(std::move(Dispatcher));
     
@@ -53,7 +53,7 @@ bool RefactoringAction::BeginSourceFileAction(clang::CompilerInstance &CI,
 
 void RefactoringAction::EndSourceFileAction()
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->afterSourceFileAction();
 }
 
@@ -65,7 +65,7 @@ RefactoringAction::CreateASTConsumer(clang::CompilerInstance &CI,
     (void) File;
     
     auto Consumer = std::make_unique<RefactoringASTConsumer>();
-    Consumer->setRefactorers(_Refactorers);
+    Consumer->setRefactorers(Refactorers_);
     
     /* This 'std::move()' removes an error when running "--syntax-only" */
     return std::move(Consumer);
@@ -73,14 +73,14 @@ RefactoringAction::CreateASTConsumer(clang::CompilerInstance &CI,
 
 void RefactoringActionFactory::setRefactorers(Refactorers *Refactorers)
 {
-    _Refactorers = Refactorers;
+    Refactorers_ = Refactorers;
 }
 
 
 clang::FrontendAction *RefactoringActionFactory::create()
 {
     auto Action = new RefactoringAction();
-    Action->setRefactorers(_Refactorers);
+    Action->setRefactorers(Refactorers_);
     
     return Action;
 }

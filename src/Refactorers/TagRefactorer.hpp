@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _TAGREFACTORER_HPP_
-#define _TAGREFACTORER_HPP_
+#ifndef RF_TAGREFACTORER_HPP_
+#define RF_TAGREFACTORER_HPP_
 
 #include <Refactorers/NameRefactorer.hpp>
 
@@ -36,4 +36,4 @@ public:
     virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc) override;
 };
 
-#endif /* _TAGREFACTORER_HPP_ */
+#endif /* RF_TAGREFACTORER_HPP_ */

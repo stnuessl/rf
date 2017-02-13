@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _FUNCTIONREFACTORER_HPP_
-#define _FUNCTIONREFACTORER_HPP_
+#ifndef RF_FUNCTIONREFACTORER_HPP_
+#define RF_FUNCTIONREFACTORER_HPP_
 
 #include <Refactorers/NameRefactorer.hpp>
 
@@ -36,4 +36,4 @@ private:
 };
 
 
-#endif /* _FUNCTIONREFACTORER_HPP_ */
+#endif /* RF_FUNCTIONREFACTORER_HPP_ */

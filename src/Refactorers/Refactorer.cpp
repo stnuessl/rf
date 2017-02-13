@@ -24,52 +24,52 @@
 #include <Refactorers/Refactorer.hpp>
 
 Refactorer::Refactorer()
-    : _CompilerInstance(nullptr),
-      _ASTContext(nullptr),
-      _ReplSet(nullptr),
-      _Verbose(false),
-      _Force(false)
+    : CompilerInstance_(nullptr),
+      ASTContext_(nullptr),
+      ReplSet_(nullptr),
+      Verbose_(false),
+      Force_(false)
 {
 }
 
 void Refactorer::setCompilerInstance(clang::CompilerInstance *CI)
 {
-    _CompilerInstance = CI;
+    CompilerInstance_ = CI;
 }
 
 void Refactorer::setASTContext(clang::ASTContext *ASTContext)
 {
-    _ASTContext = ASTContext;
+    ASTContext_ = ASTContext;
 }
 
 void Refactorer::setReplacements(clang::tooling::Replacements *ReplSet)
 {
-    _ReplSet = ReplSet;
+    ReplSet_ = ReplSet;
 }
 
 const clang::tooling::Replacements *Refactorer::replacements() const
 {
-    return _ReplSet;
+    return ReplSet_;
 }
 
 void Refactorer::setVerbose(bool Value)
 {
-    _Verbose = Value;
+    Verbose_ = Value;
 }
 
 bool Refactorer::verbose() const
 {
-    return _Verbose;
+    return Verbose_;
 }
 
 void Refactorer::setForce(bool Value)
 {
-    _Force = Value;
+    Force_ = Value;
 }
 
 bool Refactorer::force() const
 {
-    return _Force;
+    return Force_;
 }
 
 void Refactorer::beforeSourceFileAction(llvm::StringRef File)
@@ -196,7 +196,7 @@ void Refactorer::addReplacement(clang::SourceLocation Loc,
                                 unsigned int Length, 
                                 llvm::StringRef ReplText)
 {
-    auto &SM = _CompilerInstance->getSourceManager();
+    auto &SM = CompilerInstance_->getSourceManager();
     
     addReplacement(SM, Loc, Length, ReplText);
 }
@@ -220,8 +220,8 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
     
     auto Repl = clang::tooling::Replacement(SM, Loc, Length, ReplText);
     
-    auto Ok = _ReplSet->insert(std::move(Repl)).second;
-    if (_Verbose && Ok) {
+    auto Ok = ReplSet_->insert(std::move(Repl)).second;
+    if (Verbose_ && Ok) {
         auto File = SM.getFilename(Loc);
         auto Line = SM.getSpellingLineNumber(Loc);
         auto Column = SM.getSpellingColumnNumber(Loc);

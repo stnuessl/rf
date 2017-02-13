@@ -86,7 +86,7 @@ bool FunctionRefactorer::isVictim(const clang::FunctionDecl *Decl)
      */
     
     bool isVictimDecl = NameRefactorer::isVictim(Decl);
-    if (isVictimDecl && overrides(Decl) && !_Force) {
+    if (isVictimDecl && overrides(Decl) && !Force_) {
         auto MethodDecl = clang::dyn_cast<clang::CXXMethodDecl>(Decl);
         
         auto Begin = MethodDecl->begin_overridden_methods();
@@ -107,7 +107,7 @@ bool FunctionRefactorer::isVictim(const clang::FunctionDecl *Decl)
      * override another function. In this case we don't want to refactor
      * methods further down the class hierarchy.
      */
-    return isVictimDecl || (!_Force && overridesVictim(Decl));
+    return isVictimDecl || (!Force_ && overridesVictim(Decl));
 }
 
 bool FunctionRefactorer::overridesVictim(const clang::CXXMethodDecl *Decl)

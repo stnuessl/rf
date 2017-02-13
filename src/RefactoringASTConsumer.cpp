@@ -23,12 +23,12 @@
 
 void RefactoringASTConsumer::setRefactorers(Refactorers *Refactorers)
 {
-    _Visitor.setRefactorers(Refactorers);
+    Visitor_.setRefactorers(Refactorers);
 }
 
 void 
 RefactoringASTConsumer::HandleTranslationUnit(clang::ASTContext &ASTContext)
 {
-    _Visitor.setASTContext(ASTContext);
-    _Visitor.TraverseDecl(ASTContext.getTranslationUnitDecl());
+    Visitor_.setASTContext(ASTContext);
+    Visitor_.TraverseDecl(ASTContext.getTranslationUnitDecl());
 }

@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _NAMESPACEREFACTORER_HPP_
-#define _NAMESPACEREFACTORER_HPP_
+#ifndef RF_NAMESPACEREFACTORER_HPP_
+#define RF_NAMESPACEREFACTORER_HPP_
 
 #include <Refactorers/NameRefactorer.hpp>
 
@@ -40,4 +40,4 @@ protected:
     void traverse(clang::NestedNameSpecifierLoc NNSLoc);
 };
 
-#endif /* _NAMESPACEREFACTORER_HPP_ */
+#endif /* RF_NAMESPACEREFACTORER_HPP_ */

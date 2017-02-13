@@ -19,8 +19,8 @@
  */
 
 
-#ifndef _COMMANDLINE_HPP_
-#define _COMMANDLINE_HPP_
+#ifndef RF_COMMANDLINE_HPP_
+#define RF_COMMANDLINE_HPP_
 
 #include <ostream>
 #include <llvm/Support/raw_ostream.h>
@@ -52,4 +52,4 @@ public:
 
 }
 
-#endif /* _COMMANDLINE_HPP_ */
+#endif /* RF_COMMANDLINE_HPP_ */

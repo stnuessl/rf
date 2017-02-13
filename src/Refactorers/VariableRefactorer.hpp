@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _VARIABLEREFACTORER_HPP_
-#define _VARIABLEREFACTORER_HPP_
+#ifndef RF_VARIABLEREFACTORER_HPP_
+#define RF_VARIABLEREFACTORER_HPP_
 
 #include <Refactorers/NameRefactorer.hpp>
 
@@ -36,4 +36,4 @@ public:
     virtual void visitMemberExpr(const clang::MemberExpr *Expr) override;
 };
 
-#endif /* _VARIABLEREFACTORER_HPP_ */
+#endif /* RF_VARIABLEREFACTORER_HPP_ */

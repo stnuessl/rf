@@ -74,15 +74,15 @@ static bool isValidQualifierEnd(Iter Begin, Iter End)
 
 NameRefactorer::NameRefactorer()
     : Refactorer(),
-      _Victim(),
-      _ReplName(),
-      _Buffer(),
-      _VictimLoc(),
-      _ReplSize(0),
-      _Line(0),
+      Victim_(),
+      ReplName_(),
+      Buffer_(),
+      VictimLoc_(),
+      ReplSize_(0),
+      Line_(0),
       _IsEqualFunc(std::mem_fn(&NameRefactorer::isEqualToVictim))
 {
-    _Buffer.reserve(1024);
+    Buffer_.reserve(1024);
 }
 
 void NameRefactorer::setVictimQualifier(const std::string &Victim)
@@ -130,7 +130,7 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim)
          * We have to set / update '_Replsize' here in case the last 
          * section is a * source location specifier
          */
-        _ReplSize = std::distance(Begin, It);
+        ReplSize_ = std::distance(Begin, It);
         Begin = It + 2;
     }
     
@@ -142,7 +142,7 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim)
 
 const std::string &NameRefactorer::victimQualifier() const
 {
-    return _Victim;
+    return Victim_;
 }
 
 void NameRefactorer::setReplacementQualifier(const std::string &Repl)
@@ -159,15 +159,15 @@ void NameRefactorer::setReplacementQualifier(std::string &&Repl)
      * specified by the '_Victim' string.
      */
 
-    _ReplName = std::move(Repl);
+    ReplName_ = std::move(Repl);
     
-    auto Pos = _ReplName.rfind("::");
+    auto Pos = ReplName_.rfind("::");
     if (Pos != std::string::npos)
-        _ReplName.erase(0, Pos + sizeof("::") - 1);
+        ReplName_.erase(0, Pos + sizeof("::") - 1);
     
-    if (!_Force && !isValidName(_ReplName.begin(), _ReplName.end())) {
+    if (!Force_ && !isValidName(ReplName_.begin(), ReplName_.end())) {
         llvm::errs() << util::cl::Error() 
-                     << "invalid replacement \"" << _ReplName << "\"\n"
+                     << "invalid replacement \"" << ReplName_ << "\"\n"
                      << util::cl::Info() 
                      << "override with \"--force\"\n";
         std::exit(EXIT_FAILURE);
@@ -176,7 +176,7 @@ void NameRefactorer::setReplacementQualifier(std::string &&Repl)
 
 const std::string &NameRefactorer::replacementQualifier() const
 {
-    return _ReplName;
+    return ReplName_;
 }
 
 bool NameRefactorer::isVictim(const clang::NamedDecl *NamedDecl)
@@ -184,7 +184,7 @@ bool NameRefactorer::isVictim(const clang::NamedDecl *NamedDecl)
     if (!_IsEqualFunc(*this, qualifiedName(NamedDecl)))
         return false;
     
-    return !_Line || isVictimLocation(NamedDecl->getLocation());
+    return !Line_ || isVictimLocation(NamedDecl->getLocation());
 }
 
 bool NameRefactorer::isVictim(const clang::Token &MacroName, 
@@ -193,25 +193,25 @@ bool NameRefactorer::isVictim(const clang::Token &MacroName,
     if (!_IsEqualFunc(*this, MacroName.getIdentifierInfo()->getName()))
         return false;
 
-    return !_Line || isVictimLocation(MacroInfo->getDefinitionLoc());
+    return !Line_ || isVictimLocation(MacroInfo->getDefinitionLoc());
 }
 
 void NameRefactorer::addReplacement(clang::SourceLocation Loc)
 {
-    Refactorer::addReplacement(Loc, _ReplSize, _ReplName);
+    Refactorer::addReplacement(Loc, ReplSize_, ReplName_);
 }
 
 bool NameRefactorer::isEqualToVictim(const std::string &Name) const
 {
-    return _Victim == Name;
+    return Victim_ == Name;
 }
 
 bool NameRefactorer::isEqualToVictimPrefix(const std::string &Name) const
 {
-    if (Name.size() < _Victim.size())
+    if (Name.size() < Victim_.size())
         return false;
     
-    return std::equal(_Victim.begin(), _Victim.end(), Name.begin());
+    return std::equal(Victim_.begin(), Victim_.end(), Name.begin());
 }
 
 
@@ -242,10 +242,10 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
             std::exit(EXIT_FAILURE);
         }
 
-        _ReplSize = std::distance(Begin, Last);
-        _Victim = std::move(Victim);
-        _Line = 0;
-        _Column = 0;
+        ReplSize_ = std::distance(Begin, Last);
+        Victim_ = std::move(Victim);
+        Line_ = 0;
+        Column_ = 0;
         _IsEqualFunc = std::mem_fn(&NameRefactorer::isEqualToVictim);
         
         if (Last < End) {
@@ -255,7 +255,7 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
              *      "namespace::class::member"
              * and update '_IsEqualFunc'.
              */
-            _Victim.pop_back();
+            Victim_.pop_back();
             _IsEqualFunc = std::mem_fn(&NameRefactorer::isEqualToVictimPrefix);
         }
         
@@ -316,14 +316,14 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
         Victim.pop_back();
         Victim.pop_back();
         
-        _Victim = std::move(Victim);
+        Victim_ = std::move(Victim);
         
         /* 
          * '_ReplSize' must have been set in the public 
          * 'setVictimQualifier()' function
          */
-        _Line = Line;
-        _Column = Column;
+        Line_ = Line;
+        Column_ = Column;
         _IsEqualFunc = std::mem_fn(&NameRefactorer::isEqualToVictim);
         
         return;
@@ -338,13 +338,13 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
 
 bool NameRefactorer::isVictimLocation(const clang::SourceLocation Loc)
 {
-    if (!_Line)
+    if (!Line_)
         return true;
     
-    if (_VictimLoc.isValid())
-        return _VictimLoc == Loc;
+    if (VictimLoc_.isValid())
+        return VictimLoc_ == Loc;
     
-    const auto &SM = _CompilerInstance->getSourceManager();
+    const auto &SM = CompilerInstance_->getSourceManager();
     auto FullLoc = clang::FullSourceLoc(Loc, SM);
     bool Invalid;
     
@@ -352,25 +352,25 @@ bool NameRefactorer::isVictimLocation(const clang::SourceLocation Loc)
     if (Invalid) {
         llvm::errs() << util::cl::Error()
                      << "failed to retrieve line number for declaration \"" 
-                     << _Victim << "\"\n";
+                     << Victim_ << "\"\n";
         std::exit(EXIT_FAILURE);
     }
     
-    if (_Line != Line)
+    if (Line_ != Line)
         return false;
     
-    if (!_Column)
+    if (!Column_)
         return true;
     
     auto Column = FullLoc.getSpellingColumnNumber(&Invalid);
     if (Invalid) {
         llvm::errs() << util::cl::Error() 
                      << "failed to retrieve column number for declaration \"" 
-                     << _Victim << "\"\n";
+                     << Victim_ << "\"\n";
         std::exit(EXIT_FAILURE);
     }
     
-    return _Column == Column;
+    return Column_ == Column;
 }
 
 
@@ -387,12 +387,12 @@ NameRefactorer::qualifiedName(const clang::NamedDecl *NamedDecl)
      * qualified name "namespace::class"
      */
     
-    _Buffer.clear();
-    auto dest = std::back_inserter(_Buffer);
+    Buffer_.clear();
+    auto dest = std::back_inserter(Buffer_);
     auto Name = NamedDecl->getName();
     
     std::reverse_copy(Name.begin(), Name.end(), dest);
-    _Buffer += "::";
+    Buffer_ += "::";
     
     auto Context = NamedDecl->getDeclContext();
     while (Context) {
@@ -400,18 +400,18 @@ NameRefactorer::qualifiedName(const clang::NamedDecl *NamedDecl)
         if (NamedDecl) {
             Name = NamedDecl->getName();
             std::reverse_copy(Name.begin(), Name.end(), dest);
-            _Buffer += "::";
+            Buffer_ += "::";
         }
         
         Context = Context->getParent();
     }
     
-    while (!_Buffer.empty() && _Buffer.back() == ':')
-        _Buffer.pop_back();
+    while (!Buffer_.empty() && Buffer_.back() == ':')
+        Buffer_.pop_back();
     
-    std::reverse(_Buffer.begin(), _Buffer.end());
+    std::reverse(Buffer_.begin(), Buffer_.end());
     
-    return _Buffer;
+    return Buffer_;
 }
 
 

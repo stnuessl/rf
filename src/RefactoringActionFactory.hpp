@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _REFACTORINGACTIONFACTORY_HPP_
-#define _REFACTORINGACTIONFACTORY_HPP_
+#ifndef RF_REFACTORINGACTIONFACTORY_HPP_
+#define RF_REFACTORINGACTIONFACTORY_HPP_
 
 #include <clang/Frontend/FrontendAction.h>
 #include <clang/Frontend/CompilerInstance.h>
@@ -39,7 +39,7 @@ public:
     CreateASTConsumer(clang::CompilerInstance &CI, 
                       llvm::StringRef File) override;
 private:
-    Refactorers *_Refactorers;
+    Refactorers *Refactorers_;
 };
 
 class RefactoringActionFactory : public clang::tooling::FrontendActionFactory {
@@ -48,7 +48,7 @@ public:
     
     virtual clang::FrontendAction *create() override;
 private:
-    Refactorers *_Refactorers;
+    Refactorers *Refactorers_;
 };
 
 #endif /* RF_REFACTORINGACTIONFACTORY_HPP_ */

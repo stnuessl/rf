@@ -23,7 +23,7 @@
 
 void PPCallbackDispatcher::setRefactorers(Refactorers *Refactorers)
 {
-    _Refactorers = Refactorers;
+    Refactorers_ = Refactorers;
 }
 
 void PPCallbackDispatcher::InclusionDirective(clang::SourceLocation LocBegin, 
@@ -36,7 +36,7 @@ void PPCallbackDispatcher::InclusionDirective(clang::SourceLocation LocBegin,
                                               llvm::StringRef RelativePath, 
                                               const clang::Module *Module)
 {
-    for (auto &Refactorer : *_Refactorers) {
+    for (auto &Refactorer : *Refactorers_) {
         Refactorer->InclusionDirective(LocBegin, Token, FileName, isAngled, 
                                        NameRange, File, SearchPath, 
                                        RelativePath, Module);
@@ -47,7 +47,7 @@ void PPCallbackDispatcher::FileSkipped(const clang::FileEntry &SkippedFile,
                                        const clang::Token &FileNameToken, 
                                        clang::SrcMgr::CharacteristicKind Kind)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->FileSkipped(SkippedFile, FileNameToken, Kind);
 }
 
@@ -56,21 +56,21 @@ void PPCallbackDispatcher::MacroExpands(const clang::Token &Token,
                                         clang::SourceRange Range, 
                                         const clang::MacroArgs *Args)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->MacroExpands(Token, MacroDef, Range, Args);
 }
 
 void PPCallbackDispatcher::MacroDefined(const clang::Token &MacroName, 
                                         const clang::MacroDirective *MD)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->MacroDefined(MacroName, MD);
 }
 
 void PPCallbackDispatcher::MacroUndefined(const clang::Token &MacroName, 
                                           const clang::MacroDefinition &MD)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->MacroUndefined(MacroName, MD);
 }
 
@@ -78,7 +78,7 @@ void PPCallbackDispatcher::Defined(const clang::Token &MacroNameTok,
                                    const clang::MacroDefinition &MD, 
                                    clang::SourceRange Range)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->Defined(MacroNameTok, MD, Range);
 }
 
@@ -87,7 +87,7 @@ void PPCallbackDispatcher::If(clang::SourceLocation Loc,
                               clang::SourceRange ConditionRange, 
                               clang::PPCallbacks::ConditionValueKind ValueKind)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->If(Loc, ConditionRange, ValueKind);
 }
 
@@ -96,7 +96,7 @@ void PPCallbackDispatcher::Elif(clang::SourceLocation Loc,
                                 clang::PPCallbacks::ConditionValueKind Kind, 
                                 clang::SourceLocation IfLoc)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->Elif(Loc, ConditionRange, Kind, IfLoc);
 }
 
@@ -104,7 +104,7 @@ void PPCallbackDispatcher::Ifdef(clang::SourceLocation Loc,
                                  const clang::Token &MacroNameTok, 
                                  const clang::MacroDefinition &MD)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->Ifdef(Loc, MacroNameTok, MD);
 }
 
@@ -112,6 +112,6 @@ void PPCallbackDispatcher::Ifndef(clang::SourceLocation Loc,
                                   const clang::Token &MacroNameTok, 
                                   const clang::MacroDefinition &MD)
 {
-    for (auto &Refactorer : *_Refactorers)
+    for (auto &Refactorer : *Refactorers_)
         Refactorer->Ifndef(Loc, MacroNameTok, MD);
 }

@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _REFACTORER_HPP_
-#define _REFACTORER_HPP_
+#ifndef RF_REFACTORER_HPP_
+#define RF_REFACTORER_HPP_
 
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/DeclCXX.h>
@@ -88,13 +88,13 @@ protected:
                         unsigned int Length,
                         llvm::StringRef ReplText);
     
-    clang::CompilerInstance *_CompilerInstance;
-    clang::ASTContext *_ASTContext;
-    clang::tooling::Replacements *_ReplSet;
-    bool _Verbose;
-    bool _Force;
+    clang::CompilerInstance *CompilerInstance_;
+    clang::ASTContext *ASTContext_;
+    clang::tooling::Replacements *ReplSet_;
+    bool Verbose_;
+    bool Force_;
 };
 
 typedef std::vector<std::unique_ptr<Refactorer>> Refactorers;
 
-#endif /* _REFACTORER_HPP_ */
+#endif /* RF_REFACTORER_HPP_ */

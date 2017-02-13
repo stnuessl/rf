@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _INCLUDEREFACTORER_HPP_
-#define _INCLUDEREFACTORER_HPP_
+#ifndef RF_INCLUDEREFACTORER_HPP_
+#define RF_INCLUDEREFACTORER_HPP_
 
 #include <unordered_map>
 #include <vector>
@@ -77,7 +77,7 @@ private:
     void addReplacement(const clang::SourceRange Range);
     void addReplacement(const clang::SourceLocation Loc, unsigned int Length);
     
-    std::unordered_map<UIntPair, SourceRangeVector, UIntPairHash> _IncludeMap;
+    std::unordered_map<UIntPair, SourceRangeVector, UIntPairHash> IncludeMap_;
 };
 
-#endif /* _INCLUDEREFACTORER_HPP_ */
+#endif /* RF_INCLUDEREFACTORER_HPP_ */
