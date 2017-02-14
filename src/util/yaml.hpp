@@ -64,7 +64,6 @@ struct RefactoringArgs {
 }
 }
 
-LLVM_YAML_IS_SEQUENCE_VECTOR(clang::tooling::Replacement)
 LLVM_YAML_IS_SEQUENCE_VECTOR(std::string)
 
 namespace llvm {
