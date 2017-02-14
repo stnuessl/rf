@@ -26,10 +26,6 @@
 #include <memory>
 #include <utility>
 
-#include <llvm/Support/MemoryBuffer.h>
-
-#include <util/CommandLine.hpp>
-
 namespace std {
     
 template <typename T, typename ...Args>
@@ -42,13 +38,5 @@ std::unique_ptr<T> make_unique(Args &&...args)
 
 #endif
 
-namespace util {
-namespace memory {
-    
-std::unique_ptr<llvm::MemoryBuffer> 
-createMemoryBufferFromFile(const llvm::StringRef Path);
-
-}
-}
 
 #endif /* RF_MEMORY_HPP_ */

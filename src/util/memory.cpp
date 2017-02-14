@@ -17,26 +17,3 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#include <util/memory.hpp>
-
-namespace util {
-namespace memory {
-    
-std::unique_ptr<llvm::MemoryBuffer> 
-createMemoryBufferFromFile(const llvm::StringRef Path)
-{
-    auto Buffer = llvm::MemoryBuffer::getFile(Path);
-    if (!Buffer) {
-        llvm::errs() << util::cl::Error() << "failed to open file \"" 
-                     << Path << "\" - " 
-                     << Buffer.getError().message() << "\n";
-        std::exit(EXIT_FAILURE);
-    }
-    
-    /* Pry the 'std::unique_ptr' away from the 'llvm::ErrorOr<T>' structure */
-    return std::move(Buffer.get());
-}
-
-}
-}

@@ -34,14 +34,20 @@ namespace yaml {
 template <typename T>
 void read(const llvm::StringRef Path, T &Object)
 {
-    auto MemBuffer = util::memory::createMemoryBufferFromFile(Path);
+    auto MemBuffer = llvm::MemoryBuffer::getFile(Path);
+    if (!MemBuffer) {
+        llvm::errs() << util::cl::Error() 
+                     << "failed to open file \"" << Path << "\" - " 
+                     << MemBuffer.getError().message() << "\n";
+        std::exit(EXIT_FAILURE);
+    }
     
-    llvm::yaml::Input YAMLInput(MemBuffer->getBuffer());
+    llvm::yaml::Input YAMLInput(MemBuffer.get()->getBuffer());
     YAMLInput >> Object;
     
     if (YAMLInput.error()) {
-        llvm::errs() << util::cl::Error() << "failed to parse file \"" 
-                     << Path << "\".\n"; 
+        llvm::errs() << util::cl::Error() 
+                     << "failed to parse file \"" << Path << "\".\n"; 
         std::exit(EXIT_FAILURE);
     }
 }
