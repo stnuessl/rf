@@ -26,22 +26,17 @@
 #include <llvm/Support/YAMLTraits.h>
 
 #include <util/CommandLine.hpp>
+#include <util/memory.hpp>
 
 namespace util {
 namespace yaml {
 
 template <typename T>
-void read(const std::string &Path, T &Object)
+void read(const llvm::StringRef Path, T &Object)
 {
-    auto Buffer = llvm::MemoryBuffer::getFile(Path);
-    if (!Buffer) {
-        llvm::errs() << util::cl::Error() << "failed to open file \"" 
-                     << Path << "\" - " 
-                     << Buffer.getError().message() << "\n";
-        std::exit(EXIT_FAILURE);
-    }
+    auto MemBuffer = util::memory::createMemoryBufferFromFile(Path);
     
-    llvm::yaml::Input YAMLInput(Buffer.get()->getBuffer());
+    llvm::yaml::Input YAMLInput(MemBuffer->getBuffer());
     YAMLInput >> Object;
     
     if (YAMLInput.error()) {
@@ -51,8 +46,6 @@ void read(const std::string &Path, T &Object)
     }
 }
 
-}
-    
 struct RefactoringArgs {    
     std::vector<std::string> EnumConstants;
     std::vector<std::string> Functions;
@@ -61,14 +54,8 @@ struct RefactoringArgs {
     std::vector<std::string> Tags;
     std::vector<std::string> Variables;
 };
-    
-struct ReplacementsInfo {
-    ReplacementsInfo() = default;
-    ReplacementsInfo(clang::tooling::Replacements &Repls);
-    
-    std::vector<clang::tooling::Replacement> Replacements;
-};
 
+}
 }
 
 LLVM_YAML_IS_SEQUENCE_VECTOR(clang::tooling::Replacement)
@@ -78,8 +65,8 @@ namespace llvm {
 namespace yaml {
         
 template<>
-struct MappingTraits<util::RefactoringArgs> {
-    static void mapping(llvm::yaml::IO &IO, util::RefactoringArgs &Args)
+struct MappingTraits<util::yaml::RefactoringArgs> {
+    static void mapping(llvm::yaml::IO &IO, util::yaml::RefactoringArgs &Args)
     {
         IO.mapOptional("Enum-Constants", Args.EnumConstants);
         IO.mapOptional("Functions", Args.Functions);
@@ -87,32 +74,6 @@ struct MappingTraits<util::RefactoringArgs> {
         IO.mapOptional("Namespaces", Args.Namespaces);
         IO.mapOptional("Tags", Args.Tags);
         IO.mapOptional("Variables", Args.Variables);
-    }
-};
-
-template <>
-struct MappingTraits<util::ReplacementsInfo> {
-    static void mapping(llvm::yaml::IO &IO, util::ReplacementsInfo &Info)
-    {
-        IO.mapRequired("Replacements", Info.Replacements);
-    }
-};
-
-template <>
-struct MappingTraits<clang::tooling::Replacement> {
-    static void mapping(llvm::yaml::IO &IO, clang::tooling::Replacement &Repl)
-    {
-        auto File = Repl.getFilePath().str();
-        auto Offset = Repl.getOffset();
-        auto Length = Repl.getLength();
-        auto Text = Repl.getReplacementText().str();
-        
-        IO.mapRequired("File", File);
-        IO.mapRequired("Offset", Offset);
-        IO.mapRequired("Length", Length);
-        IO.mapRequired("Text", Text);
-        
-        Repl = clang::tooling::Replacement(File, Offset, Length, Text);
     }
 };
 

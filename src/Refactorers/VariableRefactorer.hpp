@@ -21,7 +21,7 @@
 #ifndef RF_VARIABLEREFACTORER_HPP_
 #define RF_VARIABLEREFACTORER_HPP_
 
-#include <Refactorers/NameRefactorer.hpp>
+#include <Refactorers/Base/NameRefactorer.hpp>
 
 class VariableRefactorer : public NameRefactorer {
 public:

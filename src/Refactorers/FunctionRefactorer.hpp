@@ -21,7 +21,7 @@
 #ifndef RF_FUNCTIONREFACTORER_HPP_
 #define RF_FUNCTIONREFACTORER_HPP_
 
-#include <Refactorers/NameRefactorer.hpp>
+#include <Refactorers/Base/NameRefactorer.hpp>
 
 class FunctionRefactorer : public NameRefactorer {
 public:

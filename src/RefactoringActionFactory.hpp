@@ -25,7 +25,7 @@
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Tooling/Tooling.h>
 
-#include <Refactorers/Refactorer.hpp>
+#include <Refactorers/Base/Refactorer.hpp>
 
 class RefactoringAction : public clang::ASTFrontendAction {
 public:

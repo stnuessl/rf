@@ -20,7 +20,7 @@
 
 #include <algorithm>
 
-#include <Refactorers/NameRefactorer.hpp>
+#include <Refactorers/Base/NameRefactorer.hpp>
 
 #include <util/CommandLine.hpp>
 

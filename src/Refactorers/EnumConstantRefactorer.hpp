@@ -21,7 +21,7 @@
 #ifndef RF_ENUMCONSTANTREFACTORER_HPP_
 #define RF_ENUMCONSTANTREFACTORER_HPP_
 
-#include <Refactorers/NameRefactorer.hpp>
+#include <Refactorers/Base/NameRefactorer.hpp>
 
 class EnumConstantRefactorer : public NameRefactorer {
 public:

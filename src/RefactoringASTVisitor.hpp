@@ -25,7 +25,7 @@
 
 #include <clang/AST/RecursiveASTVisitor.h>
 
-#include <Refactorers/Refactorer.hpp>
+#include <Refactorers/Base/Refactorer.hpp>
 
 class RefactoringASTVisitor 
     : public clang::RecursiveASTVisitor<RefactoringASTVisitor> {

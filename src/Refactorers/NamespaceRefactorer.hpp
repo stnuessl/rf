@@ -21,7 +21,7 @@
 #ifndef RF_NAMESPACEREFACTORER_HPP_
 #define RF_NAMESPACEREFACTORER_HPP_
 
-#include <Refactorers/NameRefactorer.hpp>
+#include <Refactorers/Base/NameRefactorer.hpp>
 
 class NamespaceRefactorer : public NameRefactorer {
 public:

@@ -21,7 +21,7 @@
 #ifndef RF_TAGREFACTORER_HPP_
 #define RF_TAGREFACTORER_HPP_
 
-#include <Refactorers/NameRefactorer.hpp>
+#include <Refactorers/Base/NameRefactorer.hpp>
 
 class TagRefactorer : public NameRefactorer {
 public:

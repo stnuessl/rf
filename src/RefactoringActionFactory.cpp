@@ -67,8 +67,9 @@ RefactoringAction::CreateASTConsumer(clang::CompilerInstance &CI,
     auto Consumer = std::make_unique<RefactoringASTConsumer>();
     Consumer->setRefactorers(Refactorers_);
     
-    /* This 'std::move()' removes an error when running "--syntax-only" */
-    return std::move(Consumer);
+//     /* This 'std::move()' removes an error when running "--syntax-only" */
+//     return std::move(Consumer);
+    return Consumer;
 }
 
 void RefactoringActionFactory::setRefactorers(Refactorers *Refactorers)

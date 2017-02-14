@@ -21,7 +21,7 @@
 #include <utility>
 #include <clang/Tooling/Refactoring.h>
 
-#include <Refactorers/Refactorer.hpp>
+#include <Refactorers/Base/Refactorer.hpp>
 
 Refactorer::Refactorer()
     : CompilerInstance_(nullptr),

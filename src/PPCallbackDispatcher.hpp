@@ -25,7 +25,7 @@
 #include <clang/Lex/MacroInfo.h>
 #include <clang/Lex/PPCallbacks.h>
 
-#include <Refactorers/Refactorer.hpp>
+#include <Refactorers/Base/Refactorer.hpp>
 
 class PPCallbackDispatcher : public clang::PPCallbacks {
 public:

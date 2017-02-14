@@ -24,6 +24,11 @@
 #if __cplusplus <= 201103L
 
 #include <memory>
+#include <utility>
+
+#include <llvm/Support/MemoryBuffer.h>
+
+#include <util/CommandLine.hpp>
 
 namespace std {
     
@@ -36,5 +41,14 @@ std::unique_ptr<T> make_unique(Args &&...args)
 }
 
 #endif
+
+namespace util {
+namespace memory {
+    
+std::unique_ptr<llvm::MemoryBuffer> 
+createMemoryBufferFromFile(const llvm::StringRef Path);
+
+}
+}
 
 #endif /* RF_MEMORY_HPP_ */

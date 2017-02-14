@@ -25,7 +25,7 @@
 
 #include <clang/Lex/MacroInfo.h>
 
-#include <Refactorers/Refactorer.hpp>
+#include <Refactorers/Base/Refactorer.hpp>
 
 /*
  * Base class for Refactorers which want to replace a name with a new one.

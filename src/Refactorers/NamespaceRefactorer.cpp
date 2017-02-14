@@ -20,7 +20,6 @@
 
 #include <Refactorers/NamespaceRefactorer.hpp>
 
-
 void NamespaceRefactorer::visitNamespaceAliasDecl(
     const clang::NamespaceAliasDecl *Decl)
 {

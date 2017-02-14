@@ -21,10 +21,7 @@
 #include <util/yaml.hpp>
 
 namespace util {
-
-ReplacementsInfo::ReplacementsInfo(clang::tooling::Replacements &Repls)
-    : Replacements(Repls.begin(), Repls.end())
-{   
+namespace yaml {
+    
 }
-
 }

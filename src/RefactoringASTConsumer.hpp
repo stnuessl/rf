@@ -23,7 +23,7 @@
 
 #include <clang/AST/ASTConsumer.h>
 
-#include <Refactorers/Refactorer.hpp>
+#include <Refactorers/Base/Refactorer.hpp>
 #include <RefactoringASTVisitor.hpp>
 
 class RefactoringASTConsumer : public clang::ASTConsumer {

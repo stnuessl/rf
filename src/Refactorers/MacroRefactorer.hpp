@@ -24,7 +24,7 @@
 #include <clang/Lex/MacroArgs.h>
 #include <clang/Lex/MacroInfo.h>
 
-#include <Refactorers/NameRefactorer.hpp>
+#include <Refactorers/Base/NameRefactorer.hpp>
 
 class MacroRefactorer : public NameRefactorer {
 public:

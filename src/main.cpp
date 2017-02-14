@@ -102,15 +102,6 @@ static llvm::cl::list<std::string> EnumConstantArgs(
     llvm::cl::cat(RefactoringOptions)
 );
 
-static llvm::cl::opt<bool> Export(
-    "export",
-    llvm::cl::desc(
-        "Write replacements in YAML format to stdout."
-    ),
-    llvm::cl::cat(ProgramSetupOptions),
-    llvm::cl::init(false)
-);
-
 static llvm::cl::opt<bool> Force(
     "force",
     llvm::cl::desc(
@@ -141,17 +132,6 @@ static llvm::cl::list<std::string> FunctionArgs(
     llvm::cl::value_desc("victim=repl"),
     llvm::cl::CommaSeparated,
     llvm::cl::cat(RefactoringOptions)
-);
-
-static llvm::cl::opt<std::string> Import(
-    "import",
-    llvm::cl::desc(
-        "Read replacements in YAML format from <file>.\n"
-        "Make sure the source files were not changed since\n"
-        "the replacements were created!"
-    ),
-    llvm::cl::value_desc("file"),
-    llvm::cl::cat(ProgramSetupOptions)
 );
 
 static llvm::cl::opt<bool> Interactive(
@@ -350,7 +330,7 @@ int main(int argc, const char **argv)
 #endif
 
     if (ToYAML) {
-        auto Args = util::RefactoringArgs();
+        auto Args = util::yaml::RefactoringArgs();
         Args.EnumConstants  = std::move(EnumConstantArgs);
         Args.Functions      = std::move(FunctionArgs);
         Args.Macros         = std::move(PPMacroArgs);
@@ -396,7 +376,7 @@ int main(int argc, const char **argv)
     add<VariableRefactorer>(Refactorers, VariableArgs, Tool);
     
     if (!FromFile.empty()) {
-        util::RefactoringArgs Args;        
+        util::yaml::RefactoringArgs Args;        
         util::yaml::read(FromFile, Args);
 
         add<EnumConstantRefactorer>(Refactorers, Args.EnumConstants, Tool);
@@ -424,46 +404,11 @@ int main(int argc, const char **argv)
         }
     }
     
-    if (!Import.empty()) {
-        util::ReplacementsInfo Info;
-        util::yaml::read(Import, Info);
-        
-        auto &Replacements = Tool.getReplacements();
-        
-        for (auto &&Repl : Info.Replacements) {
-            const auto Pair = Replacements.insert(std::move(Repl));
-            auto &Iterator = Pair.first;
-            auto &Ok       = Pair.second;
-            
-            /* 
-             * If Ok is false but we got a valid iterator the 
-             * replacement was already inside the set
-             */
-            if (!Ok && Iterator == Replacements.end() && !Force) {
-                llvm::errs() << util::cl::Error()
-                             << "failed to load all replacements from file \""
-                             << Import << "\"\n"
-                             << util::cl::Info()
-                             << "to continue with a subset of all the"
-                             << "replacements override with \"--force\".";
-                std::exit(EXIT_FAILURE);
-            }
-        }
-    }
-    
     if (Tool.getReplacements().empty()) {
         llvm::errs() << util::cl::Info() << "no replacements found - done\n";
         std::exit(EXIT_SUCCESS);
     }
-        
-    if (Export) {
-        auto &Repls = Tool.getReplacements();
-        util::ReplacementsInfo Info(Repls);
-        
-        llvm::yaml::Output YAMLOut(llvm::outs());
-        YAMLOut << Info;
-    }
-
+    
     if (DryRun)
         std::exit(EXIT_SUCCESS);
     

@@ -18,7 +18,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef RF_COMMANDLINE_HPP_
 #define RF_COMMANDLINE_HPP_
 
