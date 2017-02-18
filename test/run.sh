@@ -18,7 +18,20 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
+
+set -e
+
+function md5_create() {
+    printf "$(md5sum "$1" | cut -f1 -d " ")"
+}
+
+function md5_compare() {
+    if [ "$1" == "$2" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
 
 python ../utils/make-jcdb.py                            \
             --command "g++ -std=c++11 -o main"          \
@@ -26,10 +39,10 @@ python ../utils/make-jcdb.py                            \
             -- "main.cpp"                               \
             > compile_commands.json;
 
-MD5FILE=$(md5sum main.cpp | cut -f1 -d " ");
-g++ -Wall -std=c++11 -o main main.cpp;
-MD5BIN=$(md5sum main | cut -f1 -d " ");
 
+g++ -Wall -std=c++11 -o main main.cpp;
+md5_src="$(md5_create main.cpp)";
+md5_bin="$(md5_create main)";
 
 rf --tag n::a=aa,b=bb,c=cc,main::ba=baba                \
     --function f=ff                                     \
@@ -45,14 +58,33 @@ rf --tag nn::aa=a,bb=b,cc=c,main::baba=ba               \
     --variable pp::pp::xx=x;
 rf --syntax-only;
 
-if [ "$MD5FILE" != "$(md5sum main.cpp | cut -f1 -d " ")" ]; then
-    echo "**WARNING: MD5 sum of 'main' changed!";
-fi
-
+# Make sure nothing changed
 g++ -Wall -std=c++11 -o main main.cpp;
 
-if [ "$MD5BIN" != "$(md5sum main | cut -f1 -d " ")" ]; then
-    echo "**WARNING: MD5 sum of 'main' changed!";
+if md5_compare "$md5_src" "$md5_create main.cpp"; then
+    printf "**WARNING: MD5 sum of 'main.cpp changed!\n";
+fi
+
+if md5_compare "$md5_bin" "$md5_create main"; then
+    printf "**WARNING: MD5 sum of 'main changed!\n";
+fi
+
+# Basically, the same as above
+rf --from-file do_replacements.yaml;
+rf --syntax-only;
+g++ -Wall -std=c++11 -o main main.cpp
+rf --from-file undo_replacements.yaml;
+rf --syntax-only;
+
+# Again, make sure nothing changed
+g++ -Wall -std=c++11 -o main main.cpp;
+
+if md5_compare "$md5_src" "$md5_create main.cpp"; then
+    printf "**WARNING: MD5 sum of 'main.cpp changed!\n";
+fi
+
+if md5_compare "$md5_bin" "$md5_create main"; then
+    printf "**WARNING: MD5 sum of 'main changed!\n";
 fi
 
 exit;

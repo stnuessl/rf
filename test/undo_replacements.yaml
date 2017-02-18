@@ -1,0 +1,18 @@
+---
+Functions:       
+  - 'ff=f'
+Macros:          
+  - 'MM=M'
+Namespaces:      
+  - 'nn=n'
+  - 'pp=p'
+  - 'pp::pp=p'
+  - 'main::oo=o'
+Tags:            
+  - 'nn::aa=a'
+  - 'bb=b'
+  - 'cc=c'
+  - 'main::baba=ba'
+Variables:       
+  - 'pp::pp::xx=x'
+...
