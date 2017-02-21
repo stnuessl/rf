@@ -49,7 +49,7 @@ SHELL_COMPL_DIR := /usr/share/bash-completion/completions/
 # Specify all source files. The paths should be relative to this file.
 #
 # SRC 		:= $(shell find ./ -iname "*.c")
-SRC 		:= $(shell find ./src/ -iname "*.cpp")
+SRC 		:= $(shell find src/ -iname "*.cpp")
 # SRC 		:= $(shell find ./ -iname "*.c" -o -iname "*.cpp")
 
 ifndef SRC
@@ -120,7 +120,7 @@ DIRS		:= $(BUILDDIR) $(sort $(dir $(OBJS)))
 # Add additional include paths
 #
 INCLUDE		:= \
-		-I./src							\
+		-Isrc/							\
 
 #
 # Add used libraries which are configurable with pkg-config

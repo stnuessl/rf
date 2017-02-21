@@ -29,7 +29,7 @@
 
 class RefactoringAction : public clang::ASTFrontendAction {
 public:
-    void setRefactorers(Refactorers *Refactorers);
+    void setRefactorers(RefactorerVector *Refactorers);
     
     virtual bool BeginSourceFileAction(clang::CompilerInstance &CI,
                                        llvm::StringRef File) override;
@@ -39,16 +39,16 @@ public:
     CreateASTConsumer(clang::CompilerInstance &CI, 
                       llvm::StringRef File) override;
 private:
-    Refactorers *Refactorers_;
+    RefactorerVector *Refactorers_;
 };
 
 class RefactoringActionFactory : public clang::tooling::FrontendActionFactory {
 public:
-    void setRefactorers(Refactorers *Refactorers);
+    void setRefactorers(RefactorerVector *Refactorers);
     
     virtual clang::FrontendAction *create() override;
 private:
-    Refactorers *Refactorers_;
+    RefactorerVector *Refactorers_;
 };
 
 #endif /* RF_REFACTORINGACTIONFACTORY_HPP_ */

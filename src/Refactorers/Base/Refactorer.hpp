@@ -21,6 +21,8 @@
 #ifndef RF_REFACTORER_HPP_
 #define RF_REFACTORER_HPP_
 
+#include <mutex>
+
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/DeclCXX.h>
 #include <clang/Frontend/CompilerInstance.h>
@@ -36,14 +38,13 @@
 
 class Refactorer : public clang::PPCallbacks {
 public:
-    Refactorer();
+    Refactorer() = default;
     virtual ~Refactorer() = default;
     
     void setCompilerInstance(clang::CompilerInstance *CI);
     void setASTContext(clang::ASTContext *ASTContext);
     
-    void setReplacements(clang::tooling::Replacements *Repls);
-    const clang::tooling::Replacements *replacements() const;
+    const clang::tooling::Replacements &replacements() const;
     
     void setVerbose(bool Value);
     bool verbose() const;
@@ -90,11 +91,11 @@ protected:
     
     clang::CompilerInstance *CompilerInstance_;
     clang::ASTContext *ASTContext_;
-    clang::tooling::Replacements *ReplSet_;
+    clang::tooling::Replacements Replacements_;
     bool Verbose_;
     bool Force_;
 };
 
-typedef std::vector<std::unique_ptr<Refactorer>> Refactorers;
+typedef std::vector<std::unique_ptr<Refactorer>> RefactorerVector;
 
 #endif /* RF_REFACTORER_HPP_ */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016  Steffen Nüssle
+ * Copyright (C) 2017  Steffen Nüssle
  * rf - refactor
  *
  * This file is part of rf.
@@ -18,21 +18,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef RF_REFACTORINGASTCONSUMER_HPP_
-#define RF_REFACTORINGASTCONSUMER_HPP_
+#ifndef RF_REFACTORINGTHREAD_HPP_
+#define RF_REFACTORINGTHREAD_HPP_
 
-#include <clang/AST/ASTConsumer.h>
+#include <thread>
+
+#include <clang/Tooling/CompilationDatabase.h>
+
+#include <llvm/ADT/ArrayRef.h>
 
 #include <Refactorers/Base/Refactorer.hpp>
-#include <RefactoringASTVisitor.hpp>
 
-class RefactoringASTConsumer : public clang::ASTConsumer {
+class RefactoringThread {
 public:
-    void setRefactorers(RefactorerVector *Refactorers);
+    RefactoringThread() = default;
+
+    RefactorerVector &refactorers();
+    const RefactorerVector &refactorers() const;
+
+    void run(const clang::tooling::CompilationDatabase &CompDB, 
+             llvm::ArrayRef<std::string> Files);
     
-    virtual void HandleTranslationUnit(clang::ASTContext &ASTContext) override;
+    void join();
+    
 private:
-    RefactoringASTVisitor Visitor_;
+    void task(const clang::tooling::CompilationDatabase *CompDB, 
+              llvm::ArrayRef<std::string> Files);
+    
+    std::thread Thread_;
+    RefactorerVector Refactorers_;
 };
 
-#endif /* RF_REFACTORINGASTCONSUMER_HPP_ */
+#endif /* RF_REFACTORINGTHREAD_HPP_ */

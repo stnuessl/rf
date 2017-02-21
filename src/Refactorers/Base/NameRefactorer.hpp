@@ -21,6 +21,7 @@
 #ifndef RF_NAMEREFACTORER_HPP_
 #define RF_NAMEREFACTORER_HPP_
 
+#include <mutex>
 #include <functional>
 
 #include <clang/Lex/MacroInfo.h>
@@ -67,6 +68,7 @@ private:
     
     std::string Victim_;
     std::string ReplName_;
+    
     std::string Buffer_;
     clang::SourceLocation VictimLoc_;
     

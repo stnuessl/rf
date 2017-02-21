@@ -23,14 +23,7 @@
 
 #include <Refactorers/Base/Refactorer.hpp>
 
-Refactorer::Refactorer()
-    : CompilerInstance_(nullptr),
-      ASTContext_(nullptr),
-      ReplSet_(nullptr),
-      Verbose_(false),
-      Force_(false)
-{
-}
+#include <util/CommandLine.hpp>
 
 void Refactorer::setCompilerInstance(clang::CompilerInstance *CI)
 {
@@ -42,14 +35,9 @@ void Refactorer::setASTContext(clang::ASTContext *ASTContext)
     ASTContext_ = ASTContext;
 }
 
-void Refactorer::setReplacements(clang::tooling::Replacements *ReplSet)
+const clang::tooling::Replacements &Refactorer::replacements() const
 {
-    ReplSet_ = ReplSet;
-}
-
-const clang::tooling::Replacements *Refactorer::replacements() const
-{
-    return ReplSet_;
+    return Replacements_;
 }
 
 void Refactorer::setVerbose(bool Value)
@@ -219,14 +207,11 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
         return;
     
     auto Repl = clang::tooling::Replacement(SM, Loc, Length, ReplText);
-    
-    auto Ok = ReplSet_->insert(std::move(Repl)).second;
-    if (Verbose_ && Ok) {
-        auto File = SM.getFilename(Loc);
-        auto Line = SM.getSpellingLineNumber(Loc);
-        auto Column = SM.getSpellingColumnNumber(Loc);
-        
-        llvm::outs() << "\"" << ReplText << "\" -- " 
-                     << File << ":" << Line << ":" << Column << "\n";
+
+    auto It = Replacements_.insert(std::move(Repl)).first;
+    if (It == Replacements_.end()) {
+        llvm::errs() << util::cl::Error()
+                     << "failed to collect all replacements\n";
+        std::exit(EXIT_FAILURE);
     }
 }

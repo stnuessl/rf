@@ -20,7 +20,7 @@
 
 #include <RefactoringASTVisitor.hpp>
 
-void RefactoringASTVisitor::setRefactorers(Refactorers *Refactorers)
+void RefactoringASTVisitor::setRefactorers(RefactorerVector *Refactorers)
 {
     Refactorers_ = Refactorers;
 }

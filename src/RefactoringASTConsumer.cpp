@@ -21,7 +21,7 @@
 #include <RefactoringASTConsumer.hpp>
 
 
-void RefactoringASTConsumer::setRefactorers(Refactorers *Refactorers)
+void RefactoringASTConsumer::setRefactorers(RefactorerVector *Refactorers)
 {
     Visitor_.setRefactorers(Refactorers);
 }

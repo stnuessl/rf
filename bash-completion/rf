@@ -35,7 +35,8 @@ _rf()
           --help
           --interactive
           --macro
-          --namespace 
+          --namespace
+          --num-threads
           --syntax-only
           --tag
           --variable
