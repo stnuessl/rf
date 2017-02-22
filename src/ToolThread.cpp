@@ -18,13 +18,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdlib>
-#include <algorithm>
-
-#include <util/memory.hpp>
-#include <util/CommandLine.hpp>
-
-#include <RefactoringActionFactory.hpp>
 #include <ToolThread.hpp>
 
 void ToolThread::run(const clang::tooling::CompilationDatabase &CompDB,

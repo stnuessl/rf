@@ -24,10 +24,7 @@
 #include <thread>
 
 #include <clang/Tooling/CompilationDatabase.h>
-
-#include <llvm/ADT/ArrayRef.h>
-
-#include <Refactorers/Base/Refactorer.hpp>
+#include <clang/Tooling/Tooling.h>
 
 class ToolThread {
 public:
