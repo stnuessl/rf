@@ -21,6 +21,7 @@
 #include <utility>
 
 #include <clang/Lex/Preprocessor.h>
+#include <clang/Frontend/FrontendActions.h>
 
 #include <RefactoringASTConsumer.hpp>
 #include <RefactoringActionFactory.hpp>
@@ -66,22 +67,27 @@ RefactoringAction::CreateASTConsumer(clang::CompilerInstance &CI,
     
     auto Consumer = std::make_unique<RefactoringASTConsumer>();
     Consumer->setRefactorers(Refactorers_);
-    
-//     /* This 'std::move()' removes an error when running "--syntax-only" */
-//     return std::move(Consumer);
+
     return Consumer;
 }
 
-void RefactoringActionFactory::setRefactorers(RefactorerVector *Refactorers)
+RefactorerVector &RefactoringActionFactory::refactorers()
 {
-    Refactorers_ = Refactorers;
+    return Refactorers_;
 }
 
+const RefactorerVector &RefactoringActionFactory::refactorers() const
+{
+    return Refactorers_;
+}
 
 clang::FrontendAction *RefactoringActionFactory::create()
 {
+    if (Refactorers_.empty())
+        return new clang::SyntaxOnlyAction();
+        
     auto Action = new RefactoringAction();
-    Action->setRefactorers(Refactorers_);
+    Action->setRefactorers(&Refactorers_);
     
     return Action;
 }

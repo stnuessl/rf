@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef RF_REFACTORINGTHREAD_HPP_
-#define RF_REFACTORINGTHREAD_HPP_
+#ifndef RF_TOOLTHREAD_HPP_
+#define RF_TOOLTHREAD_HPP_
 
 #include <thread>
 
@@ -29,24 +29,25 @@
 
 #include <Refactorers/Base/Refactorer.hpp>
 
-class RefactoringThread {
+class ToolThread {
 public:
-    RefactoringThread() = default;
-
-    RefactorerVector &refactorers();
-    const RefactorerVector &refactorers() const;
+    ToolThread() = default;
 
     void run(const clang::tooling::CompilationDatabase &CompDB, 
-             llvm::ArrayRef<std::string> Files);
+             llvm::ArrayRef<std::string> Files,
+             clang::tooling::FrontendActionFactory &Factory);
     
     void join();
     
+    bool errorOccured() const;
+    
 private:
-    void task(const clang::tooling::CompilationDatabase *CompDB, 
-              llvm::ArrayRef<std::string> Files);
+    void work(const clang::tooling::CompilationDatabase &CompDB,
+              llvm::ArrayRef<std::string> Files,
+              clang::tooling::FrontendActionFactory &Factory);
     
     std::thread Thread_;
-    RefactorerVector Refactorers_;
+    bool Error_;
 };
 
-#endif /* RF_REFACTORINGTHREAD_HPP_ */
+#endif /* RF_TOOLTHREAD_HPP_ */

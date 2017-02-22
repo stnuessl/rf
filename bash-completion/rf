@@ -26,7 +26,7 @@ _rf()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
     opts="--allow-root
-          --commands 
+          --compile-commands 
           --dry-run
           --enum-constant
           --force 

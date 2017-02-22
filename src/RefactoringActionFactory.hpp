@@ -25,6 +25,8 @@
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Tooling/Tooling.h>
 
+#include <llvm/ADT/StringRef.h>
+
 #include <Refactorers/Base/Refactorer.hpp>
 
 class RefactoringAction : public clang::ASTFrontendAction {
@@ -44,11 +46,15 @@ private:
 
 class RefactoringActionFactory : public clang::tooling::FrontendActionFactory {
 public:
-    void setRefactorers(RefactorerVector *Refactorers);
+    RefactoringActionFactory() = default;
+    
+    RefactorerVector &refactorers();
+    const RefactorerVector &refactorers() const;
     
     virtual clang::FrontendAction *create() override;
+
 private:
-    RefactorerVector *Refactorers_;
+    RefactorerVector Refactorers_;
 };
 
 #endif /* RF_REFACTORINGACTIONFACTORY_HPP_ */

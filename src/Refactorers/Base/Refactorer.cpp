@@ -40,16 +40,6 @@ const clang::tooling::Replacements &Refactorer::replacements() const
     return Replacements_;
 }
 
-void Refactorer::setVerbose(bool Value)
-{
-    Verbose_ = Value;
-}
-
-bool Refactorer::verbose() const
-{
-    return Verbose_;
-}
-
 void Refactorer::setForce(bool Value)
 {
     Force_ = Value;

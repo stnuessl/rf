@@ -28,13 +28,13 @@
 #include <unistd.h>
 #endif
 
-#include <clang/Frontend/TextDiagnosticPrinter.h>
-#include <clang/Frontend/FrontendActions.h>
-#include <clang/Rewrite/Core/Rewriter.h>
-#include <clang/Tooling/Refactoring.h>
 #include <clang/Tooling/CompilationDatabase.h>
+#include <clang/Frontend/FrontendActions.h>
 #include <clang/Tooling/JSONCompilationDatabase.h>
+#include <clang/Tooling/Refactoring.h>
+#include <clang/Rewrite/Core/Rewriter.h>
 #include <clang/Tooling/Tooling.h>
+#include <clang/Frontend/TextDiagnosticPrinter.h>
 
 #include <llvm/Support/CommandLine.h>
 
@@ -50,7 +50,8 @@
 #include <util/string.hpp>
 #include <util/yaml.hpp>
 
-#include <RefactoringThread.hpp>
+#include <ToolThread.hpp>
+#include <RefactoringActionFactory.hpp>
 
 static llvm::cl::OptionCategory RefactoringOptions("Code Refactoring Options");
 static llvm::cl::OptionCategory ProgramSetupOptions("Program Setup Options");
@@ -73,7 +74,7 @@ static llvm::cl::opt<bool> AllowRoot(
 #endif
 
 static llvm::cl::opt<std::string> CompileCommandsPath(
-    "commands",
+    "compile-commands",
     llvm::cl::desc(
         "Specify the compilation database <file>.\n"
         "Usually this <file> is named \"compile_commands.json\".\n"
@@ -178,6 +179,16 @@ static llvm::cl::opt<unsigned int> NumThreads(
     llvm::cl::init(std::thread::hardware_concurrency())
 );
 
+static llvm::cl::opt<bool> SyntaxOnly(
+    "syntax-only",
+    llvm::cl::desc(
+        "Perform a syntax check and exit.\n"
+        "No changes are made even if replacements were specified."
+    ),
+    llvm::cl::cat(ProgramSetupOptions),
+    llvm::cl::init(false)
+);
+
 static llvm::cl::list<std::string> TagArgs(
     "tag",
     llvm::cl::desc(
@@ -250,7 +261,7 @@ makeCompilationDatabase(const std::string &Path, std::string &ErrMsg)
 
 
 template<typename T> 
-static void add(std::vector<RefactoringThread> &Threads, 
+static void add(std::vector<RefactoringActionFactory> &Factories,
                 const std::vector<std::string> &ArgVec)
 {
     for (const auto &Arg : ArgVec) {
@@ -268,14 +279,13 @@ static void add(std::vector<RefactoringThread> &Threads,
         if (Victim == Repl)
             continue;
         
-        for (auto &Thread : Threads) {
+        for (auto &Factory : Factories) {
             auto Refactorer = std::make_unique<T>();
-            Refactorer->setVerbose(Verbose);
             Refactorer->setForce(Force);
             Refactorer->setVictimQualifier(Victim);
             Refactorer->setReplacementQualifier(Repl);
             
-            Thread.refactorers().push_back(std::move(Refactorer));
+            Factory.refactorers().push_back(std::move(Refactorer));
         }
     }
 }
@@ -348,43 +358,51 @@ int main(int argc, const char **argv)
     }
         
     auto ErrMsg = std::string();
-    auto CompilationDB = makeCompilationDatabase(CompileCommandsPath, ErrMsg);
-    if (!CompilationDB) {
+    auto CompileCommands = makeCompilationDatabase(CompileCommandsPath, ErrMsg);
+    if (!CompileCommands) {
         llvm::errs() << util::cl::Error() << ErrMsg << "\n";
         std::exit(EXIT_FAILURE);
     }
 
-    auto SourceFiles = CompilationDB->getAllFiles();
+    auto SourceFiles = CompileCommands->getAllFiles();
     if (!InputFiles.empty())
         std::swap(SourceFiles, *&InputFiles);
-
-    std::vector<RefactoringThread> Threads(NumThreads);
     
-    add<EnumConstantRefactorer>(Threads, EnumConstantArgs);
-    add<FunctionRefactorer>(Threads, FunctionArgs);
-    add<MacroRefactorer>(Threads, PPMacroArgs);
-    add<NamespaceRefactorer>(Threads, NamespaceArgs);
-    add<TagRefactorer>(Threads, TagArgs);
-    add<VariableRefactorer>(Threads, VariableArgs);
+    std::vector<RefactoringActionFactory> Factories(NumThreads);
     
-    if (!FromFile.empty()) {
-        util::yaml::RefactoringArgs Args;        
-        util::yaml::read(FromFile, Args);
-
-        add<EnumConstantRefactorer>(Threads, Args.EnumConstants);
-        add<FunctionRefactorer>(Threads, Args.Functions);
-        add<MacroRefactorer>(Threads, Args.Macros);
-        add<NamespaceRefactorer>(Threads, Args.Namespaces);
-        add<TagRefactorer>(Threads, Args.Tags);
-        add<VariableRefactorer>(Threads, Args.Variables);
+    if (!SyntaxOnly) {
+        add<EnumConstantRefactorer>(Factories, EnumConstantArgs);
+        add<FunctionRefactorer>(Factories, FunctionArgs);
+        add<MacroRefactorer>(Factories, PPMacroArgs);
+        add<NamespaceRefactorer>(Factories, NamespaceArgs);
+        add<TagRefactorer>(Factories, TagArgs);
+        add<VariableRefactorer>(Factories, VariableArgs);
+        
+        if (!FromFile.empty()) {
+            util::yaml::RefactoringArgs Args;        
+            util::yaml::read(FromFile, Args);
+            
+            add<EnumConstantRefactorer>(Factories, Args.EnumConstants);
+            add<FunctionRefactorer>(Factories, Args.Functions);
+            add<MacroRefactorer>(Factories, Args.Macros);
+            add<NamespaceRefactorer>(Factories, Args.Namespaces);
+            add<TagRefactorer>(Factories, Args.Tags);
+            add<VariableRefactorer>(Factories, Args.Variables);
+        }
     }
 
     auto FilesPerThread = SourceFiles.size() / NumThreads;
-    auto RemainingFiles = SourceFiles.size() % NumThreads;
-    
+    auto RemainingFiles = SourceFiles.size() % NumThreads;    
     auto BatchIt = SourceFiles.begin();
-    
-    for (auto &Thread : Threads) {
+
+    /* 
+     * This vector is not allowed to resize as currently 
+     * running threads may try to write to its memory
+     */
+    std::vector<ToolThread> Threads(Factories.size());
+
+    auto ThreadIt = Threads.begin();
+    for (auto &Factory : Factories) {
         auto NumFiles = FilesPerThread;
         
         if (RemainingFiles > 0) {
@@ -398,31 +416,38 @@ int main(int argc, const char **argv)
         
         llvm::ArrayRef<std::string> Files(&*BatchBegin, &*BatchEnd);
         
-        Thread.run(*CompilationDB, Files);
+        ThreadIt->run(*CompileCommands, Files, Factory);
+        ++ThreadIt;
     }
     
-    if (BatchIt != SourceFiles.end()) {
+    if (BatchIt != SourceFiles.end() || ThreadIt != Threads.end()) {
         /* If the math above is correct this should never happen */
         llvm::errs() << util::cl::Error() 
                      << "internal program error - no changes are made\n";
         std::exit(EXIT_FAILURE);
     }
-    
-    RefactoringTool Tool(*CompilationDB, SourceFiles);
-    auto &Replacements = Tool.getReplacements();
-    auto DstRepls = std::inserter(Replacements, Replacements.end());
-    
-    IntrusiveRefCntPtr<DiagnosticOptions> Opts = new DiagnosticOptions();
-    IntrusiveRefCntPtr<DiagnosticIDs> Id = new DiagnosticIDs();
-    
-    TextDiagnosticPrinter Printer(llvm::errs(), &*Opts);
-    DiagnosticsEngine Diagnostics(Id, &*Opts, &Printer, false);
-    SourceManager SM(Diagnostics, Tool.getFiles());
-    
+        
     for (auto &Thread : Threads) {
         Thread.join();
         
-        for (auto &Refactorer : Thread.refactorers()) {
+        if (Thread.errorOccured()) {
+            llvm::errs() << util::cl::Error()
+                         << "encountered syntax error(s) while processing "
+                         << "translation units\n";
+                         
+            std::exit(EXIT_FAILURE);
+        }
+    }
+    
+    if (SyntaxOnly)
+        std::exit(EXIT_SUCCESS);
+    
+    RefactoringTool Tool(*CompileCommands, SourceFiles);
+    auto &Replacements = Tool.getReplacements();
+    auto DstRepls = std::inserter(Replacements, Replacements.end());
+    
+    for (auto &Factory : Factories) {
+        for (auto &Refactorer : Factory.refactorers()) {
             auto &Repls = Refactorer->replacements();
             
             std::move(Repls.begin(), Repls.end(), DstRepls);
@@ -433,6 +458,13 @@ int main(int argc, const char **argv)
         llvm::errs() << util::cl::Info() << "no replacements found - done\n";
         std::exit(EXIT_SUCCESS);
     }
+
+    IntrusiveRefCntPtr<DiagnosticOptions> Opts = new DiagnosticOptions();
+    IntrusiveRefCntPtr<DiagnosticIDs> Id = new DiagnosticIDs();
+    
+    TextDiagnosticPrinter Printer(llvm::errs(), &*Opts);
+    DiagnosticsEngine Diagnostics(Id, &*Opts, &Printer, false);
+    SourceManager SM(Diagnostics, Tool.getFiles());
     
     if (Verbose) {
         auto &FileManager = SM.getFileManager();
@@ -445,8 +477,7 @@ int main(int argc, const char **argv)
             auto Line = SM.getLineNumber(ID, Offset);
             auto Column = SM.getColumnNumber(ID, Offset);
             
-            llvm::outs() << "\"" << Repl.getReplacementText() << "\":"
-                         << Offset << ":+" << Repl.getLength() << " -- "
+            llvm::outs() << "\"" << Repl.getReplacementText() << "\" -- "
                          << Repl.getFilePath() << ":" << Line << ":" << Column
                          << "\n";
         }

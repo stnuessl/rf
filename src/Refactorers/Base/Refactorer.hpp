@@ -46,9 +46,6 @@ public:
     
     const clang::tooling::Replacements &replacements() const;
     
-    void setVerbose(bool Value);
-    bool verbose() const;
-    
     void setForce(bool Value);
     bool force() const;
     
@@ -92,7 +89,6 @@ protected:
     clang::CompilerInstance *CompilerInstance_;
     clang::ASTContext *ASTContext_;
     clang::tooling::Replacements Replacements_;
-    bool Verbose_;
     bool Force_;
 };
 
