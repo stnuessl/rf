@@ -31,30 +31,32 @@
 
 class RefactoringAction : public clang::ASTFrontendAction {
 public:
-    void setRefactorers(RefactorerVector *Refactorers);
+    void setRefactorers(std::vector<std::unique_ptr<Refactorer>> *Refactorers);
     
     virtual bool BeginSourceFileAction(clang::CompilerInstance &CI,
                                        llvm::StringRef File) override;
     virtual void EndSourceFileAction() override;
+    
+//     virtual void ExecuteAction() override;
                                  
     virtual std::unique_ptr<clang::ASTConsumer> 
     CreateASTConsumer(clang::CompilerInstance &CI, 
                       llvm::StringRef File) override;
 private:
-    RefactorerVector *Refactorers_;
+    std::vector<std::unique_ptr<Refactorer>> *Refactorers_;
 };
 
 class RefactoringActionFactory : public clang::tooling::FrontendActionFactory {
 public:
     RefactoringActionFactory() = default;
     
-    RefactorerVector &refactorers();
-    const RefactorerVector &refactorers() const;
+    std::vector<std::unique_ptr<Refactorer>> &refactorers();
+    const std::vector<std::unique_ptr<Refactorer>> &refactorers() const;
     
     virtual clang::FrontendAction *create() override;
 
 private:
-    RefactorerVector Refactorers_;
+    std::vector<std::unique_ptr<Refactorer>> Refactorers_;
 };
 
 #endif /* RF_REFACTORINGACTIONFACTORY_HPP_ */

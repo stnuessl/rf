@@ -368,6 +368,9 @@ int main(int argc, const char **argv)
     if (!InputFiles.empty())
         std::swap(SourceFiles, *&InputFiles);
     
+    if (NumThreads == 0)
+        NumThreads = 1;
+    
     std::vector<RefactoringActionFactory> Factories(NumThreads);
     
     if (!SyntaxOnly) {
@@ -455,7 +458,7 @@ int main(int argc, const char **argv)
     }
     
     if (Tool.getReplacements().empty()) {
-        llvm::errs() << util::cl::Info() << "no replacements found - done\n";
+        llvm::errs() << util::cl::Info() << "no replacements were found\n";
         std::exit(EXIT_SUCCESS);
     }
 
@@ -515,13 +518,13 @@ int main(int argc, const char **argv)
     
     bool ok = Tool.applyAllReplacements(Rewriter);
     if (!ok) {
-        std::cerr << util::cl::Error() << "failed to apply replacements\n";
+        llvm::errs() << util::cl::Error() << "failed to apply replacements\n";
         std::exit(EXIT_FAILURE);
     }
     
     bool err = Rewriter.overwriteChangedFiles();
     if (err) {
-        std::cerr << util::cl::Error() << "failed to save changes to disk\n";
+        llvm::errs() << util::cl::Error() << "failed to save changes to disk\n";
         std::exit(EXIT_FAILURE);
     }
 

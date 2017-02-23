@@ -90,6 +90,4 @@ protected:
     bool Force_;
 };
 
-typedef std::vector<std::unique_ptr<Refactorer>> RefactorerVector;
-
 #endif /* RF_REFACTORER_HPP_ */

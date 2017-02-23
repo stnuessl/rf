@@ -29,7 +29,7 @@
 
 class PPCallbackDispatcher : public clang::PPCallbacks {
 public:
-    void setRefactorers(RefactorerVector *Refactorers);
+    void setRefactorers(std::vector<std::unique_ptr<Refactorer>> *Refactorers);
 
     virtual void InclusionDirective(clang::SourceLocation LocBegin,
                                     const clang::Token &Token,
@@ -78,7 +78,7 @@ public:
                         const clang::MacroDefinition &MD) override;
 
 private:
-    RefactorerVector *Refactorers_;
+    std::vector<std::unique_ptr<Refactorer>> *Refactorers_;
 };
 
 #endif /* RF_PPCALLBACKDISPATCHER_HPP_ */

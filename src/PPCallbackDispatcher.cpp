@@ -21,7 +21,8 @@
 #include <PPCallbackDispatcher.hpp>
 
 
-void PPCallbackDispatcher::setRefactorers(RefactorerVector *Refactorers)
+void PPCallbackDispatcher::setRefactorers(
+    std::vector<std::unique_ptr<Refactorer>> *Refactorers)
 {
     Refactorers_ = Refactorers;
 }
