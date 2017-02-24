@@ -47,8 +47,8 @@ public:
     void setForce(bool Value);
     bool force() const;
     
-    virtual void beforeSourceFileAction(llvm::StringRef File);
-    virtual void afterSourceFileAction();
+    virtual void beginSourceFileAction(llvm::StringRef File);
+    virtual void endSourceFileAction();
     
     virtual void visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl);
     virtual void visitCXXDestructorDecl(const clang::CXXDestructorDecl *Decl);

@@ -23,7 +23,7 @@
 
 #include <Refactorers/Base/Refactorer.hpp>
 
-#include <util/CommandLine.hpp>
+#include <util/commandline.hpp>
 
 void Refactorer::setCompilerInstance(clang::CompilerInstance *CI)
 {
@@ -50,12 +50,12 @@ bool Refactorer::force() const
     return Force_;
 }
 
-void Refactorer::beforeSourceFileAction(llvm::StringRef File)
+void Refactorer::beginSourceFileAction(llvm::StringRef File)
 {
     (void) File;
 }
 
-void Refactorer::afterSourceFileAction()
+void Refactorer::endSourceFileAction()
 {
 }
 

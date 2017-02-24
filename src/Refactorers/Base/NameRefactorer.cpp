@@ -22,7 +22,7 @@
 
 #include <Refactorers/Base/NameRefactorer.hpp>
 
-#include <util/CommandLine.hpp>
+#include <util/commandline.hpp>
 
 template <typename Iter>
 static bool isNumber(Iter Begin, Iter End)

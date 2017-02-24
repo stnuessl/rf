@@ -25,7 +25,7 @@
 
 #include <llvm/Support/YAMLTraits.h>
 
-#include <util/CommandLine.hpp>
+#include <util/commandline.hpp>
 #include <util/memory.hpp>
 
 namespace util {
@@ -51,6 +51,32 @@ void read(const llvm::StringRef Path, T &Object)
         std::exit(EXIT_FAILURE);
     }
 }
+
+template <typename T>
+void write(llvm::raw_ostream &OS, T &Object)
+{
+    llvm::yaml::Output YAMLOutput(OS);
+    
+    YAMLOutput << Object;
+}
+
+template <typename T>
+void write(const llvm::StringRef Path, T &Object)
+{
+    std::error_code Error;
+    
+    llvm::raw_fd_ostream OS(Path, Error, llvm::sys::fs::F_Text);
+    
+    if (Error) {
+        llvm::errs() << util::cl::Error() 
+                     << "failed to open \"" << Path << "\" - "
+                     << Error.message() << "\n";
+        std::exit(EXIT_FAILURE);
+    }
+    
+    write(OS, Object);
+}
+
 
 struct RefactoringArgs {    
     std::vector<std::string> EnumConstants;

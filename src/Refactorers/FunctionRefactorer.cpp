@@ -20,7 +20,7 @@
 
 #include <Refactorers/FunctionRefactorer.hpp>
 
-#include <util/CommandLine.hpp>
+#include <util/commandline.hpp>
 
 static bool overrides(const clang::CXXMethodDecl *Decl)
 {

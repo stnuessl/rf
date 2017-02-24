@@ -32,23 +32,32 @@
 class RefactoringAction : public clang::ASTFrontendAction {
 public:
     void setRefactorers(std::vector<std::unique_ptr<Refactorer>> *Refactorers);
+    void setProjectPath(llvm::StringRef Path);
+    
+    virtual bool BeginInvocation(clang::CompilerInstance &CI) override;
     
     virtual bool BeginSourceFileAction(clang::CompilerInstance &CI,
                                        llvm::StringRef File) override;
     virtual void EndSourceFileAction() override;
     
-//     virtual void ExecuteAction() override;
+    virtual void ExecuteAction() override;
                                  
     virtual std::unique_ptr<clang::ASTConsumer> 
     CreateASTConsumer(clang::CompilerInstance &CI, 
                       llvm::StringRef File) override;
 private:
+    std::string getMappedPTHFile(llvm::StringRef File) const;
+    
+    std::string ProjectPath_;
     std::vector<std::unique_ptr<Refactorer>> *Refactorers_;
 };
 
 class RefactoringActionFactory : public clang::tooling::FrontendActionFactory {
 public:
     RefactoringActionFactory() = default;
+    
+    std::string &projectPath();
+    const std::string &projectPath() const;
     
     std::vector<std::unique_ptr<Refactorer>> &refactorers();
     const std::vector<std::unique_ptr<Refactorer>> &refactorers() const;
@@ -57,6 +66,7 @@ public:
 
 private:
     std::vector<std::unique_ptr<Refactorer>> Refactorers_;
+    std::string ProjectPath_;
 };
 
 #endif /* RF_REFACTORINGACTIONFACTORY_HPP_ */
