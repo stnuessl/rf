@@ -46,12 +46,10 @@
 #include <Refactorers/VariableRefactorer.hpp>
 
 #include <util/commandline.hpp>
-#include <util/filesystem.hpp>
 #include <util/memory.hpp>
 #include <util/string.hpp>
 #include <util/yaml.hpp>
 
-#include <ConfigurationFile.hpp>
 #include <ToolThread.hpp>
 #include <RefactoringActionFactory.hpp>
 
@@ -137,19 +135,6 @@ static llvm::cl::list<std::string> FunctionArgs(
     llvm::cl::value_desc("victim=repl"),
     llvm::cl::CommaSeparated,
     llvm::cl::cat(RefactoringOptions)
-);
-
-static llvm::cl::opt<bool> InitConfig(
-    "init-config",
-        llvm::cl::desc(
-        "Creates a rf configuration file in \".rf/config\".\n"
-        "The configuration file will be initialized with the\n"
-        "passed program arguments. rf searchs automatically\n"
-        "all parent directories for a configuration and load\n"
-        "it if available."
-    ),
-    llvm::cl::cat(ProgramSetupOptions),
-    llvm::cl::init(false)
 );
 
 static llvm::cl::opt<bool> Interactive(
@@ -370,38 +355,7 @@ int main(int argc, const char **argv)
 
         std::exit(EXIT_SUCCESS);
     }
-    
-    const auto CurrentPath = util::fs::currentPath();
-    
-    if (InitConfig) {
-        auto ConfigPath = CurrentPath;
-        
-        if (ConfigPath.back() != '/')
-            ConfigPath += '/';
-        
-        ConfigPath += ".rf/config";
-
-        ConfigurationFile Config;
-        
-        Config.CompileCommands = CompileCommandsPath;
-        Config.NumThreads      = NumThreads;
-        Config.Interactive     = Interactive;
-        Config.Verbose         = Verbose;
-        
-        Config.write(ConfigPath);
-        std::exit(EXIT_SUCCESS);
-    }
-    
-    auto Config = ConfigurationFile::detectFrom(CurrentPath);
-    if (Config) {
-        if (CompileCommandsPath.empty())
-            CompileCommandsPath = Config->CompileCommands;
-        
-        NumThreads  = Config->NumThreads;
-        Interactive = Config->Interactive;
-        Verbose     = Config->Verbose;
-    }
-        
+            
     auto ErrMsg = std::string();
     auto CompileCommands = makeCompilationDatabase(CompileCommandsPath, ErrMsg);
     if (!CompileCommands) {
@@ -449,11 +403,8 @@ int main(int argc, const char **argv)
      */
     std::vector<ToolThread> Threads(Factories.size());
 
-    auto ProjectPath = util::fs::projectPath(CurrentPath);
     auto ThreadIt = Threads.begin();
     for (auto &Factory : Factories) {
-        Factory.projectPath() = ProjectPath;
-        
         auto NumFiles = FilesPerThread;
         
         if (RemainingFiles > 0) {
