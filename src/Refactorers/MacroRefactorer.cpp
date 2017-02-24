@@ -20,43 +20,43 @@
 
 #include <Refactorers/MacroRefactorer.hpp>
 
-void MacroRefactorer::MacroExpands(const clang::Token &MacroName, 
-                                   const clang::MacroDefinition &MD, 
-                                   clang::SourceRange Range, 
+void MacroRefactorer::MacroExpands(const clang::Token &MacroName,
+                                   const clang::MacroDefinition &MD,
+                                   clang::SourceRange Range,
                                    const clang::MacroArgs *Args)
 {
     (void) Args;
-    
+
     if (!isVictim(MacroName, MD))
         return;
 
     addReplacement(MacroName.getLocation());
-//     addReplacement(Range.getBegin());
+    //     addReplacement(Range.getBegin());
 }
 
-void MacroRefactorer::MacroDefined(const clang::Token &MacroName, 
+void MacroRefactorer::MacroDefined(const clang::Token &MacroName,
                                    const clang::MacroDirective *MD)
 {
     /* Notice the difference 'MacroDirective' != 'MacroDefinition' */
-    
+
     if (!isVictim(MacroName, MD))
         return;
-    
+
     addReplacement(MD->getLocation());
 }
 
-void MacroRefactorer::MacroUndefined(const clang::Token &MacroName, 
+void MacroRefactorer::MacroUndefined(const clang::Token &MacroName,
                                      const clang::MacroDefinition &MD)
 {
     process(MacroName, MD);
 }
 
-void MacroRefactorer::Defined(const clang::Token &MacroName, 
-                              const clang::MacroDefinition &MD, 
+void MacroRefactorer::Defined(const clang::Token &MacroName,
+                              const clang::MacroDefinition &MD,
                               clang::SourceRange Range)
 {
     (void) Range;
-    
+
     process(MacroName, MD);
 }
 
@@ -65,35 +65,35 @@ void MacroRefactorer::Ifdef(clang::SourceLocation Loc,
                             const clang::MacroDefinition &MD)
 {
     (void) Loc;
-    
+
     process(MacroName, MD);
 }
 
 void MacroRefactorer::Ifndef(clang::SourceLocation Loc,
-                             const clang::Token &MacroName, 
+                             const clang::Token &MacroName,
                              const clang::MacroDefinition &MD)
 {
     (void) Loc;
-    
+
     process(MacroName, MD);
 }
 
-void MacroRefactorer::process(const clang::Token &MacroName, 
+void MacroRefactorer::process(const clang::Token &MacroName,
                               const clang::MacroDefinition &MD)
 {
     if (!isVictim(MacroName, MD))
         return;
-    
+
     addReplacement(MacroName.getLocation());
 }
 
-bool MacroRefactorer::isVictim(const clang::Token &MacroName, 
+bool MacroRefactorer::isVictim(const clang::Token &MacroName,
                                const clang::MacroDefinition &MD)
 {
     return NameRefactorer::isVictim(MacroName, MD.getMacroInfo());
 }
 
-bool MacroRefactorer::isVictim(const clang::Token &MacroName, 
+bool MacroRefactorer::isVictim(const clang::Token &MacroName,
                                const clang::MacroDirective *MD)
 {
     return NameRefactorer::isVictim(MacroName, MD->getMacroInfo());

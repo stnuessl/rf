@@ -22,6 +22,5 @@
 
 namespace util {
 namespace yaml {
-    
 }
 }

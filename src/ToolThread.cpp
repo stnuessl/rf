@@ -26,7 +26,7 @@ void ToolThread::run(const clang::tooling::CompilationDatabase &CompDB,
 {
     auto DBRef = std::cref(CompDB);
     auto FRef = std::ref(Factory);
-    
+
     Thread_ = std::thread(&ToolThread::work, this, DBRef, Files, FRef);
 }
 
@@ -46,8 +46,8 @@ void ToolThread::work(const clang::tooling::CompilationDatabase &CompDB,
 {
     if (Files.empty())
         return;
-    
+
     clang::tooling::ClangTool Tool(CompDB, Files);
-    
+
     Error_ = !!Tool.run(&Factory);
 }

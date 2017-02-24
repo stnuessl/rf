@@ -27,12 +27,12 @@
 
 #include <Refactorers/Base/Refactorer.hpp>
 
-class RefactoringASTVisitor 
+class RefactoringASTVisitor
     : public clang::RecursiveASTVisitor<RefactoringASTVisitor> {
 public:
     void setRefactorers(std::vector<std::unique_ptr<Refactorer>> *Refactorers);
     void setASTContext(clang::ASTContext &ASTContext);
-    
+
     bool VisitCXXConstructorDecl(clang::CXXConstructorDecl *Decl);
     bool VisitCXXDestructorDecl(clang::CXXDestructorDecl *Decl);
     bool VisitCXXMethodDecl(clang::CXXMethodDecl *Decl);
@@ -50,14 +50,14 @@ public:
     bool VisitUsingDirectiveDecl(clang::UsingDirectiveDecl *Decl);
     bool VisitUsingShadowDecl(clang::UsingShadowDecl *Decl);
     bool VisitVarDecl(clang::VarDecl *Decl);
-    
+
     bool VisitExpr(clang::Expr *Expr);
     bool VisitCallExpr(clang::CallExpr *Expr);
     bool VisitDeclRefExpr(clang::DeclRefExpr *Expr);
     bool VisitMemberExpr(clang::MemberExpr *Expr);
-    
+
     bool VisitTypeLoc(clang::TypeLoc &TypeLoc);
-    
+
 private:
     std::vector<std::unique_ptr<Refactorer>> *Refactorers_;
 };

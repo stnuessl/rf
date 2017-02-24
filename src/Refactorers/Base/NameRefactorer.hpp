@@ -21,8 +21,8 @@
 #ifndef RF_NAMEREFACTORER_HPP_
 #define RF_NAMEREFACTORER_HPP_
 
-#include <mutex>
 #include <functional>
+#include <mutex>
 
 #include <clang/Lex/MacroInfo.h>
 
@@ -39,44 +39,45 @@
 class NameRefactorer : public Refactorer {
 public:
     NameRefactorer();
-    
+
     void setVictimQualifier(const std::string &Victim);
     void setVictimQualifier(std::string &&Victim);
     const std::string &victimQualifier() const;
-    
+
     void setReplacementQualifier(const std::string &Repl);
     void setReplacementQualifier(std::string &&Repl);
     const std::string &replacementQualifier() const;
-    
+
 protected:
     bool isVictim(const clang::NamedDecl *NamedDecl);
-    bool isVictim(const clang::Token &MacroName, 
+    bool isVictim(const clang::Token &MacroName,
                   const clang::MacroInfo *MacroInfo);
-    
+
     void addReplacement(clang::SourceLocation Loc);
+
 private:
     bool isEqualToVictim(const std::string &Name) const;
     bool isEqualToVictimPrefix(const std::string &Name) const;
-    
-    void setVictimQualifier(std::string &&Victim, 
+
+    void setVictimQualifier(std::string &&Victim,
                             std::string::iterator Begin,
                             std::string::iterator End);
-    
+
     bool isVictimLocation(const clang::SourceLocation Loc);
 
     const std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
-    
+
     std::string Victim_;
     std::string ReplName_;
-    
+
     std::string Buffer_;
     clang::SourceLocation VictimLoc_;
-    
+
     std::size_t ReplSize_;
     unsigned int Line_;
     unsigned int Column_;
-   
-    std::function<bool(const NameRefactorer &, const std::string &)> 
+
+    std::function<bool(const NameRefactorer &, const std::string &)>
         _IsEqualFunc;
 };
 

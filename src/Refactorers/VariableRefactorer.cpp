@@ -20,21 +20,20 @@
 
 #include <Refactorers/VariableRefactorer.hpp>
 
-
 void VariableRefactorer::visitCXXConstructorDecl(
     const clang::CXXConstructorDecl *Decl)
 {
     /* Handle field declarations initialized in an initializer list */
     if (!Decl->hasBody())
         return;
-    
+
     for (const auto &Init : Decl->inits()) {
         if (!Init->isMemberInitializer() || !Init->isWritten())
             continue;
-        
+
         if (!isVictim(Init->getMember()))
             continue;
-        
+
         addReplacement(Init->getSourceLocation());
     }
 }
@@ -44,18 +43,18 @@ void VariableRefactorer::visitUsingDecl(const clang::UsingDecl *Decl)
     /*
      * This function handles the following case:
      *      namespace n { int x; }
-     * 
+     *
      *      void f() { using n::x; x = 0; }
      *                          ^(1)
-     * 
+     *
      * The 'using n::x' creates a 'UsingShadowDecl' which references a
      * possible 'VarDecl'.
      */
-    
+
     for (const auto &SDecl : Decl->shadows()) {
         auto NamedDecl = SDecl->getUnderlyingDecl();
         auto VarDecl = clang::dyn_cast<clang::VarDecl>(NamedDecl);
-        
+
         if (VarDecl && isVictim(VarDecl)) {
             addReplacement(Decl->getLocation());
             break;
@@ -67,7 +66,7 @@ void VariableRefactorer::visitFieldDecl(const clang::FieldDecl *Decl)
 {
     if (!isVictim(Decl))
         return;
-    
+
     addReplacement(Decl->getLocation());
 }
 
@@ -75,7 +74,7 @@ void VariableRefactorer::visitVarDecl(const clang::VarDecl *Decl)
 {
     if (!isVictim(Decl))
         return;
-    
+
     addReplacement(Decl->getLocation());
 }
 
@@ -83,7 +82,7 @@ void VariableRefactorer::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
 {
     if (!isVictim(Expr->getDecl()))
         return;
-        
+
     addReplacement(Expr->getNameInfo().getLoc());
 }
 
@@ -92,6 +91,6 @@ void VariableRefactorer::visitMemberExpr(const clang::MemberExpr *Expr)
     auto Decl = Expr->getMemberDecl();
     if (!clang::dyn_cast<clang::FieldDecl>(Decl) || !isVictim(Decl))
         return;
-    
+
     addReplacement(Expr->getMemberLoc());
 }

@@ -31,15 +31,15 @@ static clang::SourceLocation getLastTypeLocation(const clang::TypeLoc &TypeLoc)
      * generate the two shown type locations.
      * Calling "getNextTypeLoc()" on (1) will return location (2)
      */
-    
+
     auto Loc = TypeLoc.getBeginLoc();
     auto NextTypeLoc = TypeLoc.getNextTypeLoc();
-    
+
     while (NextTypeLoc) {
         Loc = NextTypeLoc.getBeginLoc();
         NextTypeLoc = NextTypeLoc.getNextTypeLoc();
     }
-    
+
     return Loc;
 }
 
@@ -47,16 +47,16 @@ void TagRefactorer::visitEnumDecl(const clang::EnumDecl *Decl)
 {
     if (!isVictim(Decl))
         return;
-    
+
     addReplacement(Decl->getLocation());
 }
 
-void 
-TagRefactorer::visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl)
+void TagRefactorer::visitCXXConstructorDecl(
+    const clang::CXXConstructorDecl *Decl)
 {
     if (!isVictim(Decl->getParent()))
         return;
-    
+
     addReplacement(Decl->getNameInfo().getLoc());
 }
 
@@ -64,7 +64,7 @@ void TagRefactorer::visitRecordDecl(const clang::RecordDecl *Decl)
 {
     if (!isVictim(Decl))
         return;
-    
+
     addReplacement(Decl->getLocation());
 }
 
@@ -72,23 +72,23 @@ void TagRefactorer::visitTypedefNameDecl(const clang::TypedefNameDecl *Decl)
 {
     if (!isVictim(Decl))
         return;
-    
+
     addReplacement(Decl->getLocation());
 }
 
 void TagRefactorer::visitUsingDecl(const clang::UsingDecl *Decl)
 {
-    /* 
+    /*
      * This handles using declarations like:
      *      namespace n { struct s {}; }
-     *      
+     *
      *      void f() { using n::s; s var; }
      *                          ^(1)
      */
     for (const auto &UsingShadowDecl : Decl->shadows()) {
         auto NamedDecl = UsingShadowDecl->getUnderlyingDecl();
         auto TagDecl = clang::dyn_cast<clang::TagDecl>(NamedDecl);
-        
+
         if (TagDecl && isVictim(TagDecl)) {
             addReplacement(Decl->getLocation());
             break;
@@ -103,7 +103,7 @@ void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
     /*
      * Problem: Given
      *      template<typename T> func() { T() }
-     *                                    ^(1) 
+     *                                    ^(1)
      * and
      *      func<VictimType>();
      *           ^(2)
@@ -114,56 +114,56 @@ void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
     auto STTypeParmType = Type->getAs<clang::SubstTemplateTypeParmType>();
     if (STTypeParmType)
         return;
-    
+
     /*
      * Given
      *      struct a { };
      *      typedef a b;
-     * and 
+     * and
      *      f(b *val) { }   and     g(b &val) { }
      *        ^(1)                    ^(2)
-     * 
+     *
      * (1) Generates a PointerType which wraps a reference type 'b'
      * (2) Generates a ReferenceType which also wraps a reference type 'b'
-     * 
+     *
      * If 'b' is about to be refactored both locations have to be refactored,
-     * so we unwrap the pointer and reference types. 
+     * so we unwrap the pointer and reference types.
      * The location of this unwrapping is intentional.
      */
     auto PointerType = Type->getAs<clang::PointerType>();
     if (PointerType)
         Type = PointerType->getPointeeType();
-    
+
     auto ReferenceType = Type->getAs<clang::ReferenceType>();
     if (ReferenceType)
         Type = ReferenceType->getPointeeType();
-    
+
     /*
      * Given;
      *      typedef std::vector<int> s32_vector;
-     * 
+     *
      * This handles all the occurences ((1) and (2)) of 's32_vector' like:
      *      s32_vector v;   and     std::vector<s32_vector> s32_matrix;
      *      ^(1)                                ^(2)
-     * 
+     *
      * This has to be done explicitly here since clang thinks of typedef types
      * not as tag types but rf does.
      */
     auto TypedefType = Type->getAs<clang::TypedefType>();
     if (TypedefType) {
         auto TypedefNameDecl = TypedefType->getDecl();
-        
+
         if (isVictim(TypedefNameDecl)) {
             auto Loc = getLastTypeLocation(TypeLoc);
             addReplacement(Loc);
         }
-        
+
         return;
     }
-    
-    /* 
+
+    /*
      * This handles declarations like:
-     * 
+     *
      *      template <typename T> class a {};
      *      template <typename T> class b<const a<T>> {};
      *                                          ^
@@ -173,12 +173,12 @@ void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
      * always work. Casting the Type to the TemplateSpecializationType
      * seems to be doing fine.
      */
-    
+
     auto TSpecType = Type->getAs<clang::TemplateSpecializationType>();
     if (TSpecType) {
         auto TemplateName = TSpecType->getTemplateName();
         auto TemplateDecl = TemplateName.getAsTemplateDecl();
-        
+
         if (isVictim(TemplateDecl)) {
             auto Loc = getLastTypeLocation(TypeLoc);
             addReplacement(Loc);
@@ -186,12 +186,11 @@ void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
 
         return;
     }
-    
+
     auto TagDecl = Type->getAsTagDecl();
     if (!TagDecl || !isVictim(TagDecl))
         return;
-    
+
     auto Loc = getLastTypeLocation(TypeLoc);
     addReplacement(Loc);
 }
-

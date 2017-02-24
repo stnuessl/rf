@@ -29,8 +29,9 @@
 class RefactoringASTConsumer : public clang::ASTConsumer {
 public:
     void setRefactorers(std::vector<std::unique_ptr<Refactorer>> *Refactorers);
-    
+
     virtual void HandleTranslationUnit(clang::ASTContext &ASTContext) override;
+
 private:
     RefactoringASTVisitor Visitor_;
 };

@@ -20,15 +20,14 @@
 
 #include <RefactoringASTConsumer.hpp>
 
-
 void RefactoringASTConsumer::setRefactorers(
     std::vector<std::unique_ptr<Refactorer>> *Refactorers)
 {
     Visitor_.setRefactorers(Refactorers);
 }
 
-void 
-RefactoringASTConsumer::HandleTranslationUnit(clang::ASTContext &ASTContext)
+void RefactoringASTConsumer::HandleTranslationUnit(
+    clang::ASTContext &ASTContext)
 {
     Visitor_.setASTContext(ASTContext);
     Visitor_.TraverseDecl(ASTContext.getTranslationUnitDecl());

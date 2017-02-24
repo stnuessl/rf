@@ -21,8 +21,8 @@
 #ifndef RF_COMMANDLINE_HPP_
 #define RF_COMMANDLINE_HPP_
 
-#include <ostream>
 #include <llvm/Support/raw_ostream.h>
+#include <ostream>
 
 namespace util {
 namespace cl {
@@ -30,25 +30,24 @@ namespace cl {
 struct Error {
 public:
     friend std::ostream &operator<<(std::ostream &OS, const Error &Err);
-    friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, 
+    friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                          const Error &Err);
 };
 
 struct Info {
 public:
     friend std::ostream &operator<<(std::ostream &OS, const Info &Info);
-    friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, 
+    friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                          const Info &Info);
 };
 
 struct Warning {
 public:
     friend std::ostream &operator<<(std::ostream &OS, const Warning &Warning);
-    friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS, 
+    friend llvm::raw_ostream &operator<<(llvm::raw_ostream &OS,
                                          const Warning &Warning);
 };
 }
-
 }
 
 #endif /* RF_COMMANDLINE_HPP_ */

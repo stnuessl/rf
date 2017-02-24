@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <utility>
 #include <clang/Tooling/Refactoring.h>
+#include <utility>
 
 #include <Refactorers/Base/Refactorer.hpp>
 
@@ -129,8 +129,7 @@ void Refactorer::visitUsingDecl(const clang::UsingDecl *Decl)
     (void) Decl;
 }
 
-void 
-Refactorer::visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl)
+void Refactorer::visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl)
 {
     (void) Decl;
 }
@@ -170,21 +169,21 @@ void Refactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
     (void) TypeLoc;
 }
 
-void Refactorer::addReplacement(clang::SourceLocation Loc, 
-                                unsigned int Length, 
+void Refactorer::addReplacement(clang::SourceLocation Loc,
+                                unsigned int Length,
                                 llvm::StringRef ReplText)
 {
     auto &SM = CompilerInstance_->getSourceManager();
-    
+
     addReplacement(SM, Loc, Length, ReplText);
 }
 
-void Refactorer::addReplacement(const clang::SourceManager &SM, 
-                                clang::SourceLocation Loc, 
-                                unsigned int Length, 
+void Refactorer::addReplacement(const clang::SourceManager &SM,
+                                clang::SourceLocation Loc,
+                                unsigned int Length,
                                 llvm::StringRef ReplText)
 {
-    /* 
+    /*
      * If we land here we basically found a source location which needs
      * refactoring. So this checks if the source location is a result
      * of an macro expansion. If it is we locate the source location from
@@ -192,10 +191,10 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
      */
     if (Loc.isMacroID())
         Loc = SM.getSpellingLoc(Loc);
-    
+
     if (SM.isInSystemHeader(Loc) || SM.isInExternCSystemHeader(Loc))
         return;
-    
+
     auto Repl = clang::tooling::Replacement(SM, Loc, Length, ReplText);
 
     auto It = Replacements_.insert(std::move(Repl)).first;

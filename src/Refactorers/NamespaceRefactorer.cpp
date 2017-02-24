@@ -23,18 +23,18 @@
 void NamespaceRefactorer::visitNamespaceAliasDecl(
     const clang::NamespaceAliasDecl *Decl)
 {
-//         auto &SM = _CompilerInstance->getSourceManager();
-//         
-//         if (SM.isInSystemHeader(Decl->getLocation()))
-//             return;
-//         
-//         Decl->dump();
-//         Decl->getNamespace()->dump();
-//         Decl->getAliasedNamespace()->dump();
+    //         auto &SM = _CompilerInstance->getSourceManager();
+    //
+    //         if (SM.isInSystemHeader(Decl->getLocation()))
+    //             return;
+    //
+    //         Decl->dump();
+    //         Decl->getNamespace()->dump();
+    //         Decl->getAliasedNamespace()->dump();
     /*
      * This part handles cases like:
      *      namespace n { ... }
-     * 
+     *
      *      void f() { using m = n; ... }
      *                       ^(1)
      */
@@ -42,11 +42,11 @@ void NamespaceRefactorer::visitNamespaceAliasDecl(
         addReplacement(Decl->getLocation());
         return;
     }
-    
-    /* 
+
+    /*
      * This part handles cases like:
      *      namespace n { namespace m { int x; }}
-     * 
+     *
      *      void f() { using nm = n::m; nm::x = 0; }
      *                               ^(1)
      */
@@ -54,18 +54,18 @@ void NamespaceRefactorer::visitNamespaceAliasDecl(
         addReplacement(Decl->getTargetNameLoc());
         return;
     }
-    
-    /* 
+
+    /*
      * This part handles cases like:
      *      namespace n { namespace m { int x; }}
-     * 
+     *
      *      void f() { using nm = n::m; nm::x = 0; }
      *                            ^(1)
      */
     auto NNSLoc = Decl->getQualifierLoc();
     if (!NNSLoc)
         return;
-    
+
     traverse(NNSLoc);
 }
 
@@ -73,7 +73,7 @@ void NamespaceRefactorer::visitNamespaceDecl(const clang::NamespaceDecl *Decl)
 {
     if (!isVictim(Decl))
         return;
-    
+
     addReplacement(Decl->getLocation());
 }
 
@@ -82,13 +82,13 @@ void NamespaceRefactorer::visitUsingDecl(const clang::UsingDecl *Decl)
     /*
      * This function handles cases like:
      *      namespace n { int x; }
-     * 
+     *
      *      void f() { using n::x; x = 0; }
      */
     auto NSSLoc = Decl->getQualifierLoc();
     if (!NSSLoc)
         return;
-    
+
     traverse(NSSLoc);
 }
 
@@ -106,10 +106,10 @@ void NamespaceRefactorer::visitUsingDirectiveDecl(
      *      using namespace o;
      * will work.
      */
-    
+
     if (!isVictim(Decl->getNominatedNamespaceAsWritten()))
         return;
-    
+
     addReplacement(Decl->getLocation());
 }
 
@@ -117,14 +117,14 @@ void NamespaceRefactorer::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
 {
     /* This function handles the following case:
      *      namespace n { int x; }
-     * 
+     *
      *      void f() { n::x = 0; }
      *                 ^(1)
      */
     auto NNSLoc = Expr->getQualifierLoc();
     if (!NNSLoc)
         return;
-    
+
     traverse(NNSLoc);
 }
 
@@ -133,44 +133,44 @@ void NamespaceRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
     /*
      * This function handles the following case:
      *      namespace n { class c {}; }
-     *      
+     *
      *      void f() { auto var = n::c(); }
      *                            ^(1)
      */
-    
+
     auto ElaboratedTypeLoc = TypeLoc.getAs<clang::ElaboratedTypeLoc>();
     if (!ElaboratedTypeLoc)
         return;
-    
+
     auto NNSLoc = ElaboratedTypeLoc.getQualifierLoc();
     if (!NNSLoc)
         return;
-    
+
     traverse(NNSLoc);
 }
 
 void NamespaceRefactorer::traverse(clang::NestedNameSpecifierLoc NNSLoc)
 {
-    /* 
+    /*
      * This basically searchs all NestedNameSpecifier's for a reference
      * to the namespace which shall be refactored.
      * The loop proceeds like this:
-     *      a::b::c::d 
-     *          -> a::b::c 
-     *              -> a::b 
+     *      a::b::c::d
+     *          -> a::b::c
+     *              -> a::b
      *                  -> a
      * and checks each qualifier for a match.
      */
-    
+
     while (NNSLoc) {
         auto NNSpecifier = NNSLoc.getNestedNameSpecifier();
-        
+
         auto NamespaceDecl = NNSpecifier->getAsNamespace();
         if (NamespaceDecl && isVictim(NamespaceDecl)) {
             addReplacement(NNSLoc.getLocalBeginLoc());
             break;
         }
-        
+
         NNSLoc = NNSLoc.getPrefix();
     }
 }

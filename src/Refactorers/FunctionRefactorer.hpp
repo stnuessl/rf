@@ -35,5 +35,4 @@ private:
     bool overridesVictim(const clang::FunctionDecl *Decl);
 };
 
-
 #endif /* RF_FUNCTIONREFACTORER_HPP_ */

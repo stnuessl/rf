@@ -21,8 +21,8 @@
 #ifndef RF_REFACTORINGACTIONFACTORY_HPP_
 #define RF_REFACTORINGACTIONFACTORY_HPP_
 
-#include <clang/Frontend/FrontendAction.h>
 #include <clang/Frontend/CompilerInstance.h>
+#include <clang/Frontend/FrontendAction.h>
 #include <clang/Tooling/Tooling.h>
 
 #include <Refactorers/Base/Refactorer.hpp>
@@ -32,28 +32,28 @@ public:
     void setRefactorers(std::vector<std::unique_ptr<Refactorer>> *Refactorers);
 
     virtual bool BeginInvocation(clang::CompilerInstance &CI) override;
-    
+
     virtual bool BeginSourceFileAction(clang::CompilerInstance &CI,
                                        llvm::StringRef File) override;
     virtual void EndSourceFileAction() override;
-    
-    virtual void ExecuteAction() override;
-                                 
-    virtual std::unique_ptr<clang::ASTConsumer> 
-    CreateASTConsumer(clang::CompilerInstance &CI, 
-                      llvm::StringRef File) override;
-private:
 
+    virtual void ExecuteAction() override;
+
+    virtual std::unique_ptr<clang::ASTConsumer>
+    CreateASTConsumer(clang::CompilerInstance &CI,
+                      llvm::StringRef File) override;
+
+private:
     std::vector<std::unique_ptr<Refactorer>> *Refactorers_;
 };
 
 class RefactoringActionFactory : public clang::tooling::FrontendActionFactory {
 public:
     RefactoringActionFactory() = default;
-    
+
     std::vector<std::unique_ptr<Refactorer>> &refactorers();
     const std::vector<std::unique_ptr<Refactorer>> &refactorers() const;
-    
+
     virtual clang::FrontendAction *create() override;
 
 private:

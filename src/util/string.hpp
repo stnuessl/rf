@@ -21,16 +21,16 @@
 #ifndef RF_STRING_HPP_
 #define RF_STRING_HPP_
 
-#include <string>
 #include <algorithm>
+#include <string>
 
 namespace util {
 namespace string {
-    
+
 template <typename Predicate>
 void trim_front(std::string &str, Predicate pred)
 {
-    auto it = std::find_if_not(str.begin(), str.end(), pred);    
+    auto it = std::find_if_not(str.begin(), str.end(), pred);
     str.erase(str.begin(), it);
 }
 
@@ -40,7 +40,7 @@ void trim_back(std::string &str, Predicate pred)
     auto it = std::find_if_not(str.rbegin(), str.rend(), pred);
     str.erase(it.base(), str.rbegin().base());
 }
-    
+
 template <typename Predicate>
 void trim(std::string &str, Predicate pred)
 {
@@ -59,7 +59,6 @@ void transform(std::string &str, Transform transform)
 void to_lower(std::string &str);
 
 void to_upper(std::string &str);
-    
 }
 }
 

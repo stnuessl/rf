@@ -51,6 +51,7 @@ SHELL_COMPL_DIR := /usr/share/bash-completion/completions/
 # SRC 		:= $(shell find ./ -iname "*.c")
 SRC 		:= $(shell find src/ -iname "*.cpp")
 # SRC 		:= $(shell find ./ -iname "*.c" -o -iname "*.cpp")
+HDR		:= $(shell find src/ -iname "*.hpp")
 
 ifndef SRC
 $(error No source files specified)
@@ -295,6 +296,9 @@ compile-commands: $(SRC)
 clean:
 	rm -rf $(TARGET) $(DIRS) compile_commands.json
 
+format:
+	clang-format -i $(HDR) $(SRC)
+
 install: $(TARGET) $(SHELL_COMPL)
 	cp $(TARGET) $(INSTALL_DIR)
 	cp $(SHELL_COMPL) $(SHELL_COMPL_DIR)
@@ -302,5 +306,13 @@ install: $(TARGET) $(SHELL_COMPL)
 uninstall:
 	rm -f $(INSTALL_DIR)$(BIN) $(SHELL_COMPL_DIR)$(notdir $(SHELL_COMPL))
 
-.PHONY: all release debug syntax-check compile-commands clean install uninstall
-.SILENT: clean $(DIRS)
+.PHONY: all	 							\
+	clean 								\
+	compile-commands 						\
+	debug 								\
+	install 							\
+	release 							\
+	syntax-check 							\
+	uninstall
+
+.SILENT: clean format $(DIRS)

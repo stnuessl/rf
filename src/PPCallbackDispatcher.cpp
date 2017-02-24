@@ -20,97 +20,95 @@
 
 #include <PPCallbackDispatcher.hpp>
 
-
 void PPCallbackDispatcher::setRefactorers(
     std::vector<std::unique_ptr<Refactorer>> *Refactorers)
 {
     Refactorers_ = Refactorers;
 }
 
-void PPCallbackDispatcher::InclusionDirective(clang::SourceLocation LocBegin, 
-                                              const clang::Token &Token, 
-                                              llvm::StringRef FileName, 
-                                              bool isAngled, 
-                                              clang::CharSourceRange NameRange, 
-                                              const clang::FileEntry *File, 
-                                              llvm::StringRef SearchPath, 
-                                              llvm::StringRef RelativePath, 
+void PPCallbackDispatcher::InclusionDirective(clang::SourceLocation LocBegin,
+                                              const clang::Token &Token,
+                                              llvm::StringRef FileName,
+                                              bool isAngled,
+                                              clang::CharSourceRange NameRange,
+                                              const clang::FileEntry *File,
+                                              llvm::StringRef SearchPath,
+                                              llvm::StringRef RelativePath,
                                               const clang::Module *Module)
 {
     for (auto &Refactorer : *Refactorers_) {
-        Refactorer->InclusionDirective(LocBegin, Token, FileName, isAngled, 
-                                       NameRange, File, SearchPath, 
+        Refactorer->InclusionDirective(LocBegin, Token, FileName, isAngled,
+                                       NameRange, File, SearchPath,
                                        RelativePath, Module);
     }
 }
 
-void PPCallbackDispatcher::FileSkipped(const clang::FileEntry &SkippedFile, 
-                                       const clang::Token &FileNameToken, 
+void PPCallbackDispatcher::FileSkipped(const clang::FileEntry &SkippedFile,
+                                       const clang::Token &FileNameToken,
                                        clang::SrcMgr::CharacteristicKind Kind)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->FileSkipped(SkippedFile, FileNameToken, Kind);
 }
 
-void PPCallbackDispatcher::MacroExpands(const clang::Token &Token, 
-                                        const clang::MacroDefinition &MacroDef, 
-                                        clang::SourceRange Range, 
+void PPCallbackDispatcher::MacroExpands(const clang::Token &Token,
+                                        const clang::MacroDefinition &MacroDef,
+                                        clang::SourceRange Range,
                                         const clang::MacroArgs *Args)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->MacroExpands(Token, MacroDef, Range, Args);
 }
 
-void PPCallbackDispatcher::MacroDefined(const clang::Token &MacroName, 
+void PPCallbackDispatcher::MacroDefined(const clang::Token &MacroName,
                                         const clang::MacroDirective *MD)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->MacroDefined(MacroName, MD);
 }
 
-void PPCallbackDispatcher::MacroUndefined(const clang::Token &MacroName, 
+void PPCallbackDispatcher::MacroUndefined(const clang::Token &MacroName,
                                           const clang::MacroDefinition &MD)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->MacroUndefined(MacroName, MD);
 }
 
-void PPCallbackDispatcher::Defined(const clang::Token &MacroNameTok, 
-                                   const clang::MacroDefinition &MD, 
+void PPCallbackDispatcher::Defined(const clang::Token &MacroNameTok,
+                                   const clang::MacroDefinition &MD,
                                    clang::SourceRange Range)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->Defined(MacroNameTok, MD, Range);
 }
 
-
-void PPCallbackDispatcher::If(clang::SourceLocation Loc, 
-                              clang::SourceRange ConditionRange, 
+void PPCallbackDispatcher::If(clang::SourceLocation Loc,
+                              clang::SourceRange ConditionRange,
                               clang::PPCallbacks::ConditionValueKind ValueKind)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->If(Loc, ConditionRange, ValueKind);
 }
 
-void PPCallbackDispatcher::Elif(clang::SourceLocation Loc, 
-                                clang::SourceRange ConditionRange, 
-                                clang::PPCallbacks::ConditionValueKind Kind, 
+void PPCallbackDispatcher::Elif(clang::SourceLocation Loc,
+                                clang::SourceRange ConditionRange,
+                                clang::PPCallbacks::ConditionValueKind Kind,
                                 clang::SourceLocation IfLoc)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->Elif(Loc, ConditionRange, Kind, IfLoc);
 }
 
-void PPCallbackDispatcher::Ifdef(clang::SourceLocation Loc, 
-                                 const clang::Token &MacroNameTok, 
+void PPCallbackDispatcher::Ifdef(clang::SourceLocation Loc,
+                                 const clang::Token &MacroNameTok,
                                  const clang::MacroDefinition &MD)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->Ifdef(Loc, MacroNameTok, MD);
 }
 
-void PPCallbackDispatcher::Ifndef(clang::SourceLocation Loc, 
-                                  const clang::Token &MacroNameTok, 
+void PPCallbackDispatcher::Ifndef(clang::SourceLocation Loc,
+                                  const clang::Token &MacroNameTok,
                                   const clang::MacroDefinition &MD)
 {
     for (auto &Refactorer : *Refactorers_)

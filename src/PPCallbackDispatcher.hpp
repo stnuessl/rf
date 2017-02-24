@@ -55,18 +55,18 @@ public:
 
     virtual void MacroUndefined(const clang::Token &MacroName,
                                 const clang::MacroDefinition &MD) override;
-    
-    virtual void Defined(const clang::Token &MacroNameTok, 
-                         const clang::MacroDefinition &MD, 
+
+    virtual void Defined(const clang::Token &MacroNameTok,
+                         const clang::MacroDefinition &MD,
                          clang::SourceRange Range) override;
 
-    virtual void If(clang::SourceLocation Loc, 
+    virtual void If(clang::SourceLocation Loc,
                     clang::SourceRange ConditionRange,
                     clang::PPCallbacks::ConditionValueKind ValueKind) override;
-    
-    virtual void Elif(clang::SourceLocation Loc, 
-                      clang::SourceRange ConditionRange, 
-                      clang::PPCallbacks::ConditionValueKind Kind, 
+
+    virtual void Elif(clang::SourceLocation Loc,
+                      clang::SourceRange ConditionRange,
+                      clang::PPCallbacks::ConditionValueKind Kind,
                       clang::SourceLocation IfLoc) override;
 
     virtual void Ifdef(clang::SourceLocation Loc,

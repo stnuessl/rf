@@ -25,7 +25,7 @@
 
 class EnumConstantRefactorer : public NameRefactorer {
 public:
-    virtual void 
+    virtual void
     visitEnumConstantDecl(const clang::EnumConstantDecl *Decl) override;
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr) override;
 };

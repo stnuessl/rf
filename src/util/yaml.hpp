@@ -36,18 +36,17 @@ void read(const llvm::StringRef Path, T &Object)
 {
     auto MemBuffer = llvm::MemoryBuffer::getFile(Path);
     if (!MemBuffer) {
-        llvm::errs() << util::cl::Error() 
-                     << "failed to open file \"" << Path << "\" - " 
-                     << MemBuffer.getError().message() << "\n";
+        llvm::errs() << util::cl::Error() << "failed to open file \"" << Path
+                     << "\" - " << MemBuffer.getError().message() << "\n";
         std::exit(EXIT_FAILURE);
     }
-    
+
     llvm::yaml::Input YAMLInput(MemBuffer.get()->getBuffer());
     YAMLInput >> Object;
-    
+
     if (YAMLInput.error()) {
-        llvm::errs() << util::cl::Error() 
-                     << "failed to parse file \"" << Path << "\".\n"; 
+        llvm::errs() << util::cl::Error() << "failed to parse file \"" << Path
+                     << "\".\n";
         std::exit(EXIT_FAILURE);
     }
 }
@@ -56,7 +55,7 @@ template <typename T>
 void write(llvm::raw_ostream &OS, T &Object)
 {
     llvm::yaml::Output YAMLOutput(OS);
-    
+
     YAMLOutput << Object;
 }
 
@@ -64,21 +63,19 @@ template <typename T>
 void write(const llvm::StringRef Path, T &Object)
 {
     std::error_code Error;
-    
+
     llvm::raw_fd_ostream OS(Path, Error, llvm::sys::fs::F_Text);
-    
+
     if (Error) {
-        llvm::errs() << util::cl::Error() 
-                     << "failed to open \"" << Path << "\" - "
-                     << Error.message() << "\n";
+        llvm::errs() << util::cl::Error() << "failed to open \"" << Path
+                     << "\" - " << Error.message() << "\n";
         std::exit(EXIT_FAILURE);
     }
-    
+
     write(OS, Object);
 }
 
-
-struct RefactoringArgs {    
+struct RefactoringArgs {
     std::vector<std::string> EnumConstants;
     std::vector<std::string> Functions;
     std::vector<std::string> Macros;
@@ -86,7 +83,6 @@ struct RefactoringArgs {
     std::vector<std::string> Tags;
     std::vector<std::string> Variables;
 };
-
 }
 }
 
@@ -94,8 +90,8 @@ LLVM_YAML_IS_SEQUENCE_VECTOR(std::string)
 
 namespace llvm {
 namespace yaml {
-        
-template<>
+
+template <>
 struct MappingTraits<util::yaml::RefactoringArgs> {
     static void mapping(llvm::yaml::IO &IO, util::yaml::RefactoringArgs &Args)
     {
@@ -107,11 +103,7 @@ struct MappingTraits<util::yaml::RefactoringArgs> {
         IO.mapOptional("Variables", Args.Variables);
     }
 };
-
 }
 }
-
-
-
 
 #endif /* RF_YAML_HPP_ */

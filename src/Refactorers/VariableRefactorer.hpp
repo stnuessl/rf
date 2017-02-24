@@ -25,13 +25,13 @@
 
 class VariableRefactorer : public NameRefactorer {
 public:
-    virtual void visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl) 
-        override;
-    
+    virtual void
+    visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl) override;
+
     virtual void visitUsingDecl(const clang::UsingDecl *Decl) override;
     virtual void visitFieldDecl(const clang::FieldDecl *Decl) override;
     virtual void visitVarDecl(const clang::VarDecl *Decl) override;
-    
+
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr) override;
     virtual void visitMemberExpr(const clang::MemberExpr *Expr) override;
 };

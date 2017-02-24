@@ -25,7 +25,7 @@ void EnumConstantRefactorer::visitEnumConstantDecl(
 {
     if (!isVictim(Decl))
         return;
-    
+
     addReplacement(Decl->getLocation());
 }
 
@@ -39,10 +39,10 @@ void EnumConstantRefactorer::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
      * 'Expr->getLocStart()' retrieves the incorrect position (1)
      * 'Expr->getLocation()' retrieves the correct position (2)
      */
-    
+
     auto Decl = Expr->getDecl();
     if (!clang::dyn_cast<clang::EnumConstantDecl>(Decl) || !isVictim(Decl))
         return;
-    
+
     addReplacement(Expr->getLocation());
 }

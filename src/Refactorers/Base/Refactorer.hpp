@@ -27,7 +27,7 @@
 #include <clang/Lex/PPCallbacks.h>
 #include <clang/Tooling/Refactoring.h>
 
-/* 
+/*
  * Inheriting from PPCallbacks saves a lot of ugly boilerplate code.
  * Those PPCallbacks function are not directly called from the clang
  * preprocessor but from PPCallbackDispatcher. This enables to serve multiple
@@ -38,18 +38,18 @@ class Refactorer : public clang::PPCallbacks {
 public:
     Refactorer() = default;
     virtual ~Refactorer() = default;
-    
+
     void setCompilerInstance(clang::CompilerInstance *CI);
     void setASTContext(clang::ASTContext *ASTContext);
-    
+
     const clang::tooling::Replacements &replacements() const;
-    
+
     void setForce(bool Value);
     bool force() const;
-    
+
     virtual void beginSourceFileAction(llvm::StringRef File);
     virtual void endSourceFileAction();
-    
+
     virtual void visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl);
     virtual void visitCXXDestructorDecl(const clang::CXXDestructorDecl *Decl);
     virtual void visitCXXMethodDecl(const clang::CXXMethodDecl *Decl);
@@ -67,14 +67,14 @@ public:
     virtual void visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl);
     virtual void visitUsingShadowDecl(const clang::UsingShadowDecl *Decl);
     virtual void visitVarDecl(const clang::VarDecl *Decl);
-    
+
     virtual void visitExpr(const clang::Expr *Expr);
     virtual void visitCallExpr(const clang::CallExpr *Expr);
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr);
     virtual void visitMemberExpr(const clang::MemberExpr *Expr);
-    
+
     virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc);
-    
+
 protected:
     void addReplacement(clang::SourceLocation Loc,
                         unsigned int Length,
@@ -83,7 +83,7 @@ protected:
                         clang::SourceLocation Loc,
                         unsigned int Length,
                         llvm::StringRef ReplText);
-    
+
     clang::CompilerInstance *CompilerInstance_;
     clang::ASTContext *ASTContext_;
     clang::tooling::Replacements Replacements_;

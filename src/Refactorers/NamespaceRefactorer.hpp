@@ -25,17 +25,17 @@
 
 class NamespaceRefactorer : public NameRefactorer {
 public:
-    virtual void visitNamespaceAliasDecl(const clang::NamespaceAliasDecl *Decl)
-        override;
+    virtual void
+    visitNamespaceAliasDecl(const clang::NamespaceAliasDecl *Decl) override;
     virtual void visitNamespaceDecl(const clang::NamespaceDecl *Decl) override;
     virtual void visitUsingDecl(const clang::UsingDecl *Decl) override;
-    virtual void visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl) 
-        override;
-        
+    virtual void
+    visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl) override;
+
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr) override;
-    
+
     virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc) override;
-    
+
 protected:
     void traverse(clang::NestedNameSpecifierLoc NNSLoc);
 };

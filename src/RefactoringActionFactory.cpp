@@ -18,9 +18,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <clang/Lex/Preprocessor.h>
 #include <clang/Frontend/FrontendActions.h>
 #include <clang/Lex/PTHManager.h>
+#include <clang/Lex/Preprocessor.h>
 
 #include <PPCallbackDispatcher.hpp>
 #include <RefactoringASTConsumer.hpp>
@@ -39,19 +39,19 @@ bool RefactoringAction::BeginInvocation(clang::CompilerInstance &CI)
     return clang::ASTFrontendAction::BeginInvocation(CI);
 }
 
-bool RefactoringAction::BeginSourceFileAction(clang::CompilerInstance &CI, 
+bool RefactoringAction::BeginSourceFileAction(clang::CompilerInstance &CI,
                                               llvm::StringRef File)
 {
     auto Dispatcher = std::make_unique<PPCallbackDispatcher>();
     Dispatcher->setRefactorers(Refactorers_);
-    
+
     CI.getPreprocessor().addPPCallbacks(std::move(Dispatcher));
 
     for (auto &Refactorer : *Refactorers_) {
         Refactorer->setCompilerInstance(&CI);
         Refactorer->beginSourceFileAction(File);
     }
-    
+
     return true;
 }
 
@@ -66,13 +66,13 @@ void RefactoringAction::ExecuteAction()
     clang::ASTFrontendAction::ExecuteAction();
 }
 
-std::unique_ptr<clang::ASTConsumer> 
-RefactoringAction::CreateASTConsumer(clang::CompilerInstance &CI, 
+std::unique_ptr<clang::ASTConsumer>
+RefactoringAction::CreateASTConsumer(clang::CompilerInstance &CI,
                                      llvm::StringRef File)
 {
     (void) CI;
     (void) File;
-    
+
     auto Consumer = std::make_unique<RefactoringASTConsumer>();
     Consumer->setRefactorers(Refactorers_);
 
@@ -95,9 +95,9 @@ clang::FrontendAction *RefactoringActionFactory::create()
 {
     if (Refactorers_.empty())
         return new clang::SyntaxOnlyAction();
-        
+
     auto Action = new RefactoringAction();
     Action->setRefactorers(&Refactorers_);
-    
+
     return Action;
 }

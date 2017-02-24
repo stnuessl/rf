@@ -30,19 +30,19 @@ class ToolThread {
 public:
     ToolThread() = default;
 
-    void run(const clang::tooling::CompilationDatabase &CompDB, 
+    void run(const clang::tooling::CompilationDatabase &CompDB,
              llvm::ArrayRef<std::string> Files,
              clang::tooling::FrontendActionFactory &Factory);
-    
+
     void join();
-    
+
     bool errorOccured() const;
-    
+
 private:
     void work(const clang::tooling::CompilationDatabase &CompDB,
               llvm::ArrayRef<std::string> Files,
               clang::tooling::FrontendActionFactory &Factory);
-    
+
     std::thread Thread_;
     bool Error_;
 };

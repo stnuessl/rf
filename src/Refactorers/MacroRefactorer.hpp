@@ -28,37 +28,36 @@
 
 class MacroRefactorer : public NameRefactorer {
 public:
-    
-    virtual void MacroExpands(const clang::Token &MacroName, 
+    virtual void MacroExpands(const clang::Token &MacroName,
                               const clang::MacroDefinition &MD,
                               clang::SourceRange Range,
                               const clang::MacroArgs *Args) override;
-                              
-    virtual void MacroDefined(const clang::Token &MacroName, 
+
+    virtual void MacroDefined(const clang::Token &MacroName,
                               const clang::MacroDirective *MD) override;
-    
-    virtual void MacroUndefined(const clang::Token &MacroName, 
+
+    virtual void MacroUndefined(const clang::Token &MacroName,
                                 const clang::MacroDefinition &MD) override;
-    
-    virtual void Defined(const clang::Token &MacroName, 
-                         const clang::MacroDefinition &MD, 
+
+    virtual void Defined(const clang::Token &MacroName,
+                         const clang::MacroDefinition &MD,
                          clang::SourceRange Range) override;
-        
-    virtual void Ifdef(clang::SourceLocation Loc, 
-                       const clang::Token &MacroName, 
+
+    virtual void Ifdef(clang::SourceLocation Loc,
+                       const clang::Token &MacroName,
                        const clang::MacroDefinition &MD) override;
-    
-    virtual void Ifndef(clang::SourceLocation Loc, 
-                        const clang::Token &MacroName, 
+
+    virtual void Ifndef(clang::SourceLocation Loc,
+                        const clang::Token &MacroName,
                         const clang::MacroDefinition &MD) override;
-                                
+
 private:
-    void process(const clang::Token &MacroName, 
+    void process(const clang::Token &MacroName,
                  const clang::MacroDefinition &MD);
-    
-    bool isVictim(const clang::Token &MacroName, 
+
+    bool isVictim(const clang::Token &MacroName,
                   const clang::MacroDefinition &MD);
-    bool isVictim(const clang::Token &MacroName, 
+    bool isVictim(const clang::Token &MacroName,
                   const clang::MacroDirective *MD);
 };
 

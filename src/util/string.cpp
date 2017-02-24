@@ -27,30 +27,23 @@ namespace string {
 
 void trim(std::string &str)
 {
-    auto func = [](char c) { 
-        return !!std::isspace(c); 
-    };
+    auto func = [](char c) { return !!std::isspace(c); };
 
     trim(str, func);
 }
 
 void to_lower(std::string &str)
 {
-    const auto func = [](char c) {
-        return static_cast<char>(std::tolower(c));
-    };
-    
+    const auto func = [](char c) { return static_cast<char>(std::tolower(c)); };
+
     transform(str, func);
 }
 
 void to_upper(std::string &str)
 {
-    const auto func = [](char c) {
-        return static_cast<char>(std::toupper(c));
-    };
-    
+    const auto func = [](char c) { return static_cast<char>(std::toupper(c)); };
+
     transform(str, func);
 }
-
-} 
+}
 }

@@ -18,6 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* clang-format off */
+
 #define M 100
 #if defined(M)
     #define N (M)
@@ -115,3 +117,6 @@ int main(void)
     
     return 0;
 }
+
+/* clang-format on */
+
