@@ -102,21 +102,21 @@ void TagRefactorer::visitInjectedClassNameTypeLoc(
     /*
      * Deal with injected class names e.g. positions (1), (2) and (3)
      * in the following code.
-     * 
+     *
      *      template <typename T>
      *      class c {
      *      public:
      *          ...
      *          ~c();
      *           ^(1)
-     * 
+     *
      *          c &operator=(const c &other);
      *          ^(2)               ^(3)
-     * 
+     *
      *          c<T> &operator(c<T> &&other);
      *          ^(4)           ^(5)
      *      };
-     * 
+     *
      * Types at positions (4) and (5) are called 'TemplateSpecializationTypes'
      */
     auto RecordDecl = TypeLoc.getDecl();
@@ -129,12 +129,12 @@ void TagRefactorer::visitInjectedClassNameTypeLoc(
 void TagRefactorer::visitMemberPointerTypeLoc(
     const clang::MemberPointerTypeLoc &TypeLoc)
 {
-    /* 
+    /*
      * Deal with function pointers to class methods, e.g.:
      *      void (namespace::class::*ptr)(int, int);
      *                       ^(1)
      */
-    
+
     auto CXXRecordDecl = TypeLoc.getClass()->getAsCXXRecordDecl();
     if (CXXRecordDecl && isVictim(CXXRecordDecl)) {
         auto Loc = TypeLoc.getLocalSourceRange().getBegin();
@@ -153,7 +153,7 @@ void TagRefactorer::visitMemberPointerTypeLoc(
 //         llvm::errs() << "\n";
 //     }
 // }
-// 
+//
 // void TagRefactorer::visitReferenceTypeLoc(
 //     const clang::ReferenceTypeLoc &TypeLoc)
 // {
@@ -188,12 +188,12 @@ void TagRefactorer::visitTemplateSpecializationTypeLoc(
      * always work. Casting the Type to the TemplateSpecializationType
      * seems to be doing fine.
      */
-    
+
     auto Type = TypeLoc.getType()->getAs<clang::TemplateSpecializationType>();
     if (Type) {
         auto TemplateName = Type->getTemplateName();
         auto TemplateDecl = TemplateName.getAsTemplateDecl();
-        
+
         if (isVictim(TemplateDecl)) {
             auto Loc = TypeLoc.getLocStart();
             addReplacement(Loc);
@@ -214,11 +214,11 @@ void TagRefactorer::visitTypedefTypeLoc(const clang::TypedefTypeLoc &TypeLoc)
      * This has to be done explicitly here since clang thinks of typedef types
      * not as tag types but rf does.
      */
-    
+
     auto TypedefType = TypeLoc.getType()->getAs<clang::TypedefType>();
     if (TypedefType) {
         auto TypedefNameDecl = TypedefType->getDecl();
-        
+
         if (isVictim(TypedefNameDecl)) {
             auto Loc = getLastTypeLocation(TypeLoc);
             addReplacement(Loc);
@@ -363,7 +363,4 @@ void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
         return;
     }
 }
-#endif 
-
-
-
+#endif

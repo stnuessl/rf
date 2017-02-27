@@ -443,11 +443,11 @@ int main(int argc, const char **argv)
     clang::tooling::RefactoringTool Tool(*CompileCommands, SourceFiles);
     auto &Replacements = Tool.getReplacements();
     auto InsertIter = std::inserter(Replacements, Replacements.end());
-    
+
     for (auto &Factory : Factories) {
         for (auto &Refactorer : Factory.refactorers()) {
             auto &Repls = Refactorer->replacements();
-            
+
             std::move(Repls.begin(), Repls.end(), InsertIter);
         }
     }
@@ -510,7 +510,7 @@ int main(int argc, const char **argv)
             std::exit(EXIT_FAILURE);
         }
     }
-    
+
     clang::LangOptions LangOpts;
     clang::Rewriter Rewriter(SM, LangOpts);
 

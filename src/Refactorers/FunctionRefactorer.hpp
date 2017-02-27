@@ -25,9 +25,10 @@
 
 class FunctionRefactorer : public NameRefactorer {
 public:
-    virtual void visitCallExpr(const clang::CallExpr *Expr) override;
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr) override;
     virtual void visitFunctionDecl(const clang::FunctionDecl *Decl) override;
+
+    virtual void visitUsingDecl(const clang::UsingDecl *Decl) override;
 
 private:
     bool isVictim(const clang::FunctionDecl *Decl);

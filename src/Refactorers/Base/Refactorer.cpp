@@ -171,6 +171,11 @@ void Refactorer::visitMemberExpr(const clang::MemberExpr *Expr)
     (void) Expr;
 }
 
+void Refactorer::visitFunctionTypeLoc(const clang::FunctionTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
 void Refactorer::visitInjectedClassNameTypeLoc(
     const clang::InjectedClassNameTypeLoc &TypeLoc)
 {
@@ -204,7 +209,7 @@ void Refactorer::visitTagTypeLoc(const clang::TagTypeLoc &TypeLoc)
 }
 
 void Refactorer::visitTemplateSpecializationTypeLoc(
-    const clang::TemplateSpecializationTypeLoc& TypeLoc)
+    const clang::TemplateSpecializationTypeLoc &TypeLoc)
 {
     (void) TypeLoc;
 }
@@ -218,7 +223,6 @@ void Refactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
 {
     (void) TypeLoc;
 }
-
 
 void Refactorer::addReplacement(clang::SourceLocation Loc,
                                 unsigned int Length,
@@ -236,39 +240,39 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
 {
     if (Loc.isInvalid())
         return;
-    
+
     /*
      * If we land here we basically found a source location which needs
      * refactoring. So this checks if the source location is a result
      * of an macro expansion. If it is we locate the source location from
      * before the macro expansion as written in the source code.
      */
-    
+
     if (Loc.isMacroID())
         Loc = SM.getSpellingLoc(Loc);
 
     if (SM.isInSystemHeader(Loc) || SM.isInExternCSystemHeader(Loc))
         return;
-    
+
     /*
      * Different looking relative paths can specify the same file.
-     * Such paths may occur when relative paths are used in inclusion 
-     * directives. This leads to multiple replacements which effectively 
-     * refactor the same source location and thus probably breaking the code. 
+     * Such paths may occur when relative paths are used in inclusion
+     * directives. This leads to multiple replacements which effectively
+     * refactor the same source location and thus probably breaking the code.
      * Since their paths differ the 'Replacements' container will not
-     * detect such duplicates. 
-     * To avoid this problem we retrieve the realpath (absolute 
+     * detect such duplicates.
+     * To avoid this problem we retrieve the realpath (absolute
      * with no './' or '../' segments) for each source location.
      */
-    
+
     auto File = SM.getFilename(Loc);
     auto Offset = SM.getFileOffset(Loc);
-    
+
     if (File != LastFile_) {
         LastFile_.assign(File.begin(), File.end());
-        
+
         PathBuffer_ = File;
-        
+
         auto Error = llvm::sys::fs::make_absolute(PathBuffer_);
         if (Error) {
             llvm::errs() << util::cl::Error()
@@ -276,14 +280,12 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
                          << File << "\" - " << Error.message() << "\n";
             std::exit(EXIT_FAILURE);
         }
-        
+
         llvm::sys::path::remove_dots(PathBuffer_, true);
     }
-    
+
     File = PathBuffer_.str();
-    
+
     auto Repl = clang::tooling::Replacement(File, Offset, Length, ReplText);
     Replacements_.insert(std::move(Repl));
-
 }
-

@@ -26,11 +26,11 @@
 class TagRefactorer : public NameRefactorer {
 public:
     virtual void visitEnumDecl(const clang::EnumDecl *Decl) override;
-    virtual void visitCXXConstructorDecl(
-        const clang::CXXConstructorDecl *Decl) override;
+    virtual void
+    visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl) override;
     virtual void visitRecordDecl(const clang::RecordDecl *Decl) override;
-    virtual void visitTypedefNameDecl(
-        const clang::TypedefNameDecl *Decl) override;
+    virtual void
+    visitTypedefNameDecl(const clang::TypedefNameDecl *Decl) override;
     virtual void visitUsingDecl(const clang::UsingDecl *Decl) override;
 
     virtual void visitInjectedClassNameTypeLoc(
@@ -41,9 +41,10 @@ public:
     virtual void visitTagTypeLoc(const clang::TagTypeLoc &TypeLoc) override;
     virtual void visitTemplateSpecializationTypeLoc(
         const clang::TemplateSpecializationTypeLoc &TypeLoc) override;
-    virtual void visitTypedefTypeLoc(
-        const clang::TypedefTypeLoc &TypeLoc) override;
-//     virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc) override;
+    virtual void
+    visitTypedefTypeLoc(const clang::TypedefTypeLoc &TypeLoc) override;
+
+    //     virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc) override;
 };
 
 #endif /* RF_TAGREFACTORER_HPP_ */

@@ -204,21 +204,30 @@ bool RefactoringASTVisitor::VisitMemberExpr(clang::MemberExpr *Expr)
     return true;
 }
 
+bool RefactoringASTVisitor::VisitFunctionTypeLoc(
+    clang::FunctionTypeLoc &TypeLoc)
+{
+    for (auto &Refactorer : *Refactorers_)
+        Refactorer->visitFunctionTypeLoc(TypeLoc);
+
+    return true;
+}
+
 bool RefactoringASTVisitor::VisitInjectedClassNameTypeLoc(
     clang::InjectedClassNameTypeLoc &TypeLoc)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitInjectedClassNameTypeLoc(TypeLoc);
-    
+
     return true;
 }
 
 bool RefactoringASTVisitor::VisitMemberPointerTypeLoc(
-    clang::MemberPointerTypeLoc& TypeLoc)
+    clang::MemberPointerTypeLoc &TypeLoc)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitMemberPointerTypeLoc(TypeLoc);
-    
+
     return true;
 }
 
@@ -226,7 +235,7 @@ bool RefactoringASTVisitor::VisitPointerTypeLoc(clang::PointerTypeLoc &TypeLoc)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitPointerTypeLoc(TypeLoc);
-    
+
     return true;
 }
 
@@ -235,7 +244,7 @@ bool RefactoringASTVisitor::VisitQualifiedTypeLoc(
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitQualifiedTypeLoc(TypeLoc);
-    
+
     return true;
 }
 
@@ -244,7 +253,7 @@ bool RefactoringASTVisitor::VisitReferenceTypeLoc(
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitReferenceTypeLoc(TypeLoc);
-    
+
     return true;
 }
 
@@ -252,16 +261,16 @@ bool RefactoringASTVisitor::VisitTagTypeLoc(clang::TagTypeLoc &TypeLoc)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitTagTypeLoc(TypeLoc);
-    
+
     return true;
 }
 
 bool RefactoringASTVisitor::VisitTemplateSpecializationTypeLoc(
-    clang::TemplateSpecializationTypeLoc& TypeLoc)
+    clang::TemplateSpecializationTypeLoc &TypeLoc)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitTemplateSpecializationTypeLoc(TypeLoc);
-    
+
     return true;
 }
 
@@ -269,15 +278,14 @@ bool RefactoringASTVisitor::VisitTypedefTypeLoc(clang::TypedefTypeLoc &TypeLoc)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitTypedefTypeLoc(TypeLoc);
-    
+
     return true;
 }
-
 
 bool RefactoringASTVisitor::VisitTypeLoc(clang::TypeLoc &TypeLoc)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitTypeLoc(TypeLoc);
-    
+
     return true;
 }

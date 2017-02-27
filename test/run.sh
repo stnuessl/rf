@@ -44,19 +44,36 @@ python ../utils/make-jcdb.py                            \
 
 
 g++ -Wall -std=c++11 -o main $source_files
-md5_src="$(md5_create main.cpp)";
 md5_bin="$(md5_create main)";
 
 rf --tag tags::s=ss,tags::c=cc,main::t=tt               \
     --function functions::f=ff                          \
-    --macro M=MM
+    --macro M=MM                                        \
+    --variable test_variables::v1=w1                    \
+    --variable test_variables::v2=w2                    \
+    --variable test_variables::v3=w3                    \
+    --variable test_variables::v4=w4                    \
+    --variable test_variables::v5=w5                    \
+    --variable test_variables::v6=w6                    \
+    --variable test_variables::v7=w7                    \
+    --variable v1::v2::v1=w1                            \
+    --variable v1::v1=w1;
 rf --syntax-only;
-g++ -Wall -std=c++11 -o main "$source_files"
-rf --tag tags::ss=ss,tags::cc=c,main::tt=t              \
+g++ -Wall -std=c++11 -o main $source_files
+rf --tag tags::ss=s,tags::cc=c,main::tt=t               \
     --function functions::ff=f                          \
-    --macro MM=M
-rf --syntaxonly;
-g++ -Wall -std=c++11 -o main "$source_files"
+    --macro MM=M                                        \
+    --variable test_variables::w1=v1                    \
+    --variable test_variables::w2=v2                    \
+    --variable test_variables::w3=v3                    \
+    --variable test_variables::w4=v4                    \
+    --variable test_variables::w5=v5                    \
+    --variable test_variables::w6=v6                    \
+    --variable test_variables::w7=v7                    \
+    --variable v1::v2::w1=v1                            \
+    --variable v1::w1=v1;
+rf --syntax-only;
+g++ -Wall -std=c++11 -o main $source_files
 
 # rf --tag n::a=aa,b=bb,c=cc,main::ba=baba                \
 #     --function f=ff                                     \
@@ -75,12 +92,15 @@ g++ -Wall -std=c++11 -o main "$source_files"
 # # Make sure nothing changed
 # g++ -Wall -std=c++11 -o main main.cpp;
 
-if md5_compare "$md5_src" "$md5_create main.cpp"; then
-    printf "**WARNING: MD5 sum of 'main.cpp changed!\n";
-fi
 
 if md5_compare "$md5_bin" "$md5_create main"; then
     printf "**WARNING: MD5 sum of 'main changed!\n";
+fi
+
+diff=$(git diff --name-only);
+
+if [ -n "$diff" ]; then
+    printf "**WARNING: the following file(s) changed:\n$diff\\n"
 fi
 
 # Basically, the same as above
@@ -101,4 +121,4 @@ fi
 #     printf "**WARNING: MD5 sum of 'main changed!\n";
 # fi
 # 
-# exit;
+exit;

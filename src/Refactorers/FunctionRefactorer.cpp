@@ -33,21 +33,6 @@ static bool overrides(const clang::FunctionDecl *Decl)
     return (MethodDecl) ? overrides(MethodDecl) : false;
 }
 
-void FunctionRefactorer::visitCallExpr(const clang::CallExpr *Expr)
-{
-    /*
-     * Only calls to class methods have to be handled here.
-     * Normal function calls are handled with 'visitDeclRefExpr()'
-     */
-
-    auto FuncDecl = Expr->getDirectCallee();
-    if (!FuncDecl)
-        return;
-
-    if (isVictim(FuncDecl))
-        addReplacement(Expr->getCallee()->getExprLoc());
-}
-
 void FunctionRefactorer::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
 {
     /*
@@ -73,6 +58,17 @@ void FunctionRefactorer::visitFunctionDecl(const clang::FunctionDecl *Decl)
 {
     if (isVictim(Decl))
         addReplacement(Decl->getLocation());
+}
+
+void FunctionRefactorer::visitUsingDecl(const clang::UsingDecl *Decl)
+{
+    for (const auto &ShadowDecl : Decl->shadows()) {
+        if (NameRefactorer::isVictim(ShadowDecl->getTargetDecl())) {
+            auto Loc = Decl->getLocation();
+            addReplacement(Loc);
+            break;
+        }
+    }
 }
 
 bool FunctionRefactorer::isVictim(const clang::FunctionDecl *Decl)

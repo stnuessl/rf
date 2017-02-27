@@ -36,6 +36,13 @@ namespace p {
 }
 }
 
+namespace v1 {
+    int v1 = 42;
+namespace v2 {
+    int v1 = 42;
+}
+}
+
 void test_tags()
 {
     tags::s s1;
@@ -82,7 +89,30 @@ void test_namespaces()
 
 void test_variables()
 {
+    auto v1 = &functions::g;
+    int (*v2)(int, int) = &functions::g;
     
+    v1(1, 2);
+    v2(1, 2);
+    
+    auto v3 = &tags::s::f;
+    void (tags::s::*v4)() const = &tags::s::f;
+    
+    auto v5 = tags::s();
+    (v5.*v3)();
+    (v5.*v4)();
+    v5.f();
+    
+    auto v6 = tags::c<int>();
+    
+    functions::f(v6, v6);
+    
+    auto *v7 = &v6;
+    
+    (void) v7;
+    
+    functions::g(v1::v2::v1, v1::v2::v1 - 1);
+    functions::g(v1::v1 + 1, v1::v1);
 }
 
 void test_macro()
@@ -126,6 +156,8 @@ void test_functions()
     (void) f1(1, 2);
     (void) f2(1, 2);
     (void) g(1, 2);
+    
+    (void) functions::f(tags::c<int>(), tags::c<int>());
     
     auto f3 = functions::f<int, int>;
     (void) f3(tags::c<int>(), tags::c<int>());
