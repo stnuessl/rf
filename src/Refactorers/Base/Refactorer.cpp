@@ -18,11 +18,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <clang/Tooling/Refactoring.h>
 #include <utility>
 
-#include <Refactorers/Base/Refactorer.hpp>
+#include <clang/Tooling/Refactoring.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/Path.h>
 
+#include <Refactorers/Base/Refactorer.hpp>
 #include <util/commandline.hpp>
 
 void Refactorer::setCompilerInstance(clang::CompilerInstance *CI)
@@ -33,6 +35,11 @@ void Refactorer::setCompilerInstance(clang::CompilerInstance *CI)
 void Refactorer::setASTContext(clang::ASTContext *ASTContext)
 {
     ASTContext_ = ASTContext;
+}
+
+clang::tooling::Replacements &Refactorer::replacements()
+{
+    return Replacements_;
 }
 
 const clang::tooling::Replacements &Refactorer::replacements() const
@@ -164,10 +171,36 @@ void Refactorer::visitMemberExpr(const clang::MemberExpr *Expr)
     (void) Expr;
 }
 
+void Refactorer::visitMemberPointerTypeLoc(
+    const clang::MemberPointerTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
+void Refactorer::visitQualifiedTypeLoc(const clang::QualifiedTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
+void Refactorer::visitTemplateSpecializationTypeLoc(
+    const clang::TemplateSpecializationTypeLoc& TypeLoc)
+{
+    (void) TypeLoc;
+}
+
+void Refactorer::visitTypedefTypeLoc(const clang::TypedefTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
 void Refactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
 {
     (void) TypeLoc;
 }
+
+
+
+
 
 void Refactorer::addReplacement(clang::SourceLocation Loc,
                                 unsigned int Length,
@@ -183,24 +216,56 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
                                 unsigned int Length,
                                 llvm::StringRef ReplText)
 {
+    if (Loc.isInvalid())
+        return;
+    
     /*
      * If we land here we basically found a source location which needs
      * refactoring. So this checks if the source location is a result
      * of an macro expansion. If it is we locate the source location from
      * before the macro expansion as written in the source code.
      */
+    
     if (Loc.isMacroID())
         Loc = SM.getSpellingLoc(Loc);
 
     if (SM.isInSystemHeader(Loc) || SM.isInExternCSystemHeader(Loc))
         return;
-
-    auto Repl = clang::tooling::Replacement(SM, Loc, Length, ReplText);
-
-    auto It = Replacements_.insert(std::move(Repl)).first;
-    if (It == Replacements_.end()) {
-        llvm::errs() << util::cl::Error()
-                     << "failed to collect all replacements\n";
-        std::exit(EXIT_FAILURE);
+    
+    /*
+     * Different looking relative paths can specify the same file.
+     * Such paths may occur when relative paths are used in inclusion 
+     * directives. This leads to multiple replacements which effectively 
+     * refactor the same source location and thus probably breaking the code. 
+     * Since their paths differ the 'Replacements' container will not
+     * detect such duplicates. 
+     * To avoid this problem we retrieve the realpath (absolute 
+     * with no './' or '../' segments) for each source location.
+     */
+    
+    auto File = SM.getFilename(Loc);
+    auto Offset = SM.getFileOffset(Loc);
+    
+    if (File != LastFile_) {
+        LastFile_.assign(File.begin(), File.end());
+        
+        PathBuffer_ = File;
+        
+        auto Error = llvm::sys::fs::make_absolute(PathBuffer_);
+        if (Error) {
+            llvm::errs() << util::cl::Error()
+                         << "failed to retrieve absolute file path for \""
+                         << File << "\" - " << Error.message() << "\n";
+            std::exit(EXIT_FAILURE);
+        }
+        
+        llvm::sys::path::remove_dots(PathBuffer_, true);
     }
+    
+    File = PathBuffer_.str();
+    
+    auto Repl = clang::tooling::Replacement(File, Offset, Length, ReplText);
+    Replacements_.insert(std::move(Repl));
+
 }
+

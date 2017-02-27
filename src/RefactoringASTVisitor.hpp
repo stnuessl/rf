@@ -56,6 +56,11 @@ public:
     bool VisitDeclRefExpr(clang::DeclRefExpr *Expr);
     bool VisitMemberExpr(clang::MemberExpr *Expr);
 
+    bool VisitMemberPointerTypeLoc(clang::MemberPointerTypeLoc &TypeLoc);
+    bool VisitQualifiedTypeLoc(clang::QualifiedTypeLoc &TypeLoc);
+    bool VisitTemplateSpecializationTypeLoc(
+        clang::TemplateSpecializationTypeLoc &TypeLoc);
+    bool VisitTypedefTypeLoc(clang::TypedefTypeLoc &TypeLoc);
     bool VisitTypeLoc(clang::TypeLoc &TypeLoc);
 
 private:

@@ -18,102 +18,149 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "functions/function.hpp"
+#include "tags/struct.hpp"
+#include "tags/templated_class.hpp"
+
 /* clang-format off */
 
+
+
+
+namespace p {
+    int x = 0;
+    
+namespace p {
+    int x = 0;
+    
+}
+}
+
+void test_tags()
+{
+    tags::s s1;
+    tags::s s2 = tags::s();
+    tags::s s3 = tags::s(s1);
+    tags::s s4 = *tags::s().as_ptr();
+    tags::s *s5 = tags::s::create();
+    
+    tags::s::reference s6 = s1;
+    tags::s::pointer s7 = s6.as_ptr();
+    
+    typedef tags::s t;
+    
+    t t1 = *s7;
+    auto t2 = t();
+    
+    (void) t2;
+    
+    delete s5;
+    
+    tags::c<struct tags::s> c1;
+    tags::c<class tags::c<int>> c2;
+    tags::c<int> c3 = tags::c<int>();
+    tags::c<double> c4 = tags::c<double>();
+    tags::c<bool> c5;
+    
+    (void) c5;
+    
+    auto b1 = c1 == c2;
+    auto b2 = functions::f(c3, c4);
+    
+    using functions::f;
+    auto b3 = f(c1, c3);
+    
+    (void) b1;
+    (void) b2;
+    (void) b3;
+}
+
+void test_namespaces()
+{
+    
+}
+
+void test_variables()
+{
+    
+}
+
+void test_macro()
+{
 #define M 100
 #if defined(M)
     #define N (M)
 #else
     #define N 100
 #endif
-
-namespace n {
-struct a {
-    a() { }
-    a(const a &other) { }
-    a(a &&other) { }
-    ~a() { }
-};
-} // namespace n
-
-namespace {
-
-auto a0 = n::a();
     
-} // namespace
-
-template <typename T>
-struct b {
-    b() { } 
-    b(const b<T> &other) { }
-    b(b<T> &&other) { }
-#if 0
-    // clang error? Unable to retrieve correct source location
-    b(const class b &other) {};
-    b(class b &&other) {};
+#ifdef M
+    auto s = tags::s();
+    (void) s;
 #endif
-    ~b() { }
     
-    void run() const { }
-    template <typename U> b(const b<U> &other) { run(); }
-};
-
-template <typename T> void f(b<T> b) {};
-
-template <typename T, typename U>
-bool operator==(const class b<T> &lhs, const class b<U> &rhs) { return true; };
-
-template <typename T, typename U>
-bool f(const b<T> &lhs, const b<U> &rhs) { return lhs == rhs; };
-
-template <typename T> struct c;
-template <typename T> struct c<const b<T>> {};
-
-namespace p {
-    int x = 0;
+#undef M
+#define M 1000
+    auto c1 = tags::c<decltype(M)>();
+    auto c2 = tags::c<decltype(N)>();
     
-namespace p {
-    int x = 0;
-    
+    (void) c1;
+    (void) c2;
+#undef M
 }
+
+void test_functions()
+{
+    auto f1 = functions::g;
+    int (*f2)(int, int) = f1;
+    
+    (void) f1(1, 2);
+    (void) f2(1, 2);
+    (void) functions::g(1, 2);
+    
+    using functions::g;
+    
+    f1 = g;
+    f2 = g;
+    
+    (void) f1(1, 2);
+    (void) f2(1, 2);
+    (void) g(1, 2);
+    
+    auto f3 = functions::f<int, int>;
+    (void) f3(tags::c<int>(), tags::c<int>());
+    
+    tags::s().f();
+    
+    auto s = tags::s();
+    s.f();
+    
+    void (tags::s::*f4)() const = &tags::s::f;
+    
+    (s.*f4)();
+    (s.as_ptr()->*f4)();
+    (*s.as_ptr().*f4)();
+    
 }
 
 int main(void)
 {
-    b<struct n::a> v;
-    b<struct b<int>> u;
+    test_functions();
+    test_macro();
+    test_namespaces();
+    test_tags();
+    test_variables();
     
-    struct n::a a1 = n::a();
+//     namespace o = n;
+//     using namespace o;
+
     
-    n::a a2 = n::a(a0);
-    using n::a;
-    a a3;
-    
-    namespace o = n;
-    using namespace o;
-    a a4 = a(a());
-    
-    b<int> b1;
-    struct b<double> b2;
-    
-#ifdef M
-    (void) f(b1, b2);
-#endif
-    
-    typedef b<n::a> ba;
-    ba ba0 = ba();
-    
-#undef M
-#define M 1000
-    f(b<decltype(M)>(), b<decltype(N)>());
-#undef M
-    
-    p::x = 42;
-    p::p::x = 42;
-    
-    namespace qq = p::p;
-    using qq::x;
-    x = 0;
+//     p::x = 42;
+//     p::p::x = 42;
+//     
+//     namespace qq = p::p;
+//     using qq::x;
+//     x = 0;
     
     return 0;
 }

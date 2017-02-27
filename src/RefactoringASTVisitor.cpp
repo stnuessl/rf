@@ -204,10 +204,46 @@ bool RefactoringASTVisitor::VisitMemberExpr(clang::MemberExpr *Expr)
     return true;
 }
 
+bool RefactoringASTVisitor::VisitMemberPointerTypeLoc(
+    clang::MemberPointerTypeLoc& TypeLoc)
+{
+    for (auto &Refactorer : *Refactorers_)
+        Refactorer->visitMemberPointerTypeLoc(TypeLoc);
+    
+    return true;
+}
+
+bool RefactoringASTVisitor::VisitQualifiedTypeLoc(
+    clang::QualifiedTypeLoc &TypeLoc)
+{
+    for (auto &Refactorer : *Refactorers_)
+        Refactorer->visitQualifiedTypeLoc(TypeLoc);
+    
+    return true;
+}
+
+bool RefactoringASTVisitor::VisitTemplateSpecializationTypeLoc(
+    clang::TemplateSpecializationTypeLoc& TypeLoc)
+{
+    for (auto &Refactorer : *Refactorers_)
+        Refactorer->visitTemplateSpecializationTypeLoc(TypeLoc);
+    
+    return true;
+}
+
+bool RefactoringASTVisitor::VisitTypedefTypeLoc(clang::TypedefTypeLoc &TypeLoc)
+{
+    for (auto &Refactorer : *Refactorers_)
+        Refactorer->visitTypedefTypeLoc(TypeLoc);
+    
+    return true;
+}
+
+
 bool RefactoringASTVisitor::VisitTypeLoc(clang::TypeLoc &TypeLoc)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitTypeLoc(TypeLoc);
-
+    
     return true;
 }

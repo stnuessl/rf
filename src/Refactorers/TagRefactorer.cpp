@@ -96,6 +96,75 @@ void TagRefactorer::visitUsingDecl(const clang::UsingDecl *Decl)
     }
 }
 
+void TagRefactorer::visitMemberPointerTypeLoc(
+    const clang::MemberPointerTypeLoc &TypeLoc)
+{
+    /* 
+     * Deal with function pointers to class methods, e.g.:
+     *      void (namespace::class::*ptr)(int, int);
+     *                       ^(1)
+     */
+    
+    auto CXXRecordDecl = TypeLoc.getClass()->getAsCXXRecordDecl();
+    if (CXXRecordDecl && isVictim(CXXRecordDecl)) {
+        auto Loc = TypeLoc.getLocalSourceRange().getBegin();
+        addReplacement(Loc);
+    }
+}
+
+void TagRefactorer::visitTemplateSpecializationTypeLoc(
+    const clang::TemplateSpecializationTypeLoc &TypeLoc)
+{
+    /*
+     * This handles declarations like:
+     *
+     *      template <typename T> class a {};
+     *      template <typename T> class b<const a<T>> {};
+     *                                          ^
+     *      template <typename T> void f(a<T> a) { }
+     *                                   ^
+     * Casting the Typeloc to a TemplateSpecializationTypeLoc did not
+     * always work. Casting the Type to the TemplateSpecializationType
+     * seems to be doing fine.
+     */
+    
+    auto Type = TypeLoc.getType()->getAs<clang::TemplateSpecializationType>();
+    if (Type) {
+        auto TemplateName = Type->getTemplateName();
+        auto TemplateDecl = TemplateName.getAsTemplateDecl();
+        
+        if (isVictim(TemplateDecl)) {
+            auto Loc = TypeLoc.getLocStart();
+            addReplacement(Loc);
+        }
+    }
+}
+
+void TagRefactorer::visitTypedefTypeLoc(const clang::TypedefTypeLoc &TypeLoc)
+{
+    /*
+     * Given;
+     *      typedef std::vector<int> s32_vector;
+     *
+     * This handles all the occurences ((1) and (2)) of 's32_vector' like:
+     *      s32_vector v;   and     std::vector<s32_vector> s32_matrix;
+     *      ^(1)                                ^(2)
+     *
+     * This has to be done explicitly here since clang thinks of typedef types
+     * not as tag types but rf does.
+     */
+    
+    auto TypedefType = TypeLoc.getType()->getAs<clang::TypedefType>();
+    if (TypedefType) {
+        auto TypedefNameDecl = TypedefType->getDecl();
+        
+        if (isVictim(TypedefNameDecl)) {
+            auto Loc = getLastTypeLocation(TypeLoc);
+            addReplacement(Loc);
+        }
+    }
+}
+
 void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
 {
     auto Type = TypeLoc.getType();
@@ -114,6 +183,30 @@ void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
     auto STTypeParmType = Type->getAs<clang::SubstTemplateTypeParmType>();
     if (STTypeParmType)
         return;
+    
+    /*
+     * Given;
+     *      typedef std::vector<int> s32_vector;
+     *
+     * This handles all the occurences ((1) and (2)) of 's32_vector' like:
+     *      s32_vector v;   and     std::vector<s32_vector> s32_matrix;
+     *      ^(1)                                ^(2)
+     *
+     * This has to be done explicitly here since clang thinks of typedef types
+     * not as tag types but rf does.
+     */
+    
+//     auto TypedefType = Type->getAs<clang::TypedefType>();
+//     if (TypedefType) {
+//         auto TypedefNameDecl = TypedefType->getDecl();
+// 
+//         if (isVictim(TypedefNameDecl)) {
+//             auto Loc = getLastTypeLocation(TypeLoc);
+//             addReplacement(Loc);
+//         }
+//         
+//         return;
+//     }
 
     /*
      * Given
@@ -138,28 +231,35 @@ void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
     if (ReferenceType)
         Type = ReferenceType->getPointeeType();
 
-    /*
-     * Given;
-     *      typedef std::vector<int> s32_vector;
-     *
-     * This handles all the occurences ((1) and (2)) of 's32_vector' like:
-     *      s32_vector v;   and     std::vector<s32_vector> s32_matrix;
-     *      ^(1)                                ^(2)
-     *
-     * This has to be done explicitly here since clang thinks of typedef types
-     * not as tag types but rf does.
-     */
-    auto TypedefType = Type->getAs<clang::TypedefType>();
-    if (TypedefType) {
-        auto TypedefNameDecl = TypedefType->getDecl();
-
-        if (isVictim(TypedefNameDecl)) {
-            auto Loc = getLastTypeLocation(TypeLoc);
-            addReplacement(Loc);
-        }
-
-        return;
-    }
+//     /*
+//      * Given;
+//      *      typedef std::vector<int> s32_vector;
+//      *
+//      * This handles all the occurences ((1) and (2)) of 's32_vector' like:
+//      *      s32_vector v;   and     std::vector<s32_vector> s32_matrix;
+//      *      ^(1)                                ^(2)
+//      *
+//      * This has to be done explicitly here since clang thinks of typedef types
+//      * not as tag types but rf does.
+//      */
+    
+//     auto &SM = CompilerInstance_->getSourceManager();
+//     auto TypedefType = Type->getAs<clang::TypedefType>();
+//     if (TypedefType) {
+//         auto TypedefNameDecl = TypedefType->getDecl();
+//         
+//         llvm::errs() << "yes\n\n";
+// 
+//         if (isVictim(TypedefNameDecl)) {
+//             auto Loc = getLastTypeLocation(TypeLoc);
+//             llvm::errs() << __FILE__ << ":" << __LINE__ << ":  ";
+//             Loc.dump(SM);
+//             llvm::errs() << "\n";
+//             addReplacement(Loc);
+//         }
+// 
+//         return;
+//     }
 
     /*
      * This handles declarations like:
@@ -174,23 +274,27 @@ void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
      * seems to be doing fine.
      */
 
-    auto TSpecType = Type->getAs<clang::TemplateSpecializationType>();
-    if (TSpecType) {
-        auto TemplateName = TSpecType->getTemplateName();
-        auto TemplateDecl = TemplateName.getAsTemplateDecl();
-
-        if (isVictim(TemplateDecl)) {
-            auto Loc = getLastTypeLocation(TypeLoc);
-            addReplacement(Loc);
-        }
-
+//     auto TSpecType = Type->getAs<clang::TemplateSpecializationType>();
+//     if (TSpecType) {
+//         auto TemplateName = TSpecType->getTemplateName();
+//         auto TemplateDecl = TemplateName.getAsTemplateDecl();
+// 
+//         if (isVictim(TemplateDecl)) {
+//             auto Loc = getLastTypeLocation(TypeLoc);
+//             addReplacement(Loc);
+//         }
+// 
+//         return;
+//     }
+    
+    auto TagDecl = Type->getAsTagDecl();
+    if (TagDecl && isVictim(TagDecl)) {
+        auto Loc = getLastTypeLocation(TypeLoc);
+        addReplacement(Loc);
         return;
     }
-
-    auto TagDecl = Type->getAsTagDecl();
-    if (!TagDecl || !isVictim(TagDecl))
-        return;
-
-    auto Loc = getLastTypeLocation(TypeLoc);
-    addReplacement(Loc);
 }
+
+
+
+

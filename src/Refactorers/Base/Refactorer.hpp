@@ -21,6 +21,8 @@
 #ifndef RF_REFACTORER_HPP_
 #define RF_REFACTORER_HPP_
 
+#include <unordered_set>
+
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/DeclCXX.h>
 #include <clang/Frontend/CompilerInstance.h>
@@ -42,6 +44,7 @@ public:
     void setCompilerInstance(clang::CompilerInstance *CI);
     void setASTContext(clang::ASTContext *ASTContext);
 
+    clang::tooling::Replacements &replacements();
     const clang::tooling::Replacements &replacements() const;
 
     void setForce(bool Value);
@@ -73,7 +76,14 @@ public:
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr);
     virtual void visitMemberExpr(const clang::MemberExpr *Expr);
 
+    virtual void visitMemberPointerTypeLoc(
+        const clang::MemberPointerTypeLoc &TypeLoc);
+    virtual void visitQualifiedTypeLoc(const clang::QualifiedTypeLoc &TypeLoc);
+    virtual void visitTemplateSpecializationTypeLoc(
+        const clang::TemplateSpecializationTypeLoc &TypeLoc);
+    virtual void visitTypedefTypeLoc(const clang::TypedefTypeLoc &TypeLoc);
     virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc);
+
 
 protected:
     void addReplacement(clang::SourceLocation Loc,
@@ -87,6 +97,8 @@ protected:
     clang::CompilerInstance *CompilerInstance_;
     clang::ASTContext *ASTContext_;
     clang::tooling::Replacements Replacements_;
+    llvm::SmallString<64> PathBuffer_;
+    std::string LastFile_;
     bool Force_;
 };
 

@@ -247,7 +247,8 @@ static llvm::cl::list<std::string> InputFiles(
 static std::unique_ptr<clang::tooling::CompilationDatabase>
 makeCompilationDatabase(const std::string &Path, std::string &ErrMsg)
 {
-    using namespace clang::tooling;
+    using clang::tooling::CompilationDatabase;
+    using clang::tooling::JSONCompilationDatabase;
 
     if (!Path.empty())
         return JSONCompilationDatabase::loadFromFile(Path, ErrMsg);
@@ -304,9 +305,6 @@ static void add(std::vector<RefactoringActionFactory> &Factories,
 
 int main(int argc, const char **argv)
 {
-    using namespace clang;
-    using namespace clang::tooling;
-
     auto OptionCategories = llvm::ArrayRef<llvm::cl::OptionCategory *>({
         &RefactoringOptions, &ProgramSetupOptions,
     });
@@ -442,15 +440,15 @@ int main(int argc, const char **argv)
     if (SyntaxOnly)
         std::exit(EXIT_SUCCESS);
 
-    RefactoringTool Tool(*CompileCommands, SourceFiles);
+    clang::tooling::RefactoringTool Tool(*CompileCommands, SourceFiles);
     auto &Replacements = Tool.getReplacements();
-    auto DstRepls = std::inserter(Replacements, Replacements.end());
-
+    auto InsertIter = std::inserter(Replacements, Replacements.end());
+    
     for (auto &Factory : Factories) {
         for (auto &Refactorer : Factory.refactorers()) {
             auto &Repls = Refactorer->replacements();
-
-            std::move(Repls.begin(), Repls.end(), DstRepls);
+            
+            std::move(Repls.begin(), Repls.end(), InsertIter);
         }
     }
 
@@ -459,12 +457,15 @@ int main(int argc, const char **argv)
         std::exit(EXIT_SUCCESS);
     }
 
-    IntrusiveRefCntPtr<DiagnosticOptions> Opts = new DiagnosticOptions();
-    IntrusiveRefCntPtr<DiagnosticIDs> Id = new DiagnosticIDs();
+    using clang::DiagnosticOptions;
+    using clang::DiagnosticIDs;
 
-    TextDiagnosticPrinter Printer(llvm::errs(), &*Opts);
-    DiagnosticsEngine Diagnostics(Id, &*Opts, &Printer, false);
-    SourceManager SM(Diagnostics, Tool.getFiles());
+    llvm::IntrusiveRefCntPtr<DiagnosticOptions> Opts = new DiagnosticOptions();
+    llvm::IntrusiveRefCntPtr<DiagnosticIDs> Id = new DiagnosticIDs();
+
+    clang::TextDiagnosticPrinter Printer(llvm::errs(), &*Opts);
+    clang::DiagnosticsEngine Diagnostics(Id, &*Opts, &Printer, false);
+    clang::SourceManager SM(Diagnostics, Tool.getFiles());
 
     if (Verbose) {
         auto &FileManager = SM.getFileManager();
@@ -509,9 +510,9 @@ int main(int argc, const char **argv)
             std::exit(EXIT_FAILURE);
         }
     }
-
-    LangOptions LangOpts;
-    Rewriter Rewriter(SM, LangOpts);
+    
+    clang::LangOptions LangOpts;
+    clang::Rewriter Rewriter(SM, LangOpts);
 
     bool ok = Tool.applyAllReplacements(Rewriter);
     if (!ok) {

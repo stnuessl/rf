@@ -18,6 +18,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 
 set -e
 
@@ -33,33 +34,46 @@ function md5_compare() {
     fi
 }
 
+source_files="main.cpp functions/function.cpp tags/struct.cpp"
+
 python ../utils/make-jcdb.py                            \
-            --command "g++ -std=c++11 -o main"          \
+            --command "g++ -std=c++11"                  \
             --raw                                       \
-            -- "main.cpp"                               \
+            -- $source_files                            \
             > compile_commands.json;
 
 
-g++ -Wall -std=c++11 -o main main.cpp;
+g++ -Wall -std=c++11 -o main $source_files
 md5_src="$(md5_create main.cpp)";
 md5_bin="$(md5_create main)";
 
-rf --tag n::a=aa,b=bb,c=cc,main::ba=baba                \
-    --function f=ff                                     \
-    --macro M=MM                                        \
-    --namespace n=nn,p=pp,p::p=pp,main::o=oo            \
-    --variable p::p::x=xx;
+rf --tag tags::s=ss,tags::c=cc,main::t=tt               \
+    --function functions::f=ff                          \
+    --macro M=MM
 rf --syntax-only;
-g++ -Wall -std=c++11 -o main main.cpp
-rf --tag nn::aa=a,bb=b,cc=c,main::baba=ba               \
-    --function ff=f                                     \
-    --macro MM=M                                        \
-    --namespace nn=n,pp=p,pp::pp=p,main::oo=o           \
-    --variable pp::pp::xx=x;
-rf --syntax-only;
+g++ -Wall -std=c++11 -o main "$source_files"
+rf --tag tags::ss=ss,tags::cc=c,main::tt=t              \
+    --function functions::ff=f                          \
+    --macro MM=M
+rf --syntaxonly;
+g++ -Wall -std=c++11 -o main "$source_files"
 
-# Make sure nothing changed
-g++ -Wall -std=c++11 -o main main.cpp;
+# rf --tag n::a=aa,b=bb,c=cc,main::ba=baba                \
+#     --function f=ff                                     \
+#     --macro M=MM                                        \
+#     --namespace n=nn,p=pp,p::p=pp,main::o=oo            \
+#     --variable p::p::x=xx;
+# rf --syntax-only;
+# g++ -Wall -std=c++11 -o main main.cpp
+# rf --tag nn::aa=a,bb=b,cc=c,main::baba=ba               \
+#     --function ff=f                                     \
+#     --macro MM=M                                        \
+#     --namespace nn=n,pp=p,pp::pp=p,main::oo=o           \
+#     --variable pp::pp::xx=x;
+# rf --syntax-only;
+# 
+# # Make sure nothing changed
+# g++ -Wall -std=c++11 -o main main.cpp;
 
 if md5_compare "$md5_src" "$md5_create main.cpp"; then
     printf "**WARNING: MD5 sum of 'main.cpp changed!\n";
@@ -70,21 +84,21 @@ if md5_compare "$md5_bin" "$md5_create main"; then
 fi
 
 # Basically, the same as above
-rf --from-file do_replacements.yaml;
-rf --syntax-only;
-g++ -Wall -std=c++11 -o main main.cpp
-rf --from-file undo_replacements.yaml;
-rf --syntax-only;
-
-# Again, make sure nothing changed
-g++ -Wall -std=c++11 -o main main.cpp;
-
-if md5_compare "$md5_src" "$md5_create main.cpp"; then
-    printf "**WARNING: MD5 sum of 'main.cpp changed!\n";
-fi
-
-if md5_compare "$md5_bin" "$md5_create main"; then
-    printf "**WARNING: MD5 sum of 'main changed!\n";
-fi
-
-exit;
+# rf --from-file do_replacements.yaml;
+# rf --syntax-only;
+# g++ -Wall -std=c++11 -o main main.cpp
+# rf --from-file undo_replacements.yaml;
+# rf --syntax-only;
+# 
+# # Again, make sure nothing changed
+# g++ -Wall -std=c++11 -o main main.cpp;
+# 
+# if md5_compare "$md5_src" "$md5_create main.cpp"; then
+#     printf "**WARNING: MD5 sum of 'main.cpp changed!\n";
+# fi
+# 
+# if md5_compare "$md5_bin" "$md5_create main"; then
+#     printf "**WARNING: MD5 sum of 'main changed!\n";
+# fi
+# 
+# exit;
