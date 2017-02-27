@@ -35,7 +35,7 @@ struct s {
     ~s();
     
     reference operator=(const_reference other);
-    reference operator=(s &&other);
+    s &operator=(s &&other);
     
     pointer as_ptr();
     const_pointer as_ptr() const;

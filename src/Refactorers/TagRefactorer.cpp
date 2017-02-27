@@ -57,7 +57,7 @@ void TagRefactorer::visitCXXConstructorDecl(
     if (!isVictim(Decl->getParent()))
         return;
 
-    addReplacement(Decl->getNameInfo().getLoc());
+    addReplacement(Decl->getLocation());
 }
 
 void TagRefactorer::visitRecordDecl(const clang::RecordDecl *Decl)
@@ -96,6 +96,36 @@ void TagRefactorer::visitUsingDecl(const clang::UsingDecl *Decl)
     }
 }
 
+void TagRefactorer::visitInjectedClassNameTypeLoc(
+    const clang::InjectedClassNameTypeLoc &TypeLoc)
+{
+    /*
+     * Deal with injected class names e.g. positions (1), (2) and (3)
+     * in the following code.
+     * 
+     *      template <typename T>
+     *      class c {
+     *      public:
+     *          ...
+     *          ~c();
+     *           ^(1)
+     * 
+     *          c &operator=(const c &other);
+     *          ^(2)               ^(3)
+     * 
+     *          c<T> &operator(c<T> &&other);
+     *          ^(4)           ^(5)
+     *      };
+     * 
+     * Types at positions (4) and (5) are called 'TemplateSpecializationTypes'
+     */
+    auto RecordDecl = TypeLoc.getDecl();
+    if (isVictim(RecordDecl)) {
+        auto Loc = TypeLoc.getLocStart();
+        addReplacement(Loc);
+    }
+}
+
 void TagRefactorer::visitMemberPointerTypeLoc(
     const clang::MemberPointerTypeLoc &TypeLoc)
 {
@@ -108,6 +138,37 @@ void TagRefactorer::visitMemberPointerTypeLoc(
     auto CXXRecordDecl = TypeLoc.getClass()->getAsCXXRecordDecl();
     if (CXXRecordDecl && isVictim(CXXRecordDecl)) {
         auto Loc = TypeLoc.getLocalSourceRange().getBegin();
+        addReplacement(Loc);
+    }
+}
+
+// void TagRefactorer::visitPointerTypeLoc(const clang::PointerTypeLoc &TypeLoc)
+// {
+//     auto TagDecl = TypeLoc.getPointeeLoc().getType()->getAsTagDecl();
+//     if (TagDecl && isVictim(TagDecl)) {
+//         auto Loc = TypeLoc.getPointeeLoc().getLocalSourceRange().getBegin();
+//         addReplacement(Loc);
+//         llvm::errs() << "Added: ";
+//         Loc.dump(CompilerInstance_->getSourceManager());
+//         llvm::errs() << "\n";
+//     }
+// }
+// 
+// void TagRefactorer::visitReferenceTypeLoc(
+//     const clang::ReferenceTypeLoc &TypeLoc)
+// {
+//     auto TagDecl = TypeLoc.getPointeeLoc().getType()->getAsTagDecl();
+//     if (TagDecl && isVictim(TagDecl)) {
+//         auto Loc = TypeLoc.getLocStart();
+//         addReplacement(Loc);
+//     }
+// }
+
+void TagRefactorer::visitTagTypeLoc(const clang::TagTypeLoc &TypeLoc)
+{
+    auto TagDecl = TypeLoc.getDecl();
+    if (isVictim(TagDecl)) {
+        auto Loc = TypeLoc.getLocStart();
         addReplacement(Loc);
     }
 }
@@ -165,6 +226,7 @@ void TagRefactorer::visitTypedefTypeLoc(const clang::TypedefTypeLoc &TypeLoc)
     }
 }
 
+#if 0
 void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
 {
     auto Type = TypeLoc.getType();
@@ -225,11 +287,13 @@ void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
      */
     auto PointerType = Type->getAs<clang::PointerType>();
     if (PointerType)
-        Type = PointerType->getPointeeType();
+        return;
+//         Type = PointerType->getPointeeType();
 
     auto ReferenceType = Type->getAs<clang::ReferenceType>();
     if (ReferenceType)
-        Type = ReferenceType->getPointeeType();
+        return;
+//         Type = ReferenceType->getPointeeType();
 
 //     /*
 //      * Given;
@@ -290,11 +354,16 @@ void TagRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
     auto TagDecl = Type->getAsTagDecl();
     if (TagDecl && isVictim(TagDecl)) {
         auto Loc = getLastTypeLocation(TypeLoc);
-        addReplacement(Loc);
+//         addReplacement(Loc);
+        llvm::errs() << "Added:\n";
+        Type->dump();
+        llvm::errs() << "at: ";
+        Loc.dump(CompilerInstance_->getSourceManager());
+        llvm::errs() << "\n-------------\n";
         return;
     }
 }
-
+#endif 
 
 
 

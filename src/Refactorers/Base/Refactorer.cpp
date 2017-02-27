@@ -171,13 +171,34 @@ void Refactorer::visitMemberExpr(const clang::MemberExpr *Expr)
     (void) Expr;
 }
 
+void Refactorer::visitInjectedClassNameTypeLoc(
+    const clang::InjectedClassNameTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
 void Refactorer::visitMemberPointerTypeLoc(
     const clang::MemberPointerTypeLoc &TypeLoc)
 {
     (void) TypeLoc;
 }
 
+void Refactorer::visitPointerTypeLoc(const clang::PointerTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
 void Refactorer::visitQualifiedTypeLoc(const clang::QualifiedTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
+void Refactorer::visitReferenceTypeLoc(const clang::ReferenceTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
+void Refactorer::visitTagTypeLoc(const clang::TagTypeLoc &TypeLoc)
 {
     (void) TypeLoc;
 }
@@ -197,9 +218,6 @@ void Refactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
 {
     (void) TypeLoc;
 }
-
-
-
 
 
 void Refactorer::addReplacement(clang::SourceLocation Loc,

@@ -76,9 +76,14 @@ public:
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr);
     virtual void visitMemberExpr(const clang::MemberExpr *Expr);
 
+    virtual void visitInjectedClassNameTypeLoc(
+        const clang::InjectedClassNameTypeLoc &TypeLoc);
     virtual void visitMemberPointerTypeLoc(
         const clang::MemberPointerTypeLoc &TypeLoc);
+    virtual void visitPointerTypeLoc(const clang::PointerTypeLoc &TypeLoc);
     virtual void visitQualifiedTypeLoc(const clang::QualifiedTypeLoc &TypeLoc);
+    virtual void visitReferenceTypeLoc(const clang::ReferenceTypeLoc &TypeLoc);
+    virtual void visitTagTypeLoc(const clang::TagTypeLoc &TypeLoc);
     virtual void visitTemplateSpecializationTypeLoc(
         const clang::TemplateSpecializationTypeLoc &TypeLoc);
     virtual void visitTypedefTypeLoc(const clang::TypedefTypeLoc &TypeLoc);

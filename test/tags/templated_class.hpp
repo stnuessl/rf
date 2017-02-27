@@ -33,7 +33,9 @@ public:
     ~c() = default;
     
     c &operator=(const c<T> &other);
-    c &operator=(c<T> &&other);
+    tags::c<T> &operator=(c &&other);
+    
+    static c *create();
 };
 
 template <>
@@ -77,9 +79,15 @@ c<T> &c<T>::operator=(const c<T> &other)
 }
 
 template<typename T> 
-c<T> &c<T>::operator=(c<T> &&other)
+c<T> &c<T>::operator=(c &&other)
 {
     return *this;
+}
+
+template<typename T> 
+c<T> *c<T>::create()
+{
+    return new c<T>();
 }
 
 } /* namespace tags */

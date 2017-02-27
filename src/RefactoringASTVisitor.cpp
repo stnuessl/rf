@@ -204,6 +204,15 @@ bool RefactoringASTVisitor::VisitMemberExpr(clang::MemberExpr *Expr)
     return true;
 }
 
+bool RefactoringASTVisitor::VisitInjectedClassNameTypeLoc(
+    clang::InjectedClassNameTypeLoc &TypeLoc)
+{
+    for (auto &Refactorer : *Refactorers_)
+        Refactorer->visitInjectedClassNameTypeLoc(TypeLoc);
+    
+    return true;
+}
+
 bool RefactoringASTVisitor::VisitMemberPointerTypeLoc(
     clang::MemberPointerTypeLoc& TypeLoc)
 {
@@ -213,11 +222,36 @@ bool RefactoringASTVisitor::VisitMemberPointerTypeLoc(
     return true;
 }
 
+bool RefactoringASTVisitor::VisitPointerTypeLoc(clang::PointerTypeLoc &TypeLoc)
+{
+    for (auto &Refactorer : *Refactorers_)
+        Refactorer->visitPointerTypeLoc(TypeLoc);
+    
+    return true;
+}
+
 bool RefactoringASTVisitor::VisitQualifiedTypeLoc(
     clang::QualifiedTypeLoc &TypeLoc)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitQualifiedTypeLoc(TypeLoc);
+    
+    return true;
+}
+
+bool RefactoringASTVisitor::VisitReferenceTypeLoc(
+    clang::ReferenceTypeLoc &TypeLoc)
+{
+    for (auto &Refactorer : *Refactorers_)
+        Refactorer->visitReferenceTypeLoc(TypeLoc);
+    
+    return true;
+}
+
+bool RefactoringASTVisitor::VisitTagTypeLoc(clang::TagTypeLoc &TypeLoc)
+{
+    for (auto &Refactorer : *Refactorers_)
+        Refactorer->visitTagTypeLoc(TypeLoc);
     
     return true;
 }
