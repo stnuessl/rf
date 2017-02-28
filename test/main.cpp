@@ -24,22 +24,34 @@
 
 /* clang-format off */
 
+namespace v1 {
 
+int v1 = 42;
 
+namespace v2 {
 
-namespace p {
-    int x = 0;
+template <typename T>
+T f(T x)
+{
+    return x;
+}
     
-namespace p {
-    int x = 0;
-    
+int v1 = 42;
+
 }
 }
 
 namespace v1 {
-    int v1 = 42;
-namespace v2 {
-    int v1 = 42;
+// namespace v2 {
+namespace v3 {
+
+template <typename T>
+void f(T x)
+{
+    v1 = v2::f(x);
+    v2::v1 = v1;
+}
+
 }
 }
 
@@ -84,7 +96,27 @@ void test_tags()
 
 void test_namespaces()
 {
+    v1::v1 = 0;
+    v1::v2::v1 = v1::v1;
     
+    namespace v = v1;
+    
+    v::v1 = 1;
+    v::v2::v1 = 1;
+    
+    using namespace v;
+    
+    v2::v1 = 2;
+    
+    namespace vv = v2;
+    
+    vv::v1 = 3;
+    
+    using vv::v1;
+    
+    v1 = 4;
+    
+    v1::v3::f(0);
 }
 
 void test_variables()
@@ -182,17 +214,6 @@ int main(void)
     test_namespaces();
     test_tags();
     test_variables();
-    
-//     namespace o = n;
-//     using namespace o;
-
-    
-//     p::x = 42;
-//     p::p::x = 42;
-//     
-//     namespace qq = p::p;
-//     using qq::x;
-//     x = 0;
     
     return 0;
 }

@@ -57,7 +57,8 @@ rf --tag tags::s=ss,tags::c=cc,main::t=tt               \
     --variable test_variables::v6=w6                    \
     --variable test_variables::v7=w7                    \
     --variable v1::v2::v1=w1                            \
-    --variable v1::v1=w1;
+    --variable v1::v1=w1                                \
+    --namespace v1=w1,v1::v2=w2;
 rf --syntax-only;
 g++ -Wall -std=c++11 -o main $source_files
 rf --tag tags::ss=s,tags::cc=c,main::tt=t               \
@@ -70,8 +71,9 @@ rf --tag tags::ss=s,tags::cc=c,main::tt=t               \
     --variable test_variables::w5=v5                    \
     --variable test_variables::w6=v6                    \
     --variable test_variables::w7=v7                    \
-    --variable v1::v2::w1=v1                            \
-    --variable v1::w1=v1;
+    --variable w1::w2::w1=v1                            \
+    --variable w1::w1=v1                                \
+    --namespace w1=v1,w1::w2=v2;
 rf --syntax-only;
 g++ -Wall -std=c++11 -o main $source_files
 
