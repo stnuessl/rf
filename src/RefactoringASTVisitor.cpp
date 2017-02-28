@@ -204,6 +204,24 @@ bool RefactoringASTVisitor::VisitMemberExpr(clang::MemberExpr *Expr)
     return true;
 }
 
+bool RefactoringASTVisitor::VisitUnresolvedLookupExpr(
+    clang::UnresolvedLookupExpr *Expr)
+{
+    for (auto &Refactorer : *Refactorers_)
+        Refactorer->visitUnresolvedLookupExpr(Expr);
+    
+    return true;
+}
+
+bool RefactoringASTVisitor::VisitElaboratedTypeLoc(
+    clang::ElaboratedTypeLoc &TypeLoc)
+{
+    for (auto &Refactorer : *Refactorers_)
+        Refactorer->visitElaboratedTypeLoc(TypeLoc);
+    
+    return true;
+}
+
 bool RefactoringASTVisitor::VisitFunctionTypeLoc(
     clang::FunctionTypeLoc &TypeLoc)
 {

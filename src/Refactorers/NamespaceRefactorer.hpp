@@ -33,8 +33,11 @@ public:
     visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl) override;
 
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr) override;
-
-    virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc) override;
+    virtual void 
+    visitUnresolvedLookupExpr(const clang::UnresolvedLookupExpr *Expr) override;
+    
+    virtual void 
+    visitElaboratedTypeLoc(const clang::ElaboratedTypeLoc &TypeLoc) override;
 
 protected:
     void traverse(clang::NestedNameSpecifierLoc NNSLoc);

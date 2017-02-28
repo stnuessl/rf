@@ -128,7 +128,37 @@ void NamespaceRefactorer::visitDeclRefExpr(const clang::DeclRefExpr *Expr)
     traverse(NNSLoc);
 }
 
-void NamespaceRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
+void NamespaceRefactorer::visitUnresolvedLookupExpr(
+    const clang::UnresolvedLookupExpr *Expr)
+{
+    /* 
+     * This one is special. Handle the following case (1):
+     *      namespace a { 
+     *      namespace b {
+     *      
+     *      template <typename T> T f(T x) { return x; }
+     * 
+     *      }
+     *      }
+     * 
+     *      namespace a {
+     *      namespace c {
+     *          
+     *      template <typename T> void f(T x) { auto y = a::f(x); }
+     *                                                   ^(1)
+     *      }
+     *      }
+     */
+    
+    auto NNSLoc = Expr->getQualifierLoc();
+    if (!NNSLoc)
+        return;
+    
+    traverse(NNSLoc);
+}
+
+void NamespaceRefactorer::visitElaboratedTypeLoc(
+    const clang::ElaboratedTypeLoc &TypeLoc)
 {
     /*
      * This function handles the following case:
@@ -138,11 +168,7 @@ void NamespaceRefactorer::visitTypeLoc(const clang::TypeLoc &TypeLoc)
      *                            ^(1)
      */
 
-    auto ElaboratedTypeLoc = TypeLoc.getAs<clang::ElaboratedTypeLoc>();
-    if (!ElaboratedTypeLoc)
-        return;
-
-    auto NNSLoc = ElaboratedTypeLoc.getQualifierLoc();
+    auto NNSLoc = TypeLoc.getQualifierLoc();
     if (!NNSLoc)
         return;
 

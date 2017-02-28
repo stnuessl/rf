@@ -171,6 +171,17 @@ void Refactorer::visitMemberExpr(const clang::MemberExpr *Expr)
     (void) Expr;
 }
 
+void Refactorer::visitUnresolvedLookupExpr(
+    const clang::UnresolvedLookupExpr *Expr)
+{
+    (void) Expr;
+}
+
+void Refactorer::visitElaboratedTypeLoc(const clang::ElaboratedTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
 void Refactorer::visitFunctionTypeLoc(const clang::FunctionTypeLoc &TypeLoc)
 {
     (void) TypeLoc;

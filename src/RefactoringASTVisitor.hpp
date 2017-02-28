@@ -55,7 +55,9 @@ public:
     bool VisitCallExpr(clang::CallExpr *Expr);
     bool VisitDeclRefExpr(clang::DeclRefExpr *Expr);
     bool VisitMemberExpr(clang::MemberExpr *Expr);
+    bool VisitUnresolvedLookupExpr(clang::UnresolvedLookupExpr *Expr);
 
+    bool VisitElaboratedTypeLoc(clang::ElaboratedTypeLoc &TypeLoc);
     bool VisitFunctionTypeLoc(clang::FunctionTypeLoc &TypeLoc);
     bool
     VisitInjectedClassNameTypeLoc(clang::InjectedClassNameTypeLoc &TypeLoc);
