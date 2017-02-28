@@ -20,6 +20,37 @@
 
 #include <Refactorers/NamespaceRefactorer.hpp>
 
+void NamespaceRefactorer::visitDeclaratorDecl(const clang::DeclaratorDecl *Decl)
+{
+    /*
+     * Deals with function definitions and variable declarations 
+     * which contain namespaces, e.g.:
+     * 
+     *      namespace a {
+     *      void f();
+     *      struct s { void f() { } };
+     *      }
+     * 
+     *      void a::f() { }
+     *           ^(1)
+     *
+     *      void g() { void (a::s::*ptr)(); }
+     *                       ^(2)
+     * 
+     * WARNING: Locations like (2) are not beeing refactored as of 17-03-02.
+     * It seems like they are missing a 'NestedNameSpecifier(-Loc)'. If it is
+     * a bug inside clang I assume it will get fixed automatically. If it is a
+     * bug on my side...
+     */
+    
+    auto NNSLoc = Decl->getQualifierLoc();
+    if (!NNSLoc)
+        return;
+    
+    traverse(NNSLoc);
+}
+
+
 void NamespaceRefactorer::visitNamespaceAliasDecl(
     const clang::NamespaceAliasDecl *Decl)
 {
@@ -200,3 +231,4 @@ void NamespaceRefactorer::traverse(clang::NestedNameSpecifierLoc NNSLoc)
         NNSLoc = NNSLoc.getPrefix();
     }
 }
+

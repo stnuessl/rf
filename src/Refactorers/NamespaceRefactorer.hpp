@@ -26,6 +26,8 @@
 class NamespaceRefactorer : public NameRefactorer {
 public:
     virtual void
+    visitDeclaratorDecl(const clang::DeclaratorDecl *Decl) override;
+    virtual void
     visitNamespaceAliasDecl(const clang::NamespaceAliasDecl *Decl) override;
     virtual void visitNamespaceDecl(const clang::NamespaceDecl *Decl) override;
     virtual void visitUsingDecl(const clang::UsingDecl *Decl) override;
@@ -33,12 +35,11 @@ public:
     visitUsingDirectiveDecl(const clang::UsingDirectiveDecl *Decl) override;
 
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr) override;
-    virtual void 
+    virtual void
     visitUnresolvedLookupExpr(const clang::UnresolvedLookupExpr *Expr) override;
-    
-    virtual void 
-    visitElaboratedTypeLoc(const clang::ElaboratedTypeLoc &TypeLoc) override;
 
+    virtual void
+    visitElaboratedTypeLoc(const clang::ElaboratedTypeLoc &TypeLoc) override;
 protected:
     void traverse(clang::NestedNameSpecifierLoc NNSLoc);
 };

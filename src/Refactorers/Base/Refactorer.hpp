@@ -59,6 +59,7 @@ public:
     virtual void visitCXXMethodDecl(const clang::CXXMethodDecl *Decl);
     virtual void visitCXXRecordDecl(const clang::CXXRecordDecl *Decl);
     virtual void visitDecl(const clang::Decl *Decl);
+    virtual void visitDeclaratorDecl(const clang::DeclaratorDecl *Decl);
     virtual void visitEnumConstantDecl(const clang::EnumConstantDecl *Decl);
     virtual void visitEnumDecl(const clang::EnumDecl *Decl);
     virtual void visitFieldDecl(const clang::FieldDecl *Decl);
@@ -81,6 +82,8 @@ public:
 
     virtual void 
     visitElaboratedTypeLoc(const clang::ElaboratedTypeLoc &TypeLoc);
+    virtual void visitFunctionProtoTypeLoc(
+        const clang::FunctionProtoTypeLoc &TypeLoc);
     virtual void visitFunctionTypeLoc(const clang::FunctionTypeLoc &TypeLoc);
     virtual void visitInjectedClassNameTypeLoc(
         const clang::InjectedClassNameTypeLoc &TypeLoc);

@@ -91,6 +91,11 @@ void Refactorer::visitDecl(const clang::Decl *Decl)
     (void) Decl;
 }
 
+void Refactorer::visitDeclaratorDecl(const clang::DeclaratorDecl *Decl)
+{
+    (void) Decl;
+}
+
 void Refactorer::visitEnumConstantDecl(const clang::EnumConstantDecl *Decl)
 {
     (void) Decl;
@@ -178,6 +183,12 @@ void Refactorer::visitUnresolvedLookupExpr(
 }
 
 void Refactorer::visitElaboratedTypeLoc(const clang::ElaboratedTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
+void Refactorer::visitFunctionProtoTypeLoc(
+    const clang::FunctionProtoTypeLoc &TypeLoc)
 {
     (void) TypeLoc;
 }

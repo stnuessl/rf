@@ -38,6 +38,7 @@ public:
     bool VisitCXXMethodDecl(clang::CXXMethodDecl *Decl);
     bool VisitCXXRecordDecl(clang::CXXRecordDecl *Decl);
     bool VisitDecl(clang::Decl *Decl);
+    bool VisitDeclaratorDecl(clang::DeclaratorDecl *Decl);
     bool VisitEnumConstantDecl(clang::EnumConstantDecl *Decl);
     bool VisitEnumDecl(clang::EnumDecl *Decl);
     bool VisitFieldDecl(clang::FieldDecl *Decl);
@@ -58,6 +59,7 @@ public:
     bool VisitUnresolvedLookupExpr(clang::UnresolvedLookupExpr *Expr);
 
     bool VisitElaboratedTypeLoc(clang::ElaboratedTypeLoc &TypeLoc);
+    bool VisitFunctionProtoTypeLoc(clang::FunctionProtoTypeLoc &TypeLoc);
     bool VisitFunctionTypeLoc(clang::FunctionTypeLoc &TypeLoc);
     bool
     VisitInjectedClassNameTypeLoc(clang::InjectedClassNameTypeLoc &TypeLoc);

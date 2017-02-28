@@ -74,6 +74,14 @@ bool RefactoringASTVisitor::VisitDecl(clang::Decl *Decl)
     return true;
 }
 
+bool RefactoringASTVisitor::VisitDeclaratorDecl(clang::DeclaratorDecl *Decl)
+{
+    for (auto &Refactorer : *Refactorers_)
+        Refactorer->visitDeclaratorDecl(Decl);
+    
+    return true;
+}
+
 bool RefactoringASTVisitor::VisitEnumConstantDecl(clang::EnumConstantDecl *Decl)
 {
     for (auto &Refactorer : *Refactorers_)
@@ -218,6 +226,15 @@ bool RefactoringASTVisitor::VisitElaboratedTypeLoc(
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitElaboratedTypeLoc(TypeLoc);
+    
+    return true;
+}
+
+bool RefactoringASTVisitor::VisitFunctionProtoTypeLoc(
+    clang::FunctionProtoTypeLoc &TypeLoc)
+{
+    for (auto &Refactorer : *Refactorers_)
+        Refactorer->visitFunctionProtoTypeLoc(TypeLoc);
     
     return true;
 }
