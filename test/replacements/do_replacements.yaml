@@ -1,18 +1,23 @@
 ---
 Functions:       
-  - 'f=ff'
+  - 'functions::f=ff'
 Macros:          
   - 'M=MM'
-Namespaces:      
-  - 'n=nn'
-  - 'p=pp'
-  - 'p::p=pp'
-  - 'main::o=oo'
 Tags:            
-  - 'n::a=aa'
-  - 'b=bb'
-  - 'c=cc'
-  - 'main::ba=baba'
+  - 'tags::s=ss'
+  - 'tags::c=cc'
+  - 'main::t=tt'
 Variables:       
-  - 'p::p::x=xx'
+  - 'test_variables::v1=w1'
+  - 'test_variables::v2=w2'
+  - 'test_variables::v3=w3'
+  - 'test_variables::v4=w4'
+  - 'test_variables::v5=w5'
+  - 'test_variables::v6=w6'
+  - 'test_variables::v7=w7'
+  - 'v1::v2::v1=w1'
+  - 'v1::v1=w1'
+Namespaces:
+  - 'v1=w1'
+  - 'v1::v2=w2'
 ...

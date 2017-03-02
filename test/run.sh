@@ -46,54 +46,12 @@ python ../utils/make-jcdb.py                            \
 g++ -Wall -std=c++11 -o main $source_files
 md5_bin="$(md5_create main)";
 
-rf --tag tags::s=ss,tags::c=cc,main::t=tt               \
-    --function functions::f=ff                          \
-    --macro M=MM                                        \
-    --variable test_variables::v1=w1                    \
-    --variable test_variables::v2=w2                    \
-    --variable test_variables::v3=w3                    \
-    --variable test_variables::v4=w4                    \
-    --variable test_variables::v5=w5                    \
-    --variable test_variables::v6=w6                    \
-    --variable test_variables::v7=w7                    \
-    --variable v1::v2::v1=w1                            \
-    --variable v1::v1=w1                                \
-    --namespace v1=w1,v1::v2=w2;
+rf --from-file replacements/do_replacements.yaml;
 rf --syntax-only;
 g++ -Wall -std=c++11 -o main $source_files
-rf --tag tags::ss=s,tags::cc=c,main::tt=t               \
-    --function functions::ff=f                          \
-    --macro MM=M                                        \
-    --variable test_variables::w1=v1                    \
-    --variable test_variables::w2=v2                    \
-    --variable test_variables::w3=v3                    \
-    --variable test_variables::w4=v4                    \
-    --variable test_variables::w5=v5                    \
-    --variable test_variables::w6=v6                    \
-    --variable test_variables::w7=v7                    \
-    --variable w1::w2::w1=v1                            \
-    --variable w1::w1=v1                                \
-    --namespace w1=v1,w1::w2=v2;
+rf --from-file replacements/undo_replacements.yaml;
 rf --syntax-only;
 g++ -Wall -std=c++11 -o main $source_files
-
-# rf --tag n::a=aa,b=bb,c=cc,main::ba=baba                \
-#     --function f=ff                                     \
-#     --macro M=MM                                        \
-#     --namespace n=nn,p=pp,p::p=pp,main::o=oo            \
-#     --variable p::p::x=xx;
-# rf --syntax-only;
-# g++ -Wall -std=c++11 -o main main.cpp
-# rf --tag nn::aa=a,bb=b,cc=c,main::baba=ba               \
-#     --function ff=f                                     \
-#     --macro MM=M                                        \
-#     --namespace nn=n,pp=p,pp::pp=p,main::oo=o           \
-#     --variable pp::pp::xx=x;
-# rf --syntax-only;
-# 
-# # Make sure nothing changed
-# g++ -Wall -std=c++11 -o main main.cpp;
-
 
 if md5_compare "$md5_bin" "$md5_create main"; then
     printf "**WARNING: MD5 sum of 'main changed!\n";
