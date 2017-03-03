@@ -85,14 +85,7 @@ NameRefactorer::NameRefactorer()
     Buffer_.reserve(1024);
 }
 
-void NameRefactorer::setVictimQualifier(const std::string &Victim)
-{
-    auto Copy = Victim;
-
-    setVictimQualifier(std::move(Copy));
-}
-
-void NameRefactorer::setVictimQualifier(std::string &&Victim)
+void NameRefactorer::setVictimQualifier(std::string Victim)
 {
     auto Begin = Victim.begin();
     auto End = Victim.end();
@@ -144,14 +137,7 @@ const std::string &NameRefactorer::victimQualifier() const
     return Victim_;
 }
 
-void NameRefactorer::setReplacementQualifier(const std::string &Repl)
-{
-    auto Copy = Repl;
-
-    setReplacementQualifier(std::move(Copy));
-}
-
-void NameRefactorer::setReplacementQualifier(std::string &&Repl)
+void NameRefactorer::setReplacementQualifier(std::string Repl)
 {
     /*
      * Convert "::namespace::class" to just "class" as the namespace is implicit

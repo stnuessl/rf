@@ -40,12 +40,10 @@ class NameRefactorer : public Refactorer {
 public:
     NameRefactorer();
 
-    void setVictimQualifier(const std::string &Victim);
-    void setVictimQualifier(std::string &&Victim);
+    void setVictimQualifier(std::string Victim);
     const std::string &victimQualifier() const;
 
-    void setReplacementQualifier(const std::string &Repl);
-    void setReplacementQualifier(std::string &&Repl);
+    void setReplacementQualifier(std::string Repl);
     const std::string &replacementQualifier() const;
 
 protected:
