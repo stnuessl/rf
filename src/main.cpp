@@ -245,7 +245,7 @@ static llvm::cl::list<std::string> InputFiles(
 /* clang-format on */
 
 static std::unique_ptr<clang::tooling::CompilationDatabase>
-makeCompilationDatabase(const std::string &Path, std::string &ErrMsg)
+getCompilationDatabase(const std::string &Path, std::string &ErrMsg)
 {
     using clang::tooling::CompilationDatabase;
     using clang::tooling::JSONCompilationDatabase;
@@ -253,9 +253,14 @@ makeCompilationDatabase(const std::string &Path, std::string &ErrMsg)
     if (!Path.empty())
         return JSONCompilationDatabase::loadFromFile(Path, ErrMsg);
 
-    const char *WorkDir = std::getenv("PWD");
-    if (!WorkDir)
-        WorkDir = "./";
+    llvm::SmallString<64> Buffer;
+    auto Error = llvm::sys::fs::current_path(Buffer);
+    if (Error) {
+        Buffer.clear();
+        Buffer.append("./");
+    }
+    
+    auto WorkDir = Buffer.str();
 
     return CompilationDatabase::autoDetectFromDirectory(WorkDir, ErrMsg);
 }
@@ -353,7 +358,7 @@ int main(int argc, const char **argv)
     }
 
     auto ErrMsg = std::string();
-    auto CompileCommands = makeCompilationDatabase(CompileCommandsPath, ErrMsg);
+    auto CompileCommands = getCompilationDatabase(CompileCommandsPath, ErrMsg);
     if (!CompileCommands) {
         llvm::errs() << util::cl::Error() << ErrMsg << "\n";
         std::exit(EXIT_FAILURE);
@@ -412,9 +417,12 @@ int main(int argc, const char **argv)
         auto BatchEnd = std::next(BatchBegin, NumFiles);
         BatchIt = BatchEnd;
 
-        llvm::ArrayRef<std::string> Files(&*BatchBegin, &*BatchEnd);
+        ToolThread::Data Data;
+        Data.CompilationDatabase = CompileCommands.get();
+        Data.Factory = &Factory;
+        Data.Files = llvm::ArrayRef<std::string>(&*BatchBegin, &*BatchEnd);
 
-        ThreadIt->run(*CompileCommands, Files, Factory);
+        ThreadIt->run(Data);
         ++ThreadIt;
     }
 
@@ -424,6 +432,15 @@ int main(int argc, const char **argv)
                      << "internal program error - no changes are made\n";
         std::exit(EXIT_FAILURE);
     }
+    
+    llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagIds;
+    llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOptions;
+
+    DiagIds = new clang::DiagnosticIDs();
+    DiagOptions = new clang::DiagnosticOptions();
+    
+    clang::TextDiagnosticPrinter Client(llvm::errs(), &*DiagOptions);
+    clang::DiagnosticsEngine DiagEngine(DiagIds, &*DiagOptions, &Client, false);
 
     for (auto &Thread : Threads) {
         Thread.join();
@@ -431,7 +448,7 @@ int main(int argc, const char **argv)
         if (Thread.errorOccured()) {
             llvm::errs() << util::cl::Error()
                          << "encountered syntax error(s) while processing "
-                         << "translation units\n";
+                         << "translation units.\n";
 
             std::exit(EXIT_FAILURE);
         }
@@ -457,15 +474,7 @@ int main(int argc, const char **argv)
         std::exit(EXIT_SUCCESS);
     }
 
-    using clang::DiagnosticOptions;
-    using clang::DiagnosticIDs;
-
-    llvm::IntrusiveRefCntPtr<DiagnosticOptions> Opts = new DiagnosticOptions();
-    llvm::IntrusiveRefCntPtr<DiagnosticIDs> Id = new DiagnosticIDs();
-
-    clang::TextDiagnosticPrinter Printer(llvm::errs(), &*Opts);
-    clang::DiagnosticsEngine Diagnostics(Id, &*Opts, &Printer, false);
-    clang::SourceManager SM(Diagnostics, Tool.getFiles());
+    clang::SourceManager SM(DiagEngine, Tool.getFiles());
 
     if (Verbose) {
         auto &FileManager = SM.getFileManager();

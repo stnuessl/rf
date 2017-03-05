@@ -23,25 +23,42 @@
 
 #include <thread>
 
+#include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Tooling/CompilationDatabase.h>
 #include <clang/Tooling/Tooling.h>
 
 class ToolThread {
 public:
+    struct Data {
+        llvm::ArrayRef<std::string> Files;
+        const clang::tooling::CompilationDatabase *CompilationDatabase;
+        clang::tooling::FrontendActionFactory *Factory;
+    };
+    
     ToolThread() = default;
 
-    void run(const clang::tooling::CompilationDatabase &CompDB,
-             llvm::ArrayRef<std::string> Files,
-             clang::tooling::FrontendActionFactory &Factory);
-
+    void run(ToolThread::Data Data);
     void join();
 
     bool errorOccured() const;
-
 private:
-    void work(const clang::tooling::CompilationDatabase &CompDB,
-              llvm::ArrayRef<std::string> Files,
-              clang::tooling::FrontendActionFactory &Factory);
+    class DiagnosticConsumer : public clang::TextDiagnosticPrinter {
+    public:
+        DiagnosticConsumer(llvm::raw_ostream &OS,
+                           clang::DiagnosticOptions *DiagOpts,
+                           bool OwnsOutputStream = false);
+        
+        virtual void HandleDiagnostic(clang::DiagnosticsEngine::Level Level,
+                                      const clang::Diagnostic &Info) override;
+        
+        virtual void BeginSourceFile(const clang::LangOptions &LangOpts,
+                                     const clang::Preprocessor *PP) override;                              
+        virtual void EndSourceFile() override;
+    private:
+        static std::atomic<std::thread::id> StreamWriter_;
+    };
+    
+    void work(ToolThread::Data Data);
 
     std::thread Thread_;
     bool Error_;
