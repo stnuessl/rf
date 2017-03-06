@@ -37,7 +37,7 @@ public:
     
     ToolThread() = default;
 
-    void run(ToolThread::Data Data);
+    void run(ToolThread::Data &Data);
     void join();
 
     bool errorOccured() const;

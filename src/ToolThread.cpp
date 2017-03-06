@@ -20,7 +20,7 @@
 
 #include <ToolThread.hpp>
 
-void ToolThread::run(ToolThread::Data Data)
+void ToolThread::run(ToolThread::Data &Data)
 {
     Thread_ = std::thread(&ToolThread::work, this, Data);
 }
