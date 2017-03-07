@@ -39,7 +39,7 @@ void ToolThread::work(ToolThread::Data Data)
 {
     if (Data.Files.empty())
         return;
-    
+
     llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOptions;
     DiagOptions = new clang::DiagnosticOptions();
     DiagOptions->Remarks.clear();
@@ -47,59 +47,60 @@ void ToolThread::work(ToolThread::Data Data)
     DiagOptions->ShowColors = true;
 
     DiagnosticConsumer DiagConsumer(llvm::errs(), &*DiagOptions);
-    
+
     clang::tooling::ClangTool Tool(*Data.CompilationDatabase, Data.Files);
     Tool.setDiagnosticConsumer(&DiagConsumer);
 
     Error_ = !!Tool.run(Data.Factory);
 }
 
-std::atomic<std::thread::id> ToolThread::DiagnosticConsumer::StreamWriter_;
+std::atomic<std::thread::id> ToolThread::DiagnosticConsumer::OwnerId_;
 
 ToolThread::DiagnosticConsumer::DiagnosticConsumer(
-    llvm::raw_ostream &OS, 
-    clang::DiagnosticOptions *DiagOpts, 
+    llvm::raw_ostream &OS,
+    clang::DiagnosticOptions *DiagOpts,
     bool OwnsOutputStream)
     : clang::TextDiagnosticPrinter(OS, DiagOpts, OwnsOutputStream)
 {
 }
 
 void ToolThread::DiagnosticConsumer::HandleDiagnostic(
-    clang::DiagnosticsEngine::Level Level, 
-    const clang::Diagnostic &Info)
+    clang::DiagnosticsEngine::Level Level, const clang::Diagnostic &Info)
 {
     if (Level != clang::DiagnosticsEngine::Error)
         return;
+
+    auto ThreadId = std::thread::id();
+    auto ThisThreadId = std::this_thread::get_id();
+    auto MemOrder = std::memory_order_relaxed;
     
-    auto DefaultId = std::thread::id();
-    auto Id = std::this_thread::get_id();
-    
-    /* 
-     * The first thread to set 'Owner' aquires the rights to write to 
+    /*
+     * The first thread to set 'Owner' aquires the rights to write to
      * the output stream. Otherwise all threads would report errors and
      * the diagnostics would get scrambled. As this tool is not primarily
      * a syntax checker one thread reporting errors should be enough.
      */
-    if (!StreamWriter_.compare_exchange_strong(DefaultId, Id))
-        return;
-    
+    if (!OwnerId_.compare_exchange_strong(ThreadId, ThisThreadId, MemOrder)) {
+        /* 'ThreadId' now holds the value in 'OwnerId_' */
+        if (ThreadId != ThisThreadId)
+            return;
+    }
+
     clang::TextDiagnosticPrinter::HandleDiagnostic(Level, Info);
 }
 
 void ToolThread::DiagnosticConsumer::BeginSourceFile(
-    const clang::LangOptions &LangOpts, 
-    const clang::Preprocessor *PP)
+    const clang::LangOptions &LangOpts, const clang::Preprocessor *PP)
 {
     clang::TextDiagnosticPrinter::BeginSourceFile(LangOpts, PP);
-    
-    /* 
+
+    /*
      * Reset these values so they will not propagate between translation
      * units.
      */
     clang::TextDiagnosticPrinter::NumWarnings = 0;
     clang::TextDiagnosticPrinter::NumErrors = 0;
 }
-
 
 void ToolThread::DiagnosticConsumer::EndSourceFile()
 {

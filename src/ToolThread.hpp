@@ -34,30 +34,32 @@ public:
         const clang::tooling::CompilationDatabase *CompilationDatabase;
         clang::tooling::FrontendActionFactory *Factory;
     };
-    
+
     ToolThread() = default;
 
     void run(ToolThread::Data &Data);
     void join();
 
     bool errorOccured() const;
+
 private:
     class DiagnosticConsumer : public clang::TextDiagnosticPrinter {
     public:
         DiagnosticConsumer(llvm::raw_ostream &OS,
                            clang::DiagnosticOptions *DiagOpts,
                            bool OwnsOutputStream = false);
-        
+
         virtual void HandleDiagnostic(clang::DiagnosticsEngine::Level Level,
                                       const clang::Diagnostic &Info) override;
-        
+
         virtual void BeginSourceFile(const clang::LangOptions &LangOpts,
-                                     const clang::Preprocessor *PP) override;                              
+                                     const clang::Preprocessor *PP) override;
         virtual void EndSourceFile() override;
+
     private:
-        static std::atomic<std::thread::id> StreamWriter_;
+        static std::atomic<std::thread::id> OwnerId_;
     };
-    
+
     void work(ToolThread::Data Data);
 
     std::thread Thread_;

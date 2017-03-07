@@ -24,8 +24,8 @@
 #include <unordered_set>
 
 #include <clang/AST/ASTContext.h>
-#include <clang/AST/ExprCXX.h>
 #include <clang/AST/DeclCXX.h>
+#include <clang/AST/ExprCXX.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Lex/PPCallbacks.h>
 #include <clang/Tooling/Refactoring.h>
@@ -77,13 +77,13 @@ public:
     virtual void visitCallExpr(const clang::CallExpr *Expr);
     virtual void visitDeclRefExpr(const clang::DeclRefExpr *Expr);
     virtual void visitMemberExpr(const clang::MemberExpr *Expr);
-    virtual void 
+    virtual void
     visitUnresolvedLookupExpr(const clang::UnresolvedLookupExpr *Expr);
 
-    virtual void 
+    virtual void
     visitElaboratedTypeLoc(const clang::ElaboratedTypeLoc &TypeLoc);
-    virtual void visitFunctionProtoTypeLoc(
-        const clang::FunctionProtoTypeLoc &TypeLoc);
+    virtual void
+    visitFunctionProtoTypeLoc(const clang::FunctionProtoTypeLoc &TypeLoc);
     virtual void visitFunctionTypeLoc(const clang::FunctionTypeLoc &TypeLoc);
     virtual void visitInjectedClassNameTypeLoc(
         const clang::InjectedClassNameTypeLoc &TypeLoc);

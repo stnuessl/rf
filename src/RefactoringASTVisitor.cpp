@@ -78,7 +78,7 @@ bool RefactoringASTVisitor::VisitDeclaratorDecl(clang::DeclaratorDecl *Decl)
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitDeclaratorDecl(Decl);
-    
+
     return true;
 }
 
@@ -217,7 +217,7 @@ bool RefactoringASTVisitor::VisitUnresolvedLookupExpr(
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitUnresolvedLookupExpr(Expr);
-    
+
     return true;
 }
 
@@ -226,7 +226,7 @@ bool RefactoringASTVisitor::VisitElaboratedTypeLoc(
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitElaboratedTypeLoc(TypeLoc);
-    
+
     return true;
 }
 
@@ -235,7 +235,7 @@ bool RefactoringASTVisitor::VisitFunctionProtoTypeLoc(
 {
     for (auto &Refactorer : *Refactorers_)
         Refactorer->visitFunctionProtoTypeLoc(TypeLoc);
-    
+
     return true;
 }
 

@@ -259,7 +259,7 @@ getCompilationDatabase(const std::string &Path, std::string &ErrMsg)
         Buffer.clear();
         Buffer.append("./");
     }
-    
+
     auto WorkDir = Buffer.str();
 
     return CompilationDatabase::autoDetectFromDirectory(WorkDir, ErrMsg);
@@ -432,13 +432,13 @@ int main(int argc, const char **argv)
                      << "internal program error - no changes are made\n";
         std::exit(EXIT_FAILURE);
     }
-    
+
     llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagIds;
     llvm::IntrusiveRefCntPtr<clang::DiagnosticOptions> DiagOptions;
 
     DiagIds = new clang::DiagnosticIDs();
     DiagOptions = new clang::DiagnosticOptions();
-    
+
     clang::TextDiagnosticPrinter Client(llvm::errs(), &*DiagOptions);
     clang::DiagnosticsEngine DiagEngine(DiagIds, &*DiagOptions, &Client, false);
 

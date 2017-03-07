@@ -40,6 +40,7 @@ public:
 
     virtual void
     visitElaboratedTypeLoc(const clang::ElaboratedTypeLoc &TypeLoc) override;
+
 protected:
     void traverse(clang::NestedNameSpecifierLoc NNSLoc);
 };
