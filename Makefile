@@ -261,7 +261,7 @@ SANITIZERS	:= \
 		with-thread-sanitizer				\
 		with-ub-sanitizer
 
-$(SANITIZERS): CXXFLAGS	+= -O1 -g2 -fno-omit-frame-pointer
+$(SANITIZERS): CXXFLAGS 	+= -O1 -g2 -fno-omit-frame-pointer
 
 with-addr-sanitizer: CXXFLAGS 	+= -fsanitize=address
 with-addr-sanitizer: LDFLAGS  	+= -fsanitize=address
@@ -278,42 +278,6 @@ with-ub-sanitizer: CXXFLAGS	+= -fsanitize=undefined
 with-ub-sanitizer: LDFLAGS	+= -fsanitize=undefined
 
 $(SANITIZERS): $(TARGET) compile-commands
-
-
-# with-addr-sanitizer: CXXFLAGS	+= -g2 
-# with-addr-sanitizer: CXXFLAGS 	+= -fsanitize=address
-# with-addr-sanitizer: CXXFLAGS 	+= -fno-omit-frame-pointer
-# with-addr-sanitizer: LDFLAGS  	+= -fsanitize=address
-# with-addr-sanitizer: $(TARGET) compile-commands
-# 
-# with-mem-sanitizer: CXX		:= /usr/bin/clang++
-# with-mem-sanitizer: CXXFLAGS	+= -O1 
-# with-mem-sanitizer: CXXFLAGS	+= -g2 
-# with-mem-sanitizer: CXXFLAGS 	+= -fsanitize=memory
-# with-mem-sanitizer: CXXFLAGS 	+= -fno-omit-frame-pointer
-# with-mem-sanitizer: LDFLAGS  	+= -fsanitize=memory
-# with-mem-sanitizer: $(TARGET) compile-commands
-# 
-# with-thread-sanitizer: CXXFLAGS += -O1 
-# with-thread-sanitizer: CXXFLAGS += -g2 
-# with-thread-sanitizer: CXXFLAGS += -fsanitize=thread
-# with-thread-sanitizer: CXXFLAGS += -fno-omit-frame-pointer
-# with-thread-sanitizer: LDFLAGS	+= -fsanitize=thread
-# with-thread-sanitizer: $(TARGET) compile-commands
-# 
-# with-msan: CXX		:= /usr/bin/clang++
-# with-msan: CXXFLAGS	+= -O1 -g2 -fsanitize=memory -fno-omit-frame-pointer
-# with-msan: LDFLAGS	+= -fsanitize=memory 
-# with-msan: $(TARGET) compile-commands
-# 
-# with-tsan: CXXFLAGS	+= -O1 -g2 -fsanitize=thread -fno-omit-frame-pointer
-# with-tsan: LDFLAGS	+= -fsanitize=thread 
-# with-tsan: $(TARGET) compile-commands
-# 
-# with-usan: CXX		:= /usr/bin/g++
-# with-usan: CXXFLAGS	+= -O1 -g2 -fsanitize=undefined -fno-omit-frame-pointer
-# with-usan: LDFLAGS	+= -fsanitize=undefined 
-# with-usan: $(TARGET) compile-commands
 
 # syntax-check: CFLAGS 	+= -fsyntax-only
 syntax-check: CXXFLAGS 	+= -fsyntax-only
