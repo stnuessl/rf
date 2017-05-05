@@ -133,6 +133,7 @@ PKGCONF		:= \
 # Set non-pkg-configurable libraries flags 
 #
 LIBS		:= \
+		-pthread						\
 		-Wl,--start-group					\
 		-lclangAnalysis 					\
 		-lclangAST 						\

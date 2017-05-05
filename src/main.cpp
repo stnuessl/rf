@@ -250,8 +250,10 @@ getCompilationDatabase(const std::string &Path, std::string &ErrMsg)
     using clang::tooling::CompilationDatabase;
     using clang::tooling::JSONCompilationDatabase;
 
+    auto JSONSyntax = clang::tooling::JSONCommandLineSyntax::AutoDetect;
+    
     if (!Path.empty())
-        return JSONCompilationDatabase::loadFromFile(Path, ErrMsg);
+        return JSONCompilationDatabase::loadFromFile(Path, ErrMsg, JSONSyntax);
 
     llvm::SmallString<64> Buffer;
     auto Error = llvm::sys::fs::current_path(Buffer);
@@ -458,14 +460,30 @@ int main(int argc, const char **argv)
         std::exit(EXIT_SUCCESS);
 
     clang::tooling::RefactoringTool Tool(*CompileCommands, SourceFiles);
-    auto &Replacements = Tool.getReplacements();
-    auto InsertIter = std::inserter(Replacements, Replacements.end());
-
+    
+    /* 
+     * Merge all the replacements from all the threads which are contained in
+     * the corresponding factories.
+     */
+    auto &ReplacementMap = Tool.getReplacements();
     for (auto &Factory : Factories) {
         for (auto &Refactorer : Factory.refactorers()) {
-            auto &Repls = Refactorer->replacements();
-
-            std::move(Repls.begin(), Repls.end(), InsertIter);
+            for (auto &ReplMap : Refactorer->replacements()) {
+                auto &File = ReplMap.first;
+                auto &Repls = ReplMap.second;
+                
+                for (auto &&Repl : Repls) {
+                    auto Error = ReplacementMap[File].add(std::move(Repl));
+                    if (Error) {
+                        llvm::errs() << util::cl::Error()
+                                     << "failed to merge all replacements - "
+                                     << llvm::toString(std::move(Error)) 
+                                     << "\n";
+                        
+                        std::exit(EXIT_FAILURE);
+                    }
+                }
+            }
         }
     }
 
@@ -479,17 +497,22 @@ int main(int argc, const char **argv)
     if (Verbose) {
         auto &FileManager = SM.getFileManager();
 
-        for (const auto &Repl : Tool.getReplacements()) {
-            auto FileEntry = FileManager.getFile(Repl.getFilePath());
+        for (const auto &ReplMap : Tool.getReplacements()) {
+            auto &File = ReplMap.first;
+            auto &Repls = ReplMap.second;
+            
+            auto FileEntry = FileManager.getFile(File);
             auto ID = SM.getOrCreateFileID(FileEntry, clang::SrcMgr::C_User);
 
-            auto Offset = Repl.getOffset();
-            auto Line = SM.getLineNumber(ID, Offset);
-            auto Column = SM.getColumnNumber(ID, Offset);
-
-            llvm::outs() << "\"" << Repl.getReplacementText() << "\" -- "
-                         << Repl.getFilePath() << ":" << Line << ":" << Column
-                         << "\n";
+            for (const auto &Repl : Repls) {
+                auto Offset = Repl.getOffset();
+                auto Line = SM.getLineNumber(ID, Offset);
+                auto Column = SM.getColumnNumber(ID, Offset);
+                
+                llvm::outs() << "\"" << Repl.getReplacementText() << "\" -- "
+                             << Repl.getFilePath() << ":" 
+                             << Line << ":" << Column << "\n";
+            }
         }
     }
 

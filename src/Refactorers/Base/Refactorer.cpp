@@ -37,14 +37,14 @@ void Refactorer::setASTContext(clang::ASTContext *ASTContext)
     ASTContext_ = ASTContext;
 }
 
-clang::tooling::Replacements &Refactorer::replacements()
+Refactorer::ReplacementMap &Refactorer::replacements()
 {
-    return Replacements_;
+    return ReplacementMap_;
 }
 
-const clang::tooling::Replacements &Refactorer::replacements() const
+const Refactorer::ReplacementMap &Refactorer::replacements() const
 {
-    return Replacements_;
+    return ReplacementMap_;
 }
 
 void Refactorer::setForce(bool Value)
@@ -307,7 +307,15 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
     }
 
     File = PathBuffer_.str();
+    
 
     auto Repl = clang::tooling::Replacement(File, Offset, Length, ReplText);
-    Replacements_.insert(std::move(Repl));
+    auto Error = ReplacementMap_[File].add(std::move(Repl));
+    if (Error) {
+        llvm::errs() << util::cl::Error()
+                     << "failed to add replacement - "
+                     << llvm::toString(std::move(Error)) << "\n";
+                     
+        std::exit(EXIT_FAILURE);
+    }
 }

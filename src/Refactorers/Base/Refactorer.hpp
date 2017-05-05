@@ -39,14 +39,16 @@
 
 class Refactorer : public clang::PPCallbacks {
 public:
+    typedef std::map<std::string, clang::tooling::Replacements> ReplacementMap;
+
     Refactorer() = default;
     virtual ~Refactorer() = default;
 
     void setCompilerInstance(clang::CompilerInstance *CI);
     void setASTContext(clang::ASTContext *ASTContext);
 
-    clang::tooling::Replacements &replacements();
-    const clang::tooling::Replacements &replacements() const;
+    ReplacementMap &replacements();
+    const ReplacementMap &replacements() const;
 
     void setForce(bool Value);
     bool force() const;
@@ -109,7 +111,7 @@ protected:
 
     clang::CompilerInstance *CompilerInstance_;
     clang::ASTContext *ASTContext_;
-    clang::tooling::Replacements Replacements_;
+    ReplacementMap ReplacementMap_;
     llvm::SmallString<64> PathBuffer_;
     std::string LastFile_;
     bool Force_;
