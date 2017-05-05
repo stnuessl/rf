@@ -57,7 +57,7 @@ if md5_compare "$md5_bin" "$md5_create main"; then
     printf "**WARNING: MD5 sum of 'main changed!\n";
 fi
 
-diff=$(git diff --name-only);
+diff=$(git diff --name-only ./);
 
 if [ -n "$diff" ]; then
     printf "**WARNING: the following file(s) changed:\n$diff\\n"
