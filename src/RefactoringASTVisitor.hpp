@@ -70,6 +70,7 @@ public:
     bool VisitTagTypeLoc(clang::TagTypeLoc &TypeLoc);
     bool VisitTemplateSpecializationTypeLoc(
         clang::TemplateSpecializationTypeLoc &TypeLoc);
+    bool VisitTemplateTypeParmTypeLoc(clang::TemplateTypeParmTypeLoc &TypeLoc);
     bool VisitTypedefTypeLoc(clang::TypedefTypeLoc &TypeLoc);
     bool VisitTypeLoc(clang::TypeLoc &TypeLoc);
 

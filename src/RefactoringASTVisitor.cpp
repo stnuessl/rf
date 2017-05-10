@@ -309,6 +309,15 @@ bool RefactoringASTVisitor::VisitTemplateSpecializationTypeLoc(
     return true;
 }
 
+bool RefactoringASTVisitor::VisitTemplateTypeParmTypeLoc(
+    clang::TemplateTypeParmTypeLoc &TypeLoc)
+{
+    for (auto &Refactorer : *Refactorers_)
+        Refactorer->visitTemplateTypeParmTypeLoc(TypeLoc);
+
+    return true;
+}
+
 bool RefactoringASTVisitor::VisitTypedefTypeLoc(clang::TypedefTypeLoc &TypeLoc)
 {
     for (auto &Refactorer : *Refactorers_)

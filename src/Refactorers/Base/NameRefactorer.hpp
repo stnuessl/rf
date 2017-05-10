@@ -52,7 +52,7 @@ protected:
                   const clang::MacroInfo *MacroInfo);
 
     void addReplacement(clang::SourceLocation Loc);
-
+    const std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
 private:
     bool isEqualToVictim(const std::string &Name) const;
     bool isEqualToVictimPrefix(const std::string &Name) const;
@@ -63,7 +63,7 @@ private:
 
     bool isVictimLocation(const clang::SourceLocation Loc);
 
-    const std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
+//     const std::string &qualifiedName(const clang::NamedDecl *NamedDecl);
 
     std::string Victim_;
     std::string ReplName_;

@@ -97,6 +97,8 @@ public:
     virtual void visitTagTypeLoc(const clang::TagTypeLoc &TypeLoc);
     virtual void visitTemplateSpecializationTypeLoc(
         const clang::TemplateSpecializationTypeLoc &TypeLoc);
+    virtual void
+    visitTemplateTypeParmTypeLoc(const clang::TemplateTypeParmTypeLoc &TypeLoc);
     virtual void visitTypedefTypeLoc(const clang::TypedefTypeLoc &TypeLoc);
     virtual void visitTypeLoc(const clang::TypeLoc &TypeLoc);
 

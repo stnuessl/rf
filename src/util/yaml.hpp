@@ -81,6 +81,7 @@ struct RefactoringArgs {
     std::vector<std::string> Macros;
     std::vector<std::string> Namespaces;
     std::vector<std::string> Tags;
+    std::vector<std::string> TemplateVariables;
     std::vector<std::string> Variables;
 };
 }
@@ -100,6 +101,7 @@ struct MappingTraits<util::yaml::RefactoringArgs> {
         IO.mapOptional("Macros", Args.Macros);
         IO.mapOptional("Namespaces", Args.Namespaces);
         IO.mapOptional("Tags", Args.Tags);
+        IO.mapOptional("Template-Variables", Args.TemplateVariables);
         IO.mapOptional("Variables", Args.Variables);
     }
 };

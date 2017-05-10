@@ -39,6 +39,7 @@ _rf()
           --num-threads
           --syntax-only
           --tag
+          --template-variable
           --variable
           --verbose
           --version

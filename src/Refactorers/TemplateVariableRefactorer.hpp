@@ -18,31 +18,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef RF_TAGREFACTORER_HPP_
-#define RF_TAGREFACTORER_HPP_
+#ifndef RF_TEMPLATEVARIABLEREFACTORER_HPP_
+#define RF_TEMPLATEVARIABLEREFACTORER_HPP_
 
 #include <Refactorers/Base/NameRefactorer.hpp>
 
-class TagRefactorer : public NameRefactorer {
+class TemplateVariableRefactorer : public NameRefactorer {
 public:
-    virtual void visitEnumDecl(const clang::EnumDecl *Decl) override;
-    virtual void
-    visitCXXConstructorDecl(const clang::CXXConstructorDecl *Decl) override;
-    virtual void visitRecordDecl(const clang::RecordDecl *Decl) override;
-    virtual void
-    visitTypedefNameDecl(const clang::TypedefNameDecl *Decl) override;
-    virtual void visitUsingDecl(const clang::UsingDecl *Decl) override;
-
-    virtual void visitInjectedClassNameTypeLoc(
-        const clang::InjectedClassNameTypeLoc &TypeLoc) override;
-    virtual void visitMemberPointerTypeLoc(
-        const clang::MemberPointerTypeLoc &TypeLoc) override;
-
-    virtual void visitTagTypeLoc(const clang::TagTypeLoc &TypeLoc) override;
     virtual void visitTemplateSpecializationTypeLoc(
         const clang::TemplateSpecializationTypeLoc &TypeLoc) override;
-    virtual void
-    visitTypedefTypeLoc(const clang::TypedefTypeLoc &TypeLoc) override;
+
+    virtual void visitTemplateTypeParmTypeLoc(
+        const clang::TemplateTypeParmTypeLoc &TypeLoc) override;
+
+private:
 };
 
-#endif /* RF_TAGREFACTORER_HPP_ */
+#endif /* RF_TEMPLATEVARIABLEREFACTORER_HPP_ */

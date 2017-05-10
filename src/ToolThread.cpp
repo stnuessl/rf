@@ -73,7 +73,7 @@ void ToolThread::DiagnosticConsumer::HandleDiagnostic(
     auto ThreadId = std::thread::id();
     auto ThisThreadId = std::this_thread::get_id();
     auto MemOrder = std::memory_order_relaxed;
-    
+
     /*
      * The first thread to set 'Owner' aquires the rights to write to
      * the output stream. Otherwise all threads would report errors and

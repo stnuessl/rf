@@ -236,6 +236,12 @@ void Refactorer::visitTemplateSpecializationTypeLoc(
     (void) TypeLoc;
 }
 
+void Refactorer::visitTemplateTypeParmTypeLoc(
+    const clang::TemplateTypeParmTypeLoc &TypeLoc)
+{
+    (void) TypeLoc;
+}
+
 void Refactorer::visitTypedefTypeLoc(const clang::TypedefTypeLoc &TypeLoc)
 {
     (void) TypeLoc;
@@ -307,15 +313,13 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
     }
 
     File = PathBuffer_.str();
-    
 
     auto Repl = clang::tooling::Replacement(File, Offset, Length, ReplText);
     auto Error = ReplacementMap_[File].add(std::move(Repl));
     if (Error) {
-        llvm::errs() << util::cl::Error()
-                     << "failed to add replacement - "
+        llvm::errs() << util::cl::Error() << "failed to add replacement - "
                      << llvm::toString(std::move(Error)) << "\n";
-                     
+
         std::exit(EXIT_FAILURE);
     }
 }

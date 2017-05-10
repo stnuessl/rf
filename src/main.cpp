@@ -43,6 +43,7 @@
 #include <Refactorers/MacroRefactorer.hpp>
 #include <Refactorers/NamespaceRefactorer.hpp>
 #include <Refactorers/TagRefactorer.hpp>
+#include <Refactorers/TemplateVariableRefactorer.hpp>
 #include <Refactorers/VariableRefactorer.hpp>
 
 #include <util/commandline.hpp>
@@ -199,6 +200,16 @@ static llvm::cl::list<std::string> TagArgs(
     llvm::cl::cat(RefactoringOptions)
 );
 
+static llvm::cl::list<std::string> TemplateVarArgs(
+    "template-variable",
+    llvm::cl::desc(
+        "Rename a template variable."
+    ),
+    llvm::cl::value_desc("victim=repl"),
+    llvm::cl::CommaSeparated,
+    llvm::cl::cat(RefactoringOptions)
+);
+
 static llvm::cl::list<std::string> VariableArgs(
     "variable",
     llvm::cl::desc(
@@ -251,7 +262,7 @@ getCompilationDatabase(const std::string &Path, std::string &ErrMsg)
     using clang::tooling::JSONCompilationDatabase;
 
     auto JSONSyntax = clang::tooling::JSONCommandLineSyntax::AutoDetect;
-    
+
     if (!Path.empty())
         return JSONCompilationDatabase::loadFromFile(Path, ErrMsg, JSONSyntax);
 
@@ -352,6 +363,7 @@ int main(int argc, const char **argv)
         Args.Macros = std::move(PPMacroArgs);
         Args.Namespaces = std::move(NamespaceArgs);
         Args.Tags = std::move(TagArgs);
+        Args.TemplateVariables = std::move(TemplateVarArgs);
         Args.Variables = std::move(VariableArgs);
 
         util::yaml::write(llvm::outs(), Args);
@@ -381,6 +393,7 @@ int main(int argc, const char **argv)
         add<MacroRefactorer>(Factories, PPMacroArgs);
         add<NamespaceRefactorer>(Factories, NamespaceArgs);
         add<TagRefactorer>(Factories, TagArgs);
+        add<TemplateVariableRefactorer>(Factories, TemplateVarArgs);
         add<VariableRefactorer>(Factories, VariableArgs);
 
         if (!FromFile.empty()) {
@@ -392,6 +405,7 @@ int main(int argc, const char **argv)
             add<MacroRefactorer>(Factories, Args.Macros);
             add<NamespaceRefactorer>(Factories, Args.Namespaces);
             add<TagRefactorer>(Factories, Args.Tags);
+            add<TemplateVariableRefactorer>(Factories, Args.TemplateVariables);
             add<VariableRefactorer>(Factories, Args.Variables);
         }
     }
@@ -460,8 +474,8 @@ int main(int argc, const char **argv)
         std::exit(EXIT_SUCCESS);
 
     clang::tooling::RefactoringTool Tool(*CompileCommands, SourceFiles);
-    
-    /* 
+
+    /*
      * Merge all the replacements from all the threads which are contained in
      * the corresponding factories.
      */
@@ -471,15 +485,15 @@ int main(int argc, const char **argv)
             for (auto &ReplMap : Refactorer->replacements()) {
                 auto &File = ReplMap.first;
                 auto &Repls = ReplMap.second;
-                
+
                 for (auto &&Repl : Repls) {
                     auto Error = ReplacementMap[File].add(std::move(Repl));
                     if (Error) {
-                        llvm::errs() << util::cl::Error()
-                                     << "failed to merge all replacements - "
-                                     << llvm::toString(std::move(Error)) 
-                                     << "\n";
-                        
+                        llvm::errs()
+                            << util::cl::Error()
+                            << "failed to merge all replacements - "
+                            << llvm::toString(std::move(Error)) << "\n";
+
                         std::exit(EXIT_FAILURE);
                     }
                 }
@@ -500,7 +514,7 @@ int main(int argc, const char **argv)
         for (const auto &ReplMap : Tool.getReplacements()) {
             auto &File = ReplMap.first;
             auto &Repls = ReplMap.second;
-            
+
             auto FileEntry = FileManager.getFile(File);
             auto ID = SM.getOrCreateFileID(FileEntry, clang::SrcMgr::C_User);
 
@@ -508,10 +522,10 @@ int main(int argc, const char **argv)
                 auto Offset = Repl.getOffset();
                 auto Line = SM.getLineNumber(ID, Offset);
                 auto Column = SM.getColumnNumber(ID, Offset);
-                
+
                 llvm::outs() << "\"" << Repl.getReplacementText() << "\" -- "
-                             << Repl.getFilePath() << ":" 
-                             << Line << ":" << Column << "\n";
+                             << Repl.getFilePath() << ":" << Line << ":"
+                             << Column << "\n";
             }
         }
     }
