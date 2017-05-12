@@ -468,9 +468,9 @@ int main(int argc, const char **argv)
     auto &ReplacementMap = Tool.getReplacements();
     for (auto &Factory : Factories) {
         for (auto &Refactorer : Factory.refactorers()) {
-            for (auto &ReplMap : Refactorer->replacements()) {
-                auto &File = ReplMap.first;
-                auto &Repls = ReplMap.second;
+            for (auto &FileRepls : Refactorer->replacements()) {
+                auto &File = FileRepls.first;
+                auto &Repls = FileRepls.second;
                 
                 for (auto &&Repl : Repls) {
                     auto Error = ReplacementMap[File].add(std::move(Repl));
@@ -497,9 +497,9 @@ int main(int argc, const char **argv)
     if (Verbose) {
         auto &FileManager = SM.getFileManager();
 
-        for (const auto &ReplMap : Tool.getReplacements()) {
-            auto &File = ReplMap.first;
-            auto &Repls = ReplMap.second;
+        for (const auto &FileRepls : Tool.getReplacements()) {
+            auto &File = FileRepls.first;
+            auto &Repls = FileRepls.second;
             
             auto FileEntry = FileManager.getFile(File);
             auto ID = SM.getOrCreateFileID(FileEntry, clang::SrcMgr::C_User);

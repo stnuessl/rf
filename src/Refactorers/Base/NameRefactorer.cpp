@@ -80,7 +80,7 @@ NameRefactorer::NameRefactorer()
       VictimLoc_(),
       ReplSize_(0),
       Line_(0),
-      _IsEqualFunc(std::mem_fn(&NameRefactorer::isEqualToVictim))
+      IsEqualFunc_(std::mem_fn(&NameRefactorer::isEqualToVictim))
 {
     Buffer_.reserve(1024);
 }
@@ -165,7 +165,7 @@ const std::string &NameRefactorer::replacementQualifier() const
 
 bool NameRefactorer::isVictim(const clang::NamedDecl *NamedDecl)
 {
-    if (!_IsEqualFunc(*this, qualifiedName(NamedDecl)))
+    if (!IsEqualFunc_(*this, qualifiedName(NamedDecl)))
         return false;
 
     return !Line_ || isVictimLocation(NamedDecl->getLocation());
@@ -174,7 +174,7 @@ bool NameRefactorer::isVictim(const clang::NamedDecl *NamedDecl)
 bool NameRefactorer::isVictim(const clang::Token &MacroName,
                               const clang::MacroInfo *MacroInfo)
 {
-    if (!_IsEqualFunc(*this, MacroName.getIdentifierInfo()->getName()))
+    if (!IsEqualFunc_(*this, MacroName.getIdentifierInfo()->getName()))
         return false;
 
     return !Line_ || isVictimLocation(MacroInfo->getDefinitionLoc());
@@ -229,7 +229,7 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
         Victim_ = std::move(Victim);
         Line_ = 0;
         Column_ = 0;
-        _IsEqualFunc = std::mem_fn(&NameRefactorer::isEqualToVictim);
+        IsEqualFunc_ = std::mem_fn(&NameRefactorer::isEqualToVictim);
 
         if (Last < End) {
             /*
@@ -239,7 +239,7 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
              * and update '_IsEqualFunc'.
              */
             Victim_.pop_back();
-            _IsEqualFunc = std::mem_fn(&NameRefactorer::isEqualToVictimPrefix);
+            IsEqualFunc_ = std::mem_fn(&NameRefactorer::isEqualToVictimPrefix);
         }
 
         return;
@@ -307,7 +307,7 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
          */
         Line_ = Line;
         Column_ = Column;
-        _IsEqualFunc = std::mem_fn(&NameRefactorer::isEqualToVictim);
+        IsEqualFunc_ = std::mem_fn(&NameRefactorer::isEqualToVictim);
 
         return;
     }
