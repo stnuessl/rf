@@ -78,6 +78,7 @@ void write(const llvm::StringRef Path, T &Object)
 struct RefactoringArgs {
     std::vector<std::string> EnumConstants;
     std::vector<std::string> Functions;
+    std::vector<std::string> Includes;
     std::vector<std::string> Macros;
     std::vector<std::string> Namespaces;
     std::vector<std::string> Tags;
@@ -97,6 +98,7 @@ struct MappingTraits<util::yaml::RefactoringArgs> {
     {
         IO.mapOptional("Enum-Constants", Args.EnumConstants);
         IO.mapOptional("Functions", Args.Functions);
+        IO.mapOptional("Includes", Args.Includes);
         IO.mapOptional("Macros", Args.Macros);
         IO.mapOptional("Namespaces", Args.Namespaces);
         IO.mapOptional("Tags", Args.Tags);

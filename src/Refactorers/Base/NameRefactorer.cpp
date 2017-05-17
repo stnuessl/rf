@@ -146,9 +146,9 @@ void NameRefactorer::setReplacementQualifier(std::string Repl)
 
     ReplName_ = std::move(Repl);
 
-    auto Pos = ReplName_.rfind("::");
-    if (Pos != std::string::npos)
-        ReplName_.erase(0, Pos + sizeof("::") - 1);
+    auto Index = ReplName_.rfind("::");
+    if (Index != std::string::npos)
+        ReplName_.erase(0, Index + sizeof("::") - 1);
 
     if (!Force_ && !isValidName(ReplName_.begin(), ReplName_.end())) {
         llvm::errs() << util::cl::Error() << "invalid replacement \""
@@ -315,6 +315,7 @@ void NameRefactorer::setVictimQualifier(std::string &&Victim,
     llvm::errs() << util::cl::Error()
                  << "invalid last victim qualifier section \""
                  << std::string(Begin, End) << "\" in \"" << Victim << "\"\n";
+    
     std::exit(EXIT_FAILURE);
 }
 

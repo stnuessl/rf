@@ -33,6 +33,7 @@ _rf()
           --from-file
           --function
           --help
+          --include
           --interactive
           --macro
           --namespace

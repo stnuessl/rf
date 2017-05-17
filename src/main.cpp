@@ -31,8 +31,6 @@
 #include <clang/Frontend/FrontendActions.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Rewrite/Core/Rewriter.h>
-#include <clang/Tooling/CompilationDatabase.h>
-#include <clang/Tooling/JSONCompilationDatabase.h>
 #include <clang/Tooling/Refactoring.h>
 #include <clang/Tooling/Tooling.h>
 
@@ -40,12 +38,14 @@
 
 #include <Refactorers/EnumConstantRefactorer.hpp>
 #include <Refactorers/FunctionRefactorer.hpp>
+#include <Refactorers/IncludeRefactorer.hpp>
 #include <Refactorers/MacroRefactorer.hpp>
 #include <Refactorers/NamespaceRefactorer.hpp>
 #include <Refactorers/TagRefactorer.hpp>
 #include <Refactorers/VariableRefactorer.hpp>
 
 #include <util/commandline.hpp>
+#include <util/CompilationDatabase.hpp>
 #include <util/memory.hpp>
 #include <util/string.hpp>
 #include <util/yaml.hpp>
@@ -73,7 +73,7 @@ static llvm::cl::opt<bool> AllowRoot(
 );
 #endif
 
-static llvm::cl::opt<std::string> CompileCommandsPath(
+static llvm::cl::opt<std::string> CDBPath(
     "compile-commands",
     llvm::cl::desc(
         "Specify the compilation database <file>.\n"
@@ -131,6 +131,16 @@ static llvm::cl::list<std::string> FunctionArgs(
     "function",
     llvm::cl::desc(
         "Rename a function or class method name."
+    ),
+    llvm::cl::value_desc("victim=repl"),
+    llvm::cl::CommaSeparated,
+    llvm::cl::cat(RefactoringOptions)
+);
+
+static llvm::cl::list<std::string> IncludeArgs(
+    "include",
+    llvm::cl::desc(
+        "Rename an included file in an inclusion directive."
     ),
     llvm::cl::value_desc("victim=repl"),
     llvm::cl::CommaSeparated,
@@ -244,29 +254,6 @@ static llvm::cl::list<std::string> InputFiles(
 
 /* clang-format on */
 
-static std::unique_ptr<clang::tooling::CompilationDatabase>
-getCompilationDatabase(const std::string &Path, std::string &ErrMsg)
-{
-    using clang::tooling::CompilationDatabase;
-    using clang::tooling::JSONCompilationDatabase;
-
-    auto JSONSyntax = clang::tooling::JSONCommandLineSyntax::AutoDetect;
-    
-    if (!Path.empty())
-        return JSONCompilationDatabase::loadFromFile(Path, ErrMsg, JSONSyntax);
-
-    llvm::SmallString<64> Buffer;
-    auto Error = llvm::sys::fs::current_path(Buffer);
-    if (Error) {
-        Buffer.clear();
-        Buffer.append("./");
-    }
-
-    auto WorkDir = Buffer.str();
-
-    return CompilationDatabase::autoDetectFromDirectory(WorkDir, ErrMsg);
-}
-
 template <typename T>
 static void add(std::vector<RefactoringActionFactory> &Factories,
                 const std::vector<std::string> &ArgVec)
@@ -349,6 +336,7 @@ int main(int argc, const char **argv)
         auto Args = util::yaml::RefactoringArgs();
         Args.EnumConstants = std::move(EnumConstantArgs);
         Args.Functions = std::move(FunctionArgs);
+        Args.Includes = std::move(IncludeArgs);
         Args.Macros = std::move(PPMacroArgs);
         Args.Namespaces = std::move(NamespaceArgs);
         Args.Tags = std::move(TagArgs);
@@ -360,13 +348,13 @@ int main(int argc, const char **argv)
     }
 
     auto ErrMsg = std::string();
-    auto CompileCommands = getCompilationDatabase(CompileCommandsPath, ErrMsg);
-    if (!CompileCommands) {
+    auto CompilationDB = util::compilation_database::detect(CDBPath, ErrMsg);
+    if (!CompilationDB) {
         llvm::errs() << util::cl::Error() << ErrMsg << "\n";
         std::exit(EXIT_FAILURE);
     }
 
-    auto SourceFiles = CompileCommands->getAllFiles();
+    auto SourceFiles = CompilationDB->getAllFiles();
     if (!InputFiles.empty())
         std::swap(SourceFiles, *&InputFiles);
 
@@ -378,6 +366,7 @@ int main(int argc, const char **argv)
     if (!SyntaxOnly) {
         add<EnumConstantRefactorer>(Factories, EnumConstantArgs);
         add<FunctionRefactorer>(Factories, FunctionArgs);
+        add<IncludeRefactorer>(Factories, IncludeArgs);
         add<MacroRefactorer>(Factories, PPMacroArgs);
         add<NamespaceRefactorer>(Factories, NamespaceArgs);
         add<TagRefactorer>(Factories, TagArgs);
@@ -389,6 +378,7 @@ int main(int argc, const char **argv)
 
             add<EnumConstantRefactorer>(Factories, Args.EnumConstants);
             add<FunctionRefactorer>(Factories, Args.Functions);
+            add<IncludeRefactorer>(Factories, Args.Includes);
             add<MacroRefactorer>(Factories, Args.Macros);
             add<NamespaceRefactorer>(Factories, Args.Namespaces);
             add<TagRefactorer>(Factories, Args.Tags);
@@ -420,7 +410,7 @@ int main(int argc, const char **argv)
         BatchIt = BatchEnd;
 
         ToolThread::Data Data;
-        Data.CompilationDatabase = CompileCommands.get();
+        Data.CompilationDatabase = CompilationDB.get();
         Data.Factory = &Factory;
         Data.Files = llvm::ArrayRef<std::string>(&*BatchBegin, &*BatchEnd);
 
@@ -459,7 +449,7 @@ int main(int argc, const char **argv)
     if (SyntaxOnly)
         std::exit(EXIT_SUCCESS);
 
-    clang::tooling::RefactoringTool Tool(*CompileCommands, SourceFiles);
+    clang::tooling::RefactoringTool Tool(*CompilationDB, SourceFiles);
     
     /* 
      * Merge all the replacements from all the threads which are contained in
