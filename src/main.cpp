@@ -140,7 +140,7 @@ static llvm::cl::list<std::string> FunctionArgs(
 static llvm::cl::list<std::string> IncludeArgs(
     "include",
     llvm::cl::desc(
-        "Rename an included file in an inclusion directive."
+        "Rename an file path in an inclusion directive."
     ),
     llvm::cl::value_desc("victim=repl"),
     llvm::cl::CommaSeparated,

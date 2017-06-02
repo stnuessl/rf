@@ -63,7 +63,7 @@ void IncludeRefactorer::setReplacementQualifier(std::string Repl)
 {
     if (Repl.empty()) {
         llvm::errs() << util::cl::Error() 
-        << "empty replacement qualifier in include refactorer.\n";
+                     << "empty replacement qualifier in include refactorer.\n";
         std::exit(EXIT_FAILURE);
     }
     

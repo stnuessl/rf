@@ -24,16 +24,17 @@ rf is a command-line tool capable of refactoring C and C++ source code.
             * [Refactoring Tags](README.md#refactoring-tags)
             * [Refactoring Functions](README.md#refactoring-functions)
             * [Refactoring Variables](README.md#refactoring-variables)
+            * [Refactoring include paths](README.md#refactoring-include-paths)
         * [Further Refactoring examples](README.md#further-refactoring-examples)
             * [Inherited functions](README.md#inherited-functions)
             * [Overridden functions](README.md#overridden-functions)
             * [Overlapping qualifiers](README.md#overlapping-qualifiers)
             * [Overshadowing declarations](README.md#overshadowing-declarations)
             * [Common prefixes](README.md#common-prefixes)
+            * [Batching](README.md#batching)
         * [Creating a Compilation Database using CMake](README.md#creating-a-compilation-database-using-cmake)
         * [Creating a Compilation Database using Make](README.md#creating-a-compilation-database-using-make)
     * [Bugs and Bug Reports](README.md#bugs-and-bug-reports)
-
 
 ## Motivation
 
@@ -59,9 +60,8 @@ This usually can't be done with refactoring tools provided by most IDEs.
 
 ## Project Status
 
-Most of the features I wanted are implemented and are working quite well 
-(maybe except for the _--sanitize-includes_ option). Feel free to grab __rf__
-and try it out yourself.
+Most of the features I wanted are implemented and are working quite well. 
+Feel free to grab __rf__ and try it out yourself.
 
 ### What's supported right now?
 
@@ -364,11 +364,12 @@ a new function with a more expressive name.
 
 #### Refactoring Variables
 
-Let's make this example straight forward again. The class _IncludeRefactorer_
-contains a class variable named _IncludeMap_. To change its name one could run
+Let's make this example straight forward again. The class _Refactorer_
+contains a class variable named _CompilerInstance_. To change its name one 
+could run
 
 ```
-    $ rf --variable IncludeRefactorer::_IncludeMap=MyNewVarName
+    $ rf --variable Refactorer::CompilerInstance_=MyNewVarName
 ```
 
 What if you want to rename the name of a local variable inside a function?
@@ -385,6 +386,39 @@ _src/Refactorers/NameRefactorer.cpp_ for refactoring.
     $ rf --variable rCopy::n=MyNewLocalVarName src/Refactorers/NameRefactorer.cpp
 ```
 
+#### Refactoring include paths
+
+Sometimes it is necessary to change the name of a file leaving a lot of include
+directives invalid. If one knows of such a file name change beforehand __rf__
+can be used to automatically adjust the include directives.
+The following include directive can be changed in the following ways:
+
+```
+    #include <header.h>
+```
+
+* with __$ tq --include "header.h=new-header.h"__ to 
+```
+    #include <new-header.h>
+```
+* _or_ with __$ tq --include "<header.h>=\"new-header.h\""__ to 
+```
+    #include "new-header.h"
+```
+
+Of course, the following can also be done:
+```
+    #include "header.h"
+```
+* with __$ tq --include "header.h=new-header.h"__ to 
+```
+    #include "new-header.h"
+```
+
+* _or_ with __$ tq --include "\"header.h\"=<new-header.h>"__ to 
+```
+    #include <new-header.h>
+```
 
 ### Further Refactoring examples
 
@@ -519,7 +553,7 @@ functions to adapt to the change. This can easily be done by
 running:
 
 ```
-    $ rf --tag a=b --function a*=b
+    $ rf --tag a=b --function a_*=b
 ```
 This command uses the '*' character to signal __rf__ that one does not care what
 follows after the '_a_' prefix in a function, effectively refactoring all '_a_'
@@ -533,6 +567,43 @@ With that said, the above command will produce the following piece of code:
     void b_init(struct b *a);
     void b_run(struct b *a);
     void b_destroy(struct b *a);
+```
+
+#### Batching
+
+Specifying a lot of replacements proves unfeasible at some point. __rf__ allows
+you to batch your replacements in a simple yaml file which can be read in.
+Here is a simple template which can be used:
+
+```
+    ---
+    Functions:       
+        - 'f=ff'
+    Macros:          
+        - 'M=MM'
+    Tags:            
+        - 's=ss'
+        - 'c=cc'
+    Variables:
+        - 'v=vv'
+    Includes:
+        - 'i=ii'
+    Namespaces:
+        - 'n=nn'
+    ...
+```
+
+Alternatively, one can create such a file with:
+
+```
+    $ rf --to-yaml --function f=ff --macro M=MM --tag = s=ss,c=cc [...] > my-replacements.yaml
+```
+
+Additional replacements can be easily added later on.
+The file can be read in with:
+
+```
+    $ rf --from-file my-replacements.yaml
 ```
 
 ### Creating a Compilation Database using CMake
