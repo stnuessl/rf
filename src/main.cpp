@@ -268,6 +268,9 @@ static void add(std::vector<RefactoringActionFactory> &Factories,
 
         auto Victim = Arg.substr(0, Index);
         auto Repl = Arg.substr(Index + 1);
+        
+        util::string::trim(Victim);
+        util::string::trim(Repl);
 
         if (Victim == Repl)
             continue;
@@ -458,6 +461,8 @@ int main(int argc, const char **argv)
     auto &ReplacementMap = Tool.getReplacements();
     for (auto &Factory : Factories) {
         for (auto &Refactorer : Factory.refactorers()) {
+            
+            /* There are replacements for each file */
             for (auto &FileRepls : Refactorer->replacements()) {
                 auto &File = FileRepls.first;
                 auto &Repls = FileRepls.second;
