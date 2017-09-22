@@ -68,10 +68,11 @@ void PPCallbackDispatcher::MacroDefined(const clang::Token &MacroName,
 }
 
 void PPCallbackDispatcher::MacroUndefined(const clang::Token &MacroName,
-                                          const clang::MacroDefinition &MD)
+                                          const clang::MacroDefinition &MD,
+                                          const clang::MacroDirective *Undef)
 {
     for (auto &Refactorer : *Refactorers_)
-        Refactorer->MacroUndefined(MacroName, MD);
+        Refactorer->MacroUndefined(MacroName, MD, Undef);
 }
 
 void PPCallbackDispatcher::Defined(const clang::Token &MacroNameTok,

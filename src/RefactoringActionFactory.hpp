@@ -33,8 +33,7 @@ public:
 
     virtual bool BeginInvocation(clang::CompilerInstance &CI) override;
 
-    virtual bool BeginSourceFileAction(clang::CompilerInstance &CI,
-                                       llvm::StringRef File) override;
+    virtual bool BeginSourceFileAction(clang::CompilerInstance &CI) override;
     virtual void EndSourceFileAction() override;
 
     virtual void ExecuteAction() override;

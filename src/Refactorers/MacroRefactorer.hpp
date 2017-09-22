@@ -37,7 +37,8 @@ public:
                               const clang::MacroDirective *MD) override;
 
     virtual void MacroUndefined(const clang::Token &MacroName,
-                                const clang::MacroDefinition &MD) override;
+                                const clang::MacroDefinition &MD,
+                                const clang::MacroDirective *Undef) override;
 
     virtual void Defined(const clang::Token &MacroName,
                          const clang::MacroDefinition &MD,

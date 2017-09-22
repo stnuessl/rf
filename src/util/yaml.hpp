@@ -87,8 +87,6 @@ struct RefactoringArgs {
 }
 }
 
-LLVM_YAML_IS_SEQUENCE_VECTOR(std::string)
-
 namespace llvm {
 namespace yaml {
 

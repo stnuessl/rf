@@ -46,8 +46,11 @@ void MacroRefactorer::MacroDefined(const clang::Token &MacroName,
 }
 
 void MacroRefactorer::MacroUndefined(const clang::Token &MacroName,
-                                     const clang::MacroDefinition &MD)
+                                     const clang::MacroDefinition &MD,
+                                     const clang::MacroDirective *Undef)
 {
+    (void) Undef;
+    
     process(MacroName, MD);
 }
 

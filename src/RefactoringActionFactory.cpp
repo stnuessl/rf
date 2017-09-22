@@ -39,13 +39,14 @@ bool RefactoringAction::BeginInvocation(clang::CompilerInstance &CI)
     return clang::ASTFrontendAction::BeginInvocation(CI);
 }
 
-bool RefactoringAction::BeginSourceFileAction(clang::CompilerInstance &CI,
-                                              llvm::StringRef File)
+bool RefactoringAction::BeginSourceFileAction(clang::CompilerInstance &CI)
 {
     auto Dispatcher = std::make_unique<PPCallbackDispatcher>();
     Dispatcher->setRefactorers(Refactorers_);
 
     CI.getPreprocessor().addPPCallbacks(std::move(Dispatcher));
+    
+    auto File = getCurrentFile();
 
     for (auto &Refactorer : *Refactorers_) {
         Refactorer->setCompilerInstance(&CI);
