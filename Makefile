@@ -42,8 +42,9 @@ ifndef BIN
 $(error No binary name specified)
 endif
 
-SHELL_COMPL	:= ./bash-completion/rf
-SHELL_COMPL_DIR := /usr/share/bash-completion/completions/
+BASH_COMPLETION := bash-completion/rf
+BASH_COMPLETION_INSTALL_DIR := /usr/share/bash-completion/completions/
+BASH_COMPLETION_UNINSTALL_TARGET := /usr/share/bash-completion/completions/rf
 
 #
 # Specify all source files. The paths should be relative to this file.
@@ -325,12 +326,12 @@ clean:
 format:
 	clang-format -i $(HDR) $(SRC)
 
-install: $(TARGET) $(SHELL_COMPL)
+install: $(TARGET) $(BASH_COMPLETION)
 	cp $(TARGET) $(INSTALL_DIR)
-	cp $(SHELL_COMPL) $(SHELL_COMPL_DIR)
+	cp $(BASH_COMPLETION) $(BASH_COMPLETION_INSTALL_DIR)
 
 uninstall:
-	rm -f $(INSTALL_DIR)$(BIN) $(SHELL_COMPL_DIR)$(notdir $(SHELL_COMPL))
+	rm -f $(INSTALL_DIR)$(BIN) $(BASH_COMPLETION_UNINSTALL_TARGET)
 
 .PHONY: all	 							\
 	clean 								\
