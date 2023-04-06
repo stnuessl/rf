@@ -25,20 +25,20 @@
 #include <clang/Frontend/FrontendAction.h>
 #include <clang/Tooling/Tooling.h>
 
-#include <Refactorers/Base/Refactorer.hpp>
+#include "Refactorers/Base/Refactorer.hpp"
 
 class RefactoringAction : public clang::ASTFrontendAction {
 public:
     void setRefactorers(std::vector<std::unique_ptr<Refactorer>> *Refactorers);
 
-    virtual bool BeginInvocation(clang::CompilerInstance &CI) override;
+    bool BeginInvocation(clang::CompilerInstance &CI) override;
 
-    virtual bool BeginSourceFileAction(clang::CompilerInstance &CI) override;
-    virtual void EndSourceFileAction() override;
+    bool BeginSourceFileAction(clang::CompilerInstance &CI) override;
+    void EndSourceFileAction() override;
 
-    virtual void ExecuteAction() override;
+    void ExecuteAction() override;
 
-    virtual std::unique_ptr<clang::ASTConsumer>
+    std::unique_ptr<clang::ASTConsumer>
     CreateASTConsumer(clang::CompilerInstance &CI,
                       llvm::StringRef File) override;
 
@@ -53,7 +53,7 @@ public:
     std::vector<std::unique_ptr<Refactorer>> &refactorers();
     const std::vector<std::unique_ptr<Refactorer>> &refactorers() const;
 
-    virtual clang::FrontendAction *create() override;
+    std::unique_ptr<clang::FrontendAction> create() override;
 
 private:
     std::vector<std::unique_ptr<Refactorer>> Refactorers_;

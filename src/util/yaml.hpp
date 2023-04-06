@@ -64,7 +64,7 @@ void write(const llvm::StringRef Path, T &Object)
 {
     std::error_code Error;
 
-    llvm::raw_fd_ostream OS(Path, Error, llvm::sys::fs::F_Text);
+    llvm::raw_fd_ostream OS(Path, Error, llvm::sys::fs::OF_Text);
 
     if (Error) {
         llvm::errs() << util::cl::Error() << "failed to open \"" << Path

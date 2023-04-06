@@ -26,7 +26,7 @@
 
 #include <clang/Lex/MacroInfo.h>
 
-#include <Refactorers/Base/Refactorer.hpp>
+#include "Refactorers/Base/Refactorer.hpp"
 
 /*
  * Base class for Refactorers which want to replace a name with a new one.
@@ -54,8 +54,8 @@ protected:
     void addReplacement(clang::SourceLocation Loc);
 
 private:
-    bool isEqualToVictim(const std::string &Name) const;
-    bool isEqualToVictimPrefix(const std::string &Name) const;
+    bool isEqualToVictim(llvm::StringRef Name) const;
+    bool isEqualToVictimPrefix(llvm::StringRef Name) const;
 
     void setVictimQualifier(std::string &&Victim,
                             std::string::iterator Begin,
@@ -75,7 +75,7 @@ private:
     unsigned int Line_;
     unsigned int Column_;
 
-    std::function<bool(const NameRefactorer &, const std::string &)>
+    std::function<bool(const NameRefactorer &, llvm::StringRef Name)>
         IsEqualFunc_;
 };
 

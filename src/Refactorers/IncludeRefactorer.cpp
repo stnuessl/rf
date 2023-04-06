@@ -20,37 +20,36 @@
 
 #include <llvm/Support/FileSystem.h>
 
-#include <util/commandline.hpp>
+#include "util/commandline.hpp"
 
-#include <Refactorers/IncludeRefactorer.hpp>
-
+#include "Refactorers/IncludeRefactorer.hpp"
 
 static bool hasEncloser(llvm::StringRef String)
 {
     if (String.empty())
         return false;
-    
+
     auto Front = String.front();
     auto Back = String.back();
-    
+
     return (Front == '<' && Back == '>') || (Front == '"' && Back == '"');
 }
 
 void IncludeRefactorer::setVictimQualifier(std::string Victim)
 {
     if (Victim.empty()) {
-        llvm::errs() << util::cl::Error() 
+        llvm::errs() << util::cl::Error()
                      << "empty victim qualifier in include refactorer.\n";
         std::exit(EXIT_FAILURE);
     }
-    
+
     if (!ReplName_.empty() && hasEncloser(ReplName_) != hasEncloser(Victim)) {
-        llvm::errs() << util::cl::Error()
-                     << "\"" <<  Victim << "\" and \"" << ReplName_ << "\": "
+        llvm::errs() << util::cl::Error() << "\"" << Victim << "\" and \""
+                     << ReplName_ << "\": "
                      << "either both specify an encloser or none.\n";
         std::exit(EXIT_FAILURE);
     }
-        
+
     Victim_ = std::move(Victim);
 }
 
@@ -62,29 +61,27 @@ const std::string &IncludeRefactorer::victimQualifier() const
 void IncludeRefactorer::setReplacementQualifier(std::string Repl)
 {
     if (Repl.empty()) {
-        llvm::errs() << util::cl::Error() 
+        llvm::errs() << util::cl::Error()
                      << "empty replacement qualifier in include refactorer.\n";
         std::exit(EXIT_FAILURE);
     }
-    
+
     auto Front = Repl.front();
-    auto Back  = Repl.back();
-    
+    auto Back = Repl.back();
+
     if ((Front == '<' && Back != '>') || (Front == '"' && Back != '"')) {
-        llvm::errs() << util::cl::Error() 
-                     << "\"" << Repl << "\" "
+        llvm::errs() << util::cl::Error() << "\"" << Repl << "\" "
                      << "has unmatching enclosing characters.\n";
         std::exit(EXIT_FAILURE);
     }
-    
+
     if (!Victim_.empty() && hasEncloser(Victim_) != hasEncloser(Repl)) {
-        llvm::errs() << util::cl::Error()
-                     << "\"" <<  Victim_ << "\" and \"" << Repl << "\": "
+        llvm::errs() << util::cl::Error() << "\"" << Victim_ << "\" and \""
+                     << Repl << "\": "
                      << "either both specify an encloser or none.\n";
         std::exit(EXIT_FAILURE);
     }
 
-    
     ReplName_ = std::move(Repl);
 }
 
@@ -93,46 +90,48 @@ const std::string &IncludeRefactorer::replacementQualifier() const
     return ReplName_;
 }
 
-
-void IncludeRefactorer::InclusionDirective(clang::SourceLocation LocBegin, 
-                                           const clang::Token &Token, 
-                                           llvm::StringRef FileName, 
-                                           bool isAngled, 
-                                           clang::CharSourceRange NameRange, 
-                                           const clang::FileEntry *File, 
-                                           llvm::StringRef SearchPath, 
-                                           llvm::StringRef RelativePath, 
-                                           const clang::Module *Module)
+void IncludeRefactorer::InclusionDirective(
+    clang::SourceLocation HashLoc,
+    const clang::Token &IncludeTok,
+    llvm::StringRef FileName,
+    bool IsAngled,
+    clang::CharSourceRange FilenameRange,
+    clang::Optional<clang::FileEntryRef> File,
+    llvm::StringRef SearchPath,
+    llvm::StringRef RelativePath,
+    const clang::Module *Imported,
+    clang::SrcMgr::CharacteristicKind FileType)
 {
-    (void) LocBegin;
-    (void) Token;
+    (void) HashLoc;
+    (void) IncludeTok;
     (void) File;
     (void) SearchPath;
     (void) RelativePath;
-    (void) Module;
-    
+    (void) Imported;
+    (void) FileType;
+
     if (Victim_.empty() || ReplName_.empty())
         return;
 
-    if ((isAngled && Victim_[0] == '<') || (!isAngled && Victim_[0] == '"')) {
+    if ((IsAngled && Victim_[0] == '<') || (!IsAngled && Victim_[0] == '"')) {
         auto VBegin = std::next(Victim_.begin(), 1);
         auto VEnd = std::prev(Victim_.end(), 1);
-        
+
         auto FBegin = FileName.begin();
         auto FEnd = FileName.end();
-        
+
         if (std::distance(VBegin, VEnd) != std::distance(FBegin, FEnd))
             return;
-        
+
         if (!std::equal(VBegin, VEnd, FBegin))
             return;
-        
-        auto EncloserLocBegin = NameRange.getBegin();
+
+        auto EncloserLocBegin = FilenameRange.getBegin();
         addReplacement(EncloserLocBegin);
-        
+
     } else if (Victim_ == FileName) {
         /* Skip the enclosing '"' or '<' */
-        auto EncloserLocBegin = NameRange.getBegin();
+        auto EncloserLocBegin = FilenameRange.getBegin();
         addReplacement(EncloserLocBegin.getLocWithOffset(1));
     }
 }

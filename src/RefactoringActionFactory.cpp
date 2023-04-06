@@ -19,14 +19,13 @@
  */
 
 #include <clang/Frontend/FrontendActions.h>
-#include <clang/Lex/PTHManager.h>
 #include <clang/Lex/Preprocessor.h>
 
-#include <PPCallbackDispatcher.hpp>
-#include <RefactoringASTConsumer.hpp>
-#include <RefactoringActionFactory.hpp>
+#include "PPCallbackDispatcher.hpp"
+#include "RefactoringASTConsumer.hpp"
+#include "RefactoringActionFactory.hpp"
 
-#include <util/memory.hpp>
+#include "util/memory.hpp"
 
 void RefactoringAction::setRefactorers(
     std::vector<std::unique_ptr<Refactorer>> *Refactorers)
@@ -92,12 +91,12 @@ RefactoringActionFactory::refactorers() const
     return Refactorers_;
 }
 
-clang::FrontendAction *RefactoringActionFactory::create()
+std::unique_ptr<clang::FrontendAction> RefactoringActionFactory::create()
 {
     if (Refactorers_.empty())
-        return new clang::SyntaxOnlyAction();
+        return std::make_unique<clang::SyntaxOnlyAction>();
 
-    auto Action = new RefactoringAction();
+    auto Action = std::make_unique<RefactoringAction>();
     Action->setRefactorers(&Refactorers_);
 
     return Action;

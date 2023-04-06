@@ -20,9 +20,9 @@
 
 #include <algorithm>
 
-#include <Refactorers/Base/NameRefactorer.hpp>
+#include "Refactorers/Base/NameRefactorer.hpp"
 
-#include <util/commandline.hpp>
+#include "util/commandline.hpp"
 
 template <typename Iter>
 static bool isNumber(Iter Begin, Iter End)
@@ -120,14 +120,14 @@ void NameRefactorer::setVictimQualifier(std::string Victim)
 
         /*
          * We have to set / update '_Replsize' here in case the last
-         * section is a * source location specifier
+         * section is a source location specifier
          */
         ReplSize_ = std::distance(Begin, It);
         Begin = It + 2;
     }
 
-    llvm::errs() << util::cl::Error() << "invalid victim qualifier \"" << Victim
-                 << "\"\n";
+    llvm::errs() << util::cl::Error() << "invalid victim qualifier \"" 
+                 << Victim << "\"\n";
 
     std::exit(EXIT_FAILURE);
 }
@@ -185,17 +185,14 @@ void NameRefactorer::addReplacement(clang::SourceLocation Loc)
     Refactorer::addReplacement(Loc, ReplSize_, ReplName_);
 }
 
-bool NameRefactorer::isEqualToVictim(const std::string &Name) const
+bool NameRefactorer::isEqualToVictim(llvm::StringRef Name) const
 {
-    return Victim_ == Name;
+    return Name.equals(Victim_);
 }
 
-bool NameRefactorer::isEqualToVictimPrefix(const std::string &Name) const
+bool NameRefactorer::isEqualToVictimPrefix(llvm::StringRef Name) const
 {
-    if (Name.size() < Victim_.size())
-        return false;
-
-    return std::equal(Victim_.begin(), Victim_.end(), Name.begin());
+    return Name.startswith(Victim_);
 }
 
 void NameRefactorer::setVictimQualifier(std::string &&Victim,

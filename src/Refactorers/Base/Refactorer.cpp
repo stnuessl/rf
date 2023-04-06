@@ -24,8 +24,8 @@
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/Path.h>
 
-#include <Refactorers/Base/Refactorer.hpp>
-#include <util/commandline.hpp>
+#include "Refactorers/Base/Refactorer.hpp"
+#include "util/commandline.hpp"
 
 void Refactorer::setCompilerInstance(clang::CompilerInstance *CI)
 {
@@ -310,7 +310,7 @@ void Refactorer::addReplacement(const clang::SourceManager &SM,
     
 
     auto Repl = clang::tooling::Replacement(File, Offset, Length, ReplText);
-    auto Error = ReplacementMap_[File].add(std::move(Repl));
+    auto Error = ReplacementMap_[File.str()].add(std::move(Repl));
     if (Error) {
         llvm::errs() << util::cl::Error()
                      << "failed to add replacement - "

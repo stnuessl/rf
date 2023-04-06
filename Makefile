@@ -134,27 +134,11 @@ PKGCONF		:= \
 # Set non-pkg-configurable libraries flags 
 #
 LIBS		:= \
-		-pthread						\
-		-Wl,--start-group					\
-		-lclangAnalysis 					\
-		-lclangAST 						\
-		-lclangBasic						\
-		-lclangDriver 						\
-		-lclangEdit 						\
-		-lclangFormat						\
-		-lclangFrontend 					\
-		-lclangFrontendTool 					\
-		-lclangLex 						\
-		-lclangParse 						\
-		-lclangRewrite						\
-		-lclangRewriteFrontend 					\
-		-lclangSema 						\
-		-lclangSerialization 					\
-		-lclangTooling						\
-		-lclangToolingCore					\
-		-Wl,--end-group						\
-		$(shell llvm-config --libs)				\
-		$(shell llvm-config --system-libs)			\
+		-pthread \
+		-lclang-cpp \
+		$(shell llvm-config --libs) \
+		$(shell llvm-config --system-libs) \
+
 
 #
 # Set linker flags, here: 'rpath' for libraries in non-standard directories

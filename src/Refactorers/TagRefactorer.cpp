@@ -20,7 +20,7 @@
 
 #include <clang/AST/DeclTemplate.h>
 
-#include <Refactorers/TagRefactorer.hpp>
+#include "Refactorers/TagRefactorer.hpp"
 
 static clang::SourceLocation getLastTypeLocation(const clang::TypeLoc &TypeLoc)
 {
@@ -121,7 +121,7 @@ void TagRefactorer::visitInjectedClassNameTypeLoc(
      */
     auto RecordDecl = TypeLoc.getDecl();
     if (isVictim(RecordDecl)) {
-        auto Loc = TypeLoc.getLocStart();
+        auto Loc = TypeLoc.getBeginLoc();
         addReplacement(Loc);
     }
 }
@@ -168,7 +168,7 @@ void TagRefactorer::visitTagTypeLoc(const clang::TagTypeLoc &TypeLoc)
 {
     auto TagDecl = TypeLoc.getDecl();
     if (isVictim(TagDecl)) {
-        auto Loc = TypeLoc.getLocStart();
+        auto Loc = TypeLoc.getBeginLoc();
         addReplacement(Loc);
     }
 }
@@ -195,7 +195,7 @@ void TagRefactorer::visitTemplateSpecializationTypeLoc(
         auto TemplateDecl = TemplateName.getAsTemplateDecl();
 
         if (isVictim(TemplateDecl)) {
-            auto Loc = TypeLoc.getLocStart();
+            auto Loc = TypeLoc.getBeginLoc();
             addReplacement(Loc);
         }
     }

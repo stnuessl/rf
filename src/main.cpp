@@ -36,22 +36,22 @@
 
 #include <llvm/Support/CommandLine.h>
 
-#include <Refactorers/EnumConstantRefactorer.hpp>
-#include <Refactorers/FunctionRefactorer.hpp>
-#include <Refactorers/IncludeRefactorer.hpp>
-#include <Refactorers/MacroRefactorer.hpp>
-#include <Refactorers/NamespaceRefactorer.hpp>
-#include <Refactorers/TagRefactorer.hpp>
-#include <Refactorers/VariableRefactorer.hpp>
+#include "Refactorers/EnumConstantRefactorer.hpp"
+#include "Refactorers/FunctionRefactorer.hpp"
+#include "Refactorers/IncludeRefactorer.hpp"
+#include "Refactorers/MacroRefactorer.hpp"
+#include "Refactorers/NamespaceRefactorer.hpp"
+#include "Refactorers/TagRefactorer.hpp"
+#include "Refactorers/VariableRefactorer.hpp"
 
-#include <util/commandline.hpp>
-#include <util/CompilationDatabase.hpp>
-#include <util/memory.hpp>
-#include <util/string.hpp>
-#include <util/yaml.hpp>
+#include "util/commandline.hpp"
+#include "util/CompilationDatabase.hpp"
+#include "util/memory.hpp"
+#include "util/string.hpp"
+#include "util/yaml.hpp"
 
-#include <RefactoringActionFactory.hpp>
-#include <ToolThread.hpp>
+#include "RefactoringActionFactory.hpp"
+#include "ToolThread.hpp"
 
 static llvm::cl::OptionCategory RefactoringOptions("Code Refactoring Options");
 static llvm::cl::OptionCategory ProgramSetupOptions("Program Setup Options");
@@ -308,10 +308,10 @@ int main(int argc, const char **argv)
 
     llvm::cl::HideUnrelatedOptions(OptionCategories);
 
-    const auto print_version = []() {
-        llvm::outs() << "rf version: " << RF_VERSION_INFO << " - "
-                     << RF_HOMEPAGE_URL << "\n"
-                     << RF_LICENSE_INFO << "\n";
+    const auto print_version = [](llvm::raw_ostream &Out) {
+        Out << "rf version: " << RF_VERSION_INFO << " - "
+            << RF_HOMEPAGE_URL << "\n"
+            << RF_LICENSE_INFO << "\n";
     };
 
     llvm::cl::SetVersionPrinter(print_version);
@@ -497,7 +497,7 @@ int main(int argc, const char **argv)
             auto &Repls = FileRepls.second;
             
             auto FileEntry = FileManager.getFile(File);
-            auto ID = SM.getOrCreateFileID(FileEntry, clang::SrcMgr::C_User);
+            auto ID = SM.getOrCreateFileID(*FileEntry, clang::SrcMgr::C_User);
 
             for (const auto &Repl : Repls) {
                 auto Offset = Repl.getOffset();

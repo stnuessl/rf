@@ -24,14 +24,14 @@ import argparse
 import os
 import json
 import re
-import distutils.version
+import packaging.version
 
 def clang_include_directory():
     regex = re.compile(r'[0-9]+\.[0-9]+\.[0-9]+')
     entries = os.listdir('/usr/lib/clang/')
     
     entries = filter(lambda x: regex.match(x), entries)
-    entries = sorted(entries, key=distutils.version.StrictVersion)
+    entries = sorted(entries, key=packaging.version.Version)
 
     if len(entries) == 0:
         raise FileNotFoundError('No clang installation directory found')

@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <PPCallbackDispatcher.hpp>
+#include "PPCallbackDispatcher.hpp"
 
 void PPCallbackDispatcher::setRefactorers(
     std::vector<std::unique_ptr<Refactorer>> *Refactorers)
@@ -26,29 +26,31 @@ void PPCallbackDispatcher::setRefactorers(
     Refactorers_ = Refactorers;
 }
 
-void PPCallbackDispatcher::InclusionDirective(clang::SourceLocation LocBegin,
-                                              const clang::Token &Token,
-                                              llvm::StringRef FileName,
-                                              bool isAngled,
-                                              clang::CharSourceRange NameRange,
-                                              const clang::FileEntry *File,
-                                              llvm::StringRef SearchPath,
-                                              llvm::StringRef RelativePath,
-                                              const clang::Module *Module)
+void PPCallbackDispatcher::InclusionDirective(
+    clang::SourceLocation HashLoc,
+    const clang::Token &IncludeTok,
+    llvm::StringRef FileName,
+    bool IsAngled,
+    clang::CharSourceRange FilenameRange,
+    clang::Optional<clang::FileEntryRef> File,
+    llvm::StringRef SearchPath,
+    llvm::StringRef RelativePath,
+    const clang::Module *Imported,
+    clang::SrcMgr::CharacteristicKind FileType)
 {
     for (auto &Refactorer : *Refactorers_) {
-        Refactorer->InclusionDirective(LocBegin, Token, FileName, isAngled,
-                                       NameRange, File, SearchPath,
-                                       RelativePath, Module);
+        Refactorer->InclusionDirective(HashLoc, IncludeTok, FileName, IsAngled,
+                                       FilenameRange, File, SearchPath,
+                                       RelativePath, Imported, FileType);
     }
 }
 
-void PPCallbackDispatcher::FileSkipped(const clang::FileEntry &SkippedFile,
-                                       const clang::Token &FileNameToken,
+void PPCallbackDispatcher::FileSkipped(const clang::FileEntryRef &SkippedFile,
+                                       const clang::Token &FilenameToken,
                                        clang::SrcMgr::CharacteristicKind Kind)
 {
     for (auto &Refactorer : *Refactorers_)
-        Refactorer->FileSkipped(SkippedFile, FileNameToken, Kind);
+        Refactorer->FileSkipped(SkippedFile, FilenameToken, Kind);
 }
 
 void PPCallbackDispatcher::MacroExpands(const clang::Token &Token,

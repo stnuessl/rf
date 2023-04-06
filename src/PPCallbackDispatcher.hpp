@@ -25,58 +25,60 @@
 #include <clang/Lex/MacroInfo.h>
 #include <clang/Lex/PPCallbacks.h>
 
-#include <Refactorers/Base/Refactorer.hpp>
+#include "Refactorers/Base/Refactorer.hpp"
 
 class PPCallbackDispatcher : public clang::PPCallbacks {
 public:
     void setRefactorers(std::vector<std::unique_ptr<Refactorer>> *Refactorers);
 
-    virtual void InclusionDirective(clang::SourceLocation LocBegin,
-                                    const clang::Token &Token,
-                                    llvm::StringRef FileName,
-                                    bool isAngled,
-                                    clang::CharSourceRange NameRange,
-                                    const clang::FileEntry *File,
-                                    llvm::StringRef SearchPath,
-                                    llvm::StringRef RelativePath,
-                                    const clang::Module *Module) override;
+    void
+    InclusionDirective(clang::SourceLocation HashLoc,
+                       const clang::Token &IncludeTok,
+                       llvm::StringRef FileName,
+                       bool IsAngled,
+                       clang::CharSourceRange FilenameRange,
+                       clang::Optional<clang::FileEntryRef> File,
+                       llvm::StringRef SearchPath,
+                       llvm::StringRef RelativePath,
+                       const clang::Module *Imported,
+                       clang::SrcMgr::CharacteristicKind FileType) override;
 
-    virtual void FileSkipped(const clang::FileEntry &SkippedFile,
-                             const clang::Token &FileNameToken,
-                             clang::SrcMgr::CharacteristicKind Kind) override;
+    void FileSkipped(const clang::FileEntryRef &SkippedFile,
+                     const clang::Token &FilenameTok,
+                     clang::SrcMgr::CharacteristicKind FileType) override;
 
-    virtual void MacroExpands(const clang::Token &Token,
-                              const clang::MacroDefinition &MacroDef,
-                              clang::SourceRange Range,
-                              const clang::MacroArgs *Args) override;
+    void MacroExpands(const clang::Token &Token,
+                      const clang::MacroDefinition &MacroDef,
+                      clang::SourceRange Range,
+                      const clang::MacroArgs *Args) override;
 
-    virtual void MacroDefined(const clang::Token &MacroName,
-                              const clang::MacroDirective *MD) override;
+    void MacroDefined(const clang::Token &MacroName,
+                      const clang::MacroDirective *MD) override;
 
-    virtual void MacroUndefined(const clang::Token &MacroName,
-                                const clang::MacroDefinition &MD,
-                                const clang::MacroDirective *Undef) override;
+    void MacroUndefined(const clang::Token &MacroName,
+                        const clang::MacroDefinition &MD,
+                        const clang::MacroDirective *Undef) override;
 
-    virtual void Defined(const clang::Token &MacroNameTok,
-                         const clang::MacroDefinition &MD,
-                         clang::SourceRange Range) override;
+    void Defined(const clang::Token &MacroNameTok,
+                 const clang::MacroDefinition &MD,
+                 clang::SourceRange Range) override;
 
-    virtual void If(clang::SourceLocation Loc,
-                    clang::SourceRange ConditionRange,
-                    clang::PPCallbacks::ConditionValueKind ValueKind) override;
+    void If(clang::SourceLocation Loc,
+            clang::SourceRange ConditionRange,
+            clang::PPCallbacks::ConditionValueKind ValueKind) override;
 
-    virtual void Elif(clang::SourceLocation Loc,
-                      clang::SourceRange ConditionRange,
-                      clang::PPCallbacks::ConditionValueKind Kind,
-                      clang::SourceLocation IfLoc) override;
+    void Elif(clang::SourceLocation Loc,
+              clang::SourceRange ConditionRange,
+              clang::PPCallbacks::ConditionValueKind Kind,
+              clang::SourceLocation IfLoc) override;
 
-    virtual void Ifdef(clang::SourceLocation Loc,
-                       const clang::Token &MacroNameTok,
-                       const clang::MacroDefinition &MD) override;
+    void Ifdef(clang::SourceLocation Loc,
+               const clang::Token &MacroNameTok,
+               const clang::MacroDefinition &MD) override;
 
-    virtual void Ifndef(clang::SourceLocation Loc,
-                        const clang::Token &MacroNameTok,
-                        const clang::MacroDefinition &MD) override;
+    void Ifndef(clang::SourceLocation Loc,
+                const clang::Token &MacroNameTok,
+                const clang::MacroDefinition &MD) override;
 
 private:
     std::vector<std::unique_ptr<Refactorer>> *Refactorers_;

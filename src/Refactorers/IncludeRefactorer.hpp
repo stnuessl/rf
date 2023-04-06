@@ -21,30 +21,33 @@
 #ifndef RF_INCLUDE_REFACTORER_HPP_
 #define RF_INCLUDE_REFACTORER_HPP_
 
-#include <Refactorers/Base/Refactorer.hpp>
+#include "Refactorers/Base/Refactorer.hpp"
 
 class IncludeRefactorer : public Refactorer {
 public:
     IncludeRefactorer() = default;
-    
+
     void setVictimQualifier(std::string Victim);
     const std::string &victimQualifier() const;
-    
+
     void setReplacementQualifier(std::string Repl);
     const std::string &replacementQualifier() const;
-    
-    virtual void InclusionDirective(clang::SourceLocation LocBegin,
-                                    const clang::Token &Token,
-                                    llvm::StringRef FileName,
-                                    bool isAngled,
-                                    clang::CharSourceRange NameRange,
-                                    const clang::FileEntry *File,
-                                    llvm::StringRef SearchPath,
-                                    llvm::StringRef RelativePath,
-                                    const clang::Module *Module) override;
+
+    void
+    InclusionDirective(clang::SourceLocation HashLoc,
+                       const clang::Token &IncludeTok,
+                       llvm::StringRef FileName,
+                       bool IsAngled,
+                       clang::CharSourceRange FilenameRange,
+                       clang::Optional<clang::FileEntryRef> File,
+                       llvm::StringRef SearchPath,
+                       llvm::StringRef RelativePath,
+                       const clang::Module *Imported,
+                       clang::SrcMgr::CharacteristicKind FileType) override;
+
 private:
     void addReplacement(clang::SourceLocation Loc);
-    
+
     std::string Victim_;
     std::string ReplName_;
 };
